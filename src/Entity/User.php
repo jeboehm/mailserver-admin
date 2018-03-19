@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of the mailserver-admin package.
+ * (c) Jeffrey Boehm <https://github.com/jeboehm/mailserver-admin>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -7,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
+ * @ORM\Entity()
  * @ORM\Table(name="virtual_users")
  * @UniqueEntity("email")
  */
@@ -22,6 +30,7 @@ class User
 
     /**
      * @ORM\ManyToOne(targetEntity="Domain", inversedBy="users")
+     * @Assert\NotNull()
      */
     private $domain;
 
@@ -30,27 +39,32 @@ class User
      * @Assert\NotBlank()
      * @Assert\Email()
      */
-    private $email;
+    private $email = '';
 
     /**
      * @ORM\Column(type="string", name="password")
      * @Assert\NotBlank()
      */
-    private $password;
+    private $password = '';
 
-    public function __construct(Domain $domain)
+    public function __toString(): string
     {
-        $this->domain = $domain;
+        return $this->email;
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDomain(): Domain
+    public function getDomain(): ?Domain
     {
         return $this->domain;
+    }
+
+    public function setDomain(Domain $domain): void
+    {
+        $this->domain = $domain;
     }
 
     public function getEmail(): string

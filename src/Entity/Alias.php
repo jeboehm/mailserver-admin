@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of the mailserver-admin package.
+ * (c) Jeffrey Boehm <https://github.com/jeboehm/mailserver-admin>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
@@ -7,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\AliasRepository")
+ * @ORM\Entity()
  * @ORM\Table(name="virtual_aliases")
  * @UniqueEntity(fields={"source", "destination"})
  */
@@ -22,6 +30,7 @@ class Alias
 
     /**
      * @ORM\ManyToOne(targetEntity="Domain", inversedBy="aliases")
+     * @Assert\NotNull()
      */
     private $domain;
 
@@ -30,28 +39,33 @@ class Alias
      * @Assert\NotBlank()
      * @Assert\Email()
      */
-    private $source;
+    private $source = '';
 
     /**
      * @ORM\Column(type="string", name="destination")
      * @Assert\NotBlank()
      * @Assert\Email()
      */
-    private $destination;
+    private $destination = '';
 
-    public function __construct(Domain $domain)
+    public function __toString(): string
     {
-        $this->domain = $domain;
+        return sprintf('%s → %s', $this->source, $this->destination);
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDomain(): Domain
+    public function getDomain(): ?Domain
     {
         return $this->domain;
+    }
+
+    public function setDomain(Domain $domain): void
+    {
+        $this->domain = $domain;
     }
 
     public function getSource(): string
