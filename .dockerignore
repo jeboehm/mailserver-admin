@@ -1,0 +1,9 @@
+var/cache/
+var/log/
+.git*
+node_modules/
+vendor/
+public/build/
+docker-*
+Dockerfile*
+.env
