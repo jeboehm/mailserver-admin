@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Security\Subscriber;
+namespace App\Subscriber;
 
 use App\Entity\User;
 use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
