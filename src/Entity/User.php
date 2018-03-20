@@ -18,8 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ORM\Table(name="virtual_users")
- * @UniqueEntity("email")
+ * @ORM\Table(name="mail_users", uniqueConstraints={@ORM\UniqueConstraint(name="user_idx", columns={"name", "domain_id"})})
+ * @UniqueEntity({"name", "domain"})
  */
 class User implements UserInterface, Serializable
 {
@@ -37,11 +37,11 @@ class User implements UserInterface, Serializable
     private $domain;
 
     /**
-     * @ORM\Column(type="string", name="email", unique=true)
+     * @ORM\Column(type="string", name="name")
      * @Assert\NotBlank()
-     * @Assert\Email()
+     * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
-    private $email = '';
+    private $name = '';
 
     /**
      * @ORM\Column(type="string", name="password")
@@ -57,12 +57,11 @@ class User implements UserInterface, Serializable
 
     public function __toString(): string
     {
-        return $this->email;
-    }
+        if ($this->getDomain()) {
+            return sprintf('%s@%s', $this->name, $this->getDomain()->getName());
+        }
 
-    public function getId(): ?int
-    {
-        return $this->id;
+        return '';
     }
 
     public function getDomain(): ?Domain
@@ -75,14 +74,19 @@ class User implements UserInterface, Serializable
         $this->domain = $domain;
     }
 
-    public function getEmail(): string
+    public function getId(): ?int
     {
-        return $this->email;
+        return $this->id;
     }
 
-    public function setEmail($email): void
+    public function getName(): string
     {
-        $this->email = mb_strtolower($email);
+        return $this->name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     public function getPassword(): string
@@ -112,7 +116,7 @@ class User implements UserInterface, Serializable
 
     public function getUsername(): string
     {
-        return $this->email;
+        return (string) $this;
     }
 
     public function eraseCredentials(): void
@@ -122,14 +126,14 @@ class User implements UserInterface, Serializable
 
     public function serialize(): string
     {
-        return serialize([$this->id, $this->email, $this->password, $this->roles]);
+        return serialize([$this->id, $this->name, $this->password, $this->roles]);
     }
 
     public function unserialize($serialized): void
     {
         [
             $this->id,
-            $this->email,
+            $this->name,
             $this->password,
             $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);

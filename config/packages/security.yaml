@@ -14,6 +14,7 @@ security:
         main:
             anonymous: false
             http_basic: true
+            logout: true
 
     access_control:
         - { path: ^/, roles: ROLE_ADMIN }

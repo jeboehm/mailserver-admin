@@ -1,0 +1,3 @@
+doctrine_migrations:
+    namespace: 'App\Migrations'
+    dir_name: 'src/Migrations'

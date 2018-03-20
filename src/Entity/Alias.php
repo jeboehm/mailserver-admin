@@ -16,8 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\AliasRepository")
- * @ORM\Table(name="virtual_aliases")
- * @UniqueEntity(fields={"source", "destination"})
+ * @ORM\Table(name="mail_aliases", uniqueConstraints={@ORM\UniqueConstraint(name="alias_idx", columns={"domain_id", "name", "destination"})})
+ * @UniqueEntity(fields={"destination", "name", "domain"})
  */
 class Alias
 {
@@ -35,11 +35,11 @@ class Alias
     private $domain;
 
     /**
-     * @ORM\Column(type="string", name="source")
+     * @ORM\Column(type="string", name="name")
      * @Assert\NotBlank()
-     * @Assert\Email()
+     * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
-    private $source = '';
+    private $name = '';
 
     /**
      * @ORM\Column(type="string", name="destination")
@@ -50,12 +50,11 @@ class Alias
 
     public function __toString(): string
     {
-        return sprintf('%s → %s', $this->source, $this->destination);
-    }
+        if ($this->getDomain()) {
+            return sprintf('%s@%s → %s', $this->name, $this->getDomain()->getName(), $this->destination);
+        }
 
-    public function getId(): ?int
-    {
-        return $this->id;
+        return '';
     }
 
     public function getDomain(): ?Domain
@@ -68,14 +67,19 @@ class Alias
         $this->domain = $domain;
     }
 
-    public function getSource(): string
+    public function getId(): ?int
     {
-        return $this->source;
+        return $this->id;
     }
 
-    public function setSource(string $source): void
+    public function getName(): string
     {
-        $this->source = $source;
+        return $this->name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     public function getDestination(): string

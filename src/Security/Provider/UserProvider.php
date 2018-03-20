@@ -17,11 +17,6 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-/**
- * Class UserProvider.
- *
- * @author Jeffrey Boehm <jeffrey.boehm@twt.de>
- */
 class UserProvider implements UserProviderInterface
 {
     private $userRepository;
@@ -49,18 +44,18 @@ class UserProvider implements UserProviderInterface
             );
         }
 
-        return $this->loadUserByUsername($user->getEmail());
+        return $this->loadUserByUsername((string) $user);
     }
 
     public function loadUserByUsername($username): User
     {
-        $user = $this->userRepository->findOneBy(['email' => (string) $username]);
+        $user = $this->userRepository->findOneByEmailAddress((string) $username);
 
-        if (!$user) {
+        if (!$user || $user->getPassword() === '') {
             throw new UsernameNotFoundException(sprintf('Address "%s" not found or not permitted.', $username));
         }
 
-        if (in_array($user->getEmail(), $this->admins, true)) {
+        if (in_array((string) $user, $this->admins, true)) {
             $user->addRole('ROLE_ADMIN');
         }
 

@@ -19,10 +19,11 @@ easy_admin:
                 sort: ['domain.name', 'ASC']
                 fields:
                     - { property: 'domain' }
-                    - { property: 'email', type: 'email' }
+                    - { property: 'name', type: 'text' }
             form:
                 fields:
-                    - { property: 'email' }
+                    - { property: 'domain' }
+                    - { property: 'name', type: 'text' }
                     - { property: 'plainPassword', type: 'password', label: 'Password' }
 
         Alias:
@@ -31,5 +32,10 @@ easy_admin:
                 sort: ['domain.name', 'ASC']
                 fields:
                     - { property: 'domain' }
-                    - { property: 'source', type: 'email' }
+                    - { property: 'name', type: 'text' }
+                    - { property: 'destination', type: 'email' }
+            form:
+                fields:
+                    - { property: 'domain' }
+                    - { property: 'name', type: 'text' }
                     - { property: 'destination', type: 'email' }

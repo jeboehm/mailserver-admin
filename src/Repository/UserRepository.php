@@ -27,16 +27,22 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    /*
-    public function findBySomething($value)
+    public function findOneByEmailAddress(string $emailAddress): ?User
     {
-        return $this->createQueryBuilder('u')
-            ->where('u.something = :value')->setParameter('value', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $parts = explode('@', $emailAddress, 2);
+
+        if (2 !== count($parts)) {
+            return null;
+        }
+
+        $qb = $this->createQueryBuilder('user');
+        $qb
+            ->join('user.domain', 'domain')
+            ->andWhere($qb->expr()->eq('user.name', ':localPart'))
+            ->andWhere($qb->expr()->eq('domain.name', ':domainPart'))
+            ->setParameter('localPart', $parts[0])
+            ->setParameter('domainPart', $parts[1]);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
-    */
 }
