@@ -49,12 +49,7 @@ class User implements UserInterface, Serializable
      */
     private $password = '';
 
-    private $roles;
-
-    public function __construct()
-    {
-        $this->roles[] = 'ROLE_USER';
-    }
+    private $roles = ['ROLE_USER'];
 
     public function __toString(): string
     {
@@ -106,7 +101,7 @@ class User implements UserInterface, Serializable
         $this->roles[] = $role;
     }
 
-    public function getSalt()
+    public function getSalt(): string
     {
         return explode('$', $this->password, 5)[3];
     }
@@ -122,7 +117,7 @@ class User implements UserInterface, Serializable
 
     public function serialize(): string
     {
-        return serialize([$this->id, $this->email, $this->password]);
+        return serialize([$this->id, $this->email, $this->password, $this->roles]);
     }
 
     public function unserialize($serialized): void
@@ -131,6 +126,7 @@ class User implements UserInterface, Serializable
             $this->id,
             $this->email,
             $this->password,
+            $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 }
