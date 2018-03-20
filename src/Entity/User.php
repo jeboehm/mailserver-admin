@@ -11,15 +11,17 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @ORM\Table(name="virtual_users")
  * @UniqueEntity("email")
  */
-class User
+class User implements UserInterface, Serializable
 {
     /**
      * @ORM\Id()
@@ -46,6 +48,13 @@ class User
      * @Assert\NotBlank()
      */
     private $password = '';
+
+    private $roles;
+
+    public function __construct()
+    {
+        $this->roles[] = 'ROLE_USER';
+    }
 
     public function __toString(): string
     {
@@ -74,7 +83,7 @@ class User
 
     public function setEmail($email): void
     {
-        $this->email = $email;
+        $this->email = mb_strtolower($email);
     }
 
     public function getPassword(): string
@@ -85,5 +94,43 @@ class User
     public function setPassword(string $password): void
     {
         $this->password = $password;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    public function addRole(string $role): void
+    {
+        $this->roles[] = $role;
+    }
+
+    public function getSalt()
+    {
+        return explode('$', $this->password, 5)[3];
+    }
+
+    public function getUsername(): string
+    {
+        return $this->email;
+    }
+
+    public function eraseCredentials(): void
+    {
+    }
+
+    public function serialize(): string
+    {
+        return serialize([$this->id, $this->email, $this->password]);
+    }
+
+    public function unserialize($serialized): void
+    {
+        [
+            $this->id,
+            $this->email,
+            $this->password,
+        ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 }

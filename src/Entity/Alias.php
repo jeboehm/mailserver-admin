@@ -15,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="App\Repository\AliasRepository")
  * @ORM\Table(name="virtual_aliases")
  * @UniqueEntity(fields={"source", "destination"})
  */
