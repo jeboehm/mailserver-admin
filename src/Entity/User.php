@@ -45,9 +45,13 @@ class User implements UserInterface, Serializable
 
     /**
      * @ORM\Column(type="string", name="password")
-     * @Assert\NotBlank()
      */
     private $password = '';
+
+    /**
+     * @Assert\Length(min="6", max="5000")
+     */
+    private $plainPassword;
 
     private $roles = ['ROLE_USER'];
 
@@ -113,6 +117,7 @@ class User implements UserInterface, Serializable
 
     public function eraseCredentials(): void
     {
+        $this->plainPassword = '';
     }
 
     public function serialize(): string
@@ -128,5 +133,15 @@ class User implements UserInterface, Serializable
             $this->password,
             $this->roles,
         ] = unserialize($serialized, ['allowed_classes' => false]);
+    }
+
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): void
+    {
+        $this->plainPassword = $plainPassword;
     }
 }

@@ -1,0 +1,35 @@
+easy_admin:
+    site_name: mailserver-admin
+    entities:
+        Domain:
+            class: App\Entity\Domain
+            list:
+                sort: ['name', 'ASC']
+                fields:
+                    - { property: 'name' }
+                    - { property: 'aliases' }
+                    - { property: 'users' }
+            form:
+                fields:
+                    - { property: 'name' }
+
+        User:
+            class: App\Entity\User
+            list:
+                sort: ['domain.name', 'ASC']
+                fields:
+                    - { property: 'domain' }
+                    - { property: 'email', type: 'email' }
+            form:
+                fields:
+                    - { property: 'email' }
+                    - { property: 'plainPassword', type: 'password', label: 'Password' }
+
+        Alias:
+            class: App\Entity\Alias
+            list:
+                sort: ['domain.name', 'ASC']
+                fields:
+                    - { property: 'domain' }
+                    - { property: 'source', type: 'email' }
+                    - { property: 'destination', type: 'email' }
