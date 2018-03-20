@@ -51,7 +51,7 @@ class UserProvider implements UserProviderInterface
     {
         $user = $this->userRepository->findOneByEmailAddress((string) $username);
 
-        if (!$user || $user->getPassword() === '') {
+        if (!$user || '' === $user->getPassword()) {
             throw new UsernameNotFoundException(sprintf('Address "%s" not found or not permitted.', $username));
         }
 
