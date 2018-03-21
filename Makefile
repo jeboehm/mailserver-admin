@@ -6,6 +6,8 @@ dev:
 
 build:
 	docker build --pull -t $(image) .
+
+push:
 	docker push $(image)
 
 commit:
