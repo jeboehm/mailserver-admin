@@ -33,6 +33,8 @@ class Version20180320164351 extends AbstractMigration
             'Migration can only be executed safely on \'mysql\'.'
         );
 
+        $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
+
         $this->addSql('RENAME TABLE virtual_domains TO mail_domains');
 
         $this->addSql(
