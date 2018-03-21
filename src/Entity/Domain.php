@@ -30,7 +30,7 @@ class Domain
     private $id;
 
     /**
-     * @ORM\Column(type="string", name="name", unique=true)
+     * @ORM\Column(type="string", name="name", unique=true, options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      */
     private $name = '';

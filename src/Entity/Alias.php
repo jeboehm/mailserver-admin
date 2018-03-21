@@ -35,14 +35,14 @@ class Alias
     private $domain;
 
     /**
-     * @ORM\Column(type="string", name="name")
+     * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
     private $name = '';
 
     /**
-     * @ORM\Column(type="string", name="destination")
+     * @ORM\Column(type="string", name="destination", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Email()
      */

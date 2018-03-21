@@ -37,14 +37,14 @@ class User implements UserInterface, Serializable
     private $domain;
 
     /**
-     * @ORM\Column(type="string", name="name")
+     * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
     private $name = '';
 
     /**
-     * @ORM\Column(type="string", name="password")
+     * @ORM\Column(type="string", name="password", options={"collation":"utf8_unicode_ci"})
      */
     private $password = '';
 
