@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(name="mail_users", uniqueConstraints={@ORM\UniqueConstraint(name="user_idx", columns={"name", "domain_id"})})
  * @UniqueEntity({"name", "domain"})
  */
-class User implements UserInterface, Serializable
+class User implements UserInterface
 {
     /**
      * @ORM\Id()
@@ -137,21 +137,6 @@ class User implements UserInterface, Serializable
     public function eraseCredentials(): void
     {
         $this->plainPassword = '';
-    }
-
-    public function serialize(): string
-    {
-        return serialize([$this->id, $this->name, $this->password, $this->roles]);
-    }
-
-    public function unserialize($serialized): void
-    {
-        [
-            $this->id,
-            $this->name,
-            $this->password,
-            $this->roles,
-        ] = unserialize($serialized, ['allowed_classes' => false]);
     }
 
     public function getPlainPassword(): ?string

@@ -12,9 +12,13 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            anonymous: false
-            http_basic: true
+            anonymous: ~
             logout: true
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                csrf_token_generator: security.csrf.token_manager
 
     access_control:
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/, roles: ROLE_ADMIN }
