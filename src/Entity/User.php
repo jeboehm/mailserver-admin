@@ -125,7 +125,9 @@ class User implements UserInterface
 
     public function getSalt(): string
     {
-        return explode('$', $this->password, 5)[3];
+        $parts = explode('$', $this->password, 5);
+
+        return $parts[3] ?? '';
     }
 
     public function getUsername(): string
