@@ -53,6 +53,11 @@ class User implements UserInterface, Serializable
      */
     private $plainPassword;
 
+    /**
+     * @ORM\Column(type="boolean", name="admin")
+     */
+    private $admin = false;
+
     private $roles = ['ROLE_USER'];
 
     public function __toString(): string
@@ -107,6 +112,16 @@ class User implements UserInterface, Serializable
     public function addRole(string $role): void
     {
         $this->roles[] = $role;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->admin;
+    }
+
+    public function setAdmin(bool $admin): void
+    {
+        $this->admin = $admin;
     }
 
     public function getSalt(): string

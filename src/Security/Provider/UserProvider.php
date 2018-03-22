@@ -55,7 +55,7 @@ class UserProvider implements UserProviderInterface
             throw new UsernameNotFoundException(sprintf('Address "%s" not found or not permitted.', $username));
         }
 
-        if (in_array((string) $user, $this->admins, true)) {
+        if (in_array((string) $user, $this->admins, true) || $user->isAdmin()) {
             $user->addRole('ROLE_ADMIN');
         }
 

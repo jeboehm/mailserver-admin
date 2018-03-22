@@ -20,10 +20,12 @@ easy_admin:
                 fields:
                     - { property: 'domain' }
                     - { property: 'name', type: 'text' }
+                    - { property: 'admin' }
             form:
                 fields:
                     - { property: 'domain' }
                     - { property: 'name', type: 'text' }
+                    - { property: 'admin' }
                     - { property: 'plainPassword', type: 'password', label: 'Password' }
 
         Alias:
