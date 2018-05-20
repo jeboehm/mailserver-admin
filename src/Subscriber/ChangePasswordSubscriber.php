@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 class ChangePasswordSubscriber implements EventSubscriberInterface
 {
-    const SALT_LENGTH = 16;
+    private const SALT_LENGTH = 16;
 
     private $encoderFactory;
 

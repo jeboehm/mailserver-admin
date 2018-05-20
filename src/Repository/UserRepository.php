@@ -31,7 +31,7 @@ class UserRepository extends ServiceEntityRepository
     {
         $parts = explode('@', $emailAddress, 2);
 
-        if (2 !== count($parts)) {
+        if (2 !== \count($parts)) {
             return null;
         }
 

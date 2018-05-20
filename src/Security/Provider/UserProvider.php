@@ -40,7 +40,7 @@ class UserProvider implements UserProviderInterface
     {
         if (!($user instanceof User)) {
             throw new UnsupportedUserException(
-                sprintf('Instances of "%s" are not supported.', get_class($user))
+                sprintf('Instances of "%s" are not supported.', \get_class($user))
             );
         }
 
@@ -55,7 +55,7 @@ class UserProvider implements UserProviderInterface
             throw new UsernameNotFoundException(sprintf('Address "%s" not found or not permitted.', $username));
         }
 
-        if (in_array((string) $user, $this->admins, true) || $user->isAdmin()) {
+        if (\in_array((string) $user, $this->admins, true) || $user->isAdmin()) {
             $user->addRole('ROLE_ADMIN');
         }
 
