@@ -30,7 +30,7 @@ easy_admin:
                     - { property: 'admin' }
                     - { property: 'enabled' }
                     - { property: 'sendOnly', help: 'send only accounts are not allowed to receive mails' }
-                    - { property: 'quota', help: 'how much space the account can use (in bytes)' }
+                    - { property: 'quota', help: 'how much space the account can use (in megabytes)' }
                     - { property: 'plainPassword', type: 'password', label: 'Password' }
 
         Alias:
