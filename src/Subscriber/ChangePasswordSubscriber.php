@@ -11,20 +11,18 @@ declare(strict_types=1);
 namespace App\Subscriber;
 
 use App\Entity\User;
+use App\Service\PasswordService;
 use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 class ChangePasswordSubscriber implements EventSubscriberInterface
 {
-    private const SALT_LENGTH = 16;
+    private $passwordService;
 
-    private $encoderFactory;
-
-    public function __construct(EncoderFactoryInterface $encoderFactory)
+    public function __construct(PasswordService $passwordService)
     {
-        $this->encoderFactory = $encoderFactory;
+        $this->passwordService = $passwordService;
     }
 
     public static function getSubscribedEvents(): array
@@ -43,14 +41,6 @@ class ChangePasswordSubscriber implements EventSubscriberInterface
             return;
         }
 
-        if (null !== $user->getPlainPassword()) {
-            $encoder = $this->encoderFactory->getEncoder($user);
-            $user->setPassword(
-                $encoder->encodePassword(
-                    $user->getPlainPassword(),
-                    substr(sha1(random_bytes(50)), 0, self::SALT_LENGTH)
-                )
-            );
-        }
+        $this->passwordService->processUserPassword($user);
     }
 }
