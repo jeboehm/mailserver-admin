@@ -57,6 +57,23 @@ class User implements UserInterface
      */
     private $admin = false;
 
+    /**
+     * @ORM\Column(type="boolean", name="enabled")
+     */
+    private $enabled = true;
+
+    /**
+     * @ORM\Column(type="boolean", name="send_only")
+     */
+    private $sendOnly = false;
+
+    /**
+     * @ORM\Column(type="integer", name="quota")
+     * @Assert\Range(min="0")
+     * @Assert\NotBlank()
+     */
+    private $quota = 0;
+
     private $roles = ['ROLE_USER'];
 
     public function __toString(): string
@@ -148,5 +165,35 @@ class User implements UserInterface
     public function setPlainPassword(?string $plainPassword): void
     {
         $this->plainPassword = $plainPassword;
+    }
+
+    public function getEnabled(): bool
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled): void
+    {
+        $this->enabled = $enabled;
+    }
+
+    public function getSendOnly(): bool
+    {
+        return $this->sendOnly;
+    }
+
+    public function setSendOnly(bool $sendOnly): void
+    {
+        $this->sendOnly = $sendOnly;
+    }
+
+    public function getQuota(): int
+    {
+        return $this->quota;
+    }
+
+    public function setQuota(int $quota): void
+    {
+        $this->quota = $quota;
     }
 }
