@@ -55,7 +55,8 @@ class UserAddCommand extends Command
             ->addOption('admin', null, InputOption::VALUE_NONE, 'Allow login to management interface')
             ->addOption('sendonly', null, InputOption::VALUE_NONE, 'Send only accounts cannot receive mails')
             ->addOption('quota', null, InputOption::VALUE_REQUIRED, 'Limit the disk usage of this account')
-            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Sets the account password directly');
+            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Sets the account password directly')
+            ->addOption('enable', null, InputOption::VALUE_NONE, 'Enable the new created account');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -73,6 +74,7 @@ class UserAddCommand extends Command
         $user->setName(\mb_strtolower($input->getArgument('name')));
         $user->setAdmin((bool) $input->getOption('admin'));
         $user->setSendOnly((bool) $input->getOption('sendonly'));
+        $user->setEnabled((bool) $input->getOption('enable'));
 
         if ($input->hasOption('quota')) {
             $user->setQuota((int) $input->getOption('quota'));
