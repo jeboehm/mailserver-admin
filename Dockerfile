@@ -7,7 +7,6 @@ COPY . /var/www/html/
 
 ENV APP_ENV=prod \
     TRUSTED_PROXIES=172.16.0.0/12 \
-    ADMIN_USERS="admin@example.com" \
     MYSQL_HOST=db \
     MYSQL_DATABASE=mailserver \
     MYSQL_USER=mailserver \

@@ -1,6 +1,5 @@
 parameters:
     locale: 'en'
-    env(ADMIN_USERS): 'admin@example.com'
 
 services:
     _defaults:
@@ -17,6 +16,3 @@ services:
     App\Controller\:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
-
-    App\Security\Provider\UserProvider:
-        $admins: '%env(ADMIN_USERS)%'

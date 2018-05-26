@@ -21,19 +21,9 @@ class UserProvider implements UserProviderInterface
 {
     private $userRepository;
 
-    private $admins;
-
-    public function __construct(UserRepository $userRepository, string $admins)
+    public function __construct(UserRepository $userRepository)
     {
         $this->userRepository = $userRepository;
-        $this->admins = array_map(
-            function (string $element) {
-                $element = mb_strtolower($element);
-
-                return trim($element);
-            },
-            explode(',', $admins)
-        );
     }
 
     public function refreshUser(UserInterface $user): User
@@ -55,7 +45,7 @@ class UserProvider implements UserProviderInterface
             throw new UsernameNotFoundException(sprintf('Address "%s" not found or not permitted.', $username));
         }
 
-        if (\in_array((string) $user, $this->admins, true) || $user->isAdmin()) {
+        if ($user->isAdmin()) {
             $user->addRole('ROLE_ADMIN');
         }
 
