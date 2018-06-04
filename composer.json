@@ -2,7 +2,7 @@
     "type": "project",
     "license": "proprietary",
     "require": {
-        "php": "^7.1.3",
+        "php": "^7.2",
         "ext-iconv": "*",
         "doctrine/doctrine-migrations-bundle": "^1.3",
         "easycorp/easyadmin-bundle": "^1.17",
@@ -10,7 +10,6 @@
         "symfony/console": "^4.0",
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^4.0",
-        "symfony/lts": "^4@dev",
         "symfony/orm-pack": "^1.0",
         "symfony/security-bundle": "^4.0",
         "symfony/twig-bundle": "^4.0",
@@ -42,6 +41,7 @@
     },
     "replace": {
         "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*",
         "symfony/polyfill-php71": "*",
         "symfony/polyfill-php70": "*",
         "symfony/polyfill-php56": "*"

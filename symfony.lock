@@ -2,6 +2,9 @@
     "composer/semver": {
         "version": "1.4.2"
     },
+    "composer/xdebug-handler": {
+        "version": "1.1.0"
+    },
     "doctrine/annotations": {
         "version": "1.0",
         "recipe": {
@@ -188,9 +191,6 @@
     "symfony/intl": {
         "version": "v4.0.6"
     },
-    "symfony/lts": {
-        "version": "4-dev"
-    },
     "symfony/maker-bundle": {
         "version": "1.0",
         "recipe": {
@@ -215,13 +215,13 @@
             "ref": "41416370e732d1c8e7a0953a5ce815b641cfba0f"
         }
     },
+    "symfony/polyfill-ctype": {
+        "version": "v1.8.0"
+    },
     "symfony/polyfill-intl-icu": {
         "version": "v1.7.0"
     },
     "symfony/polyfill-mbstring": {
-        "version": "v1.7.0"
-    },
-    "symfony/polyfill-php72": {
         "version": "v1.7.0"
     },
     "symfony/process": {

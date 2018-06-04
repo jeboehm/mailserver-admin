@@ -133,7 +133,7 @@ class InitSetupCommand extends Command
             }
         );
 
-        $email = $questionHelper->ask(
+        $email = (string) $questionHelper->ask(
             $input,
             $output,
             $emailQuestion
@@ -171,6 +171,6 @@ class InitSetupCommand extends Command
             return $this->getPassword($questionHelper, $input, $output);
         }
 
-        return $password1;
+        return (string) $password1;
     }
 }

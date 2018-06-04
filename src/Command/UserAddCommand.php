@@ -86,7 +86,7 @@ class UserAddCommand extends Command
             $question = new Question('Password? (hidden)');
             $question->setHidden(true);
 
-            $password = $helper->ask($input, $output, $question);
+            $password = (string) $helper->ask($input, $output, $question);
 
             if (!$password) {
                 $output->writeln('<error>Please set a valid password.</error>');
