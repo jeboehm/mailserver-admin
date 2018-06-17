@@ -1,6 +1,7 @@
 image = jeboehm/mailserver-admin
 
 dev:
+	docker-compose up -d
 	composer install
 	bin/console server:run
 
