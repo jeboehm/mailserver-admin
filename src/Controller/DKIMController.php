@@ -23,9 +23,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/dkim")
+ * @Route("/DKIM")
  */
-class DkimController extends AbstractController
+class DKIMController extends AbstractController
 {
     /**
      * @var DKIMStatusService
