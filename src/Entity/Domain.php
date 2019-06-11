@@ -36,6 +36,21 @@ class Domain
     private $name = '';
 
     /**
+     * @ORM\Column(type="boolean", name="dkim_enabled")
+     */
+    private $dkimEnabled = false;
+
+    /**
+     * @ORM\Column(type="string", name="dkim_selector")
+     */
+    private $dkimSelector = '';
+
+    /**
+     * @ORM\Column(type="text", name="dkim_private_key")
+     */
+    private $dkimPrivateKey = '';
+
+    /**
      * @ORM\OneToMany(targetEntity="User", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)
      * @Assert\Valid()
      */
@@ -71,6 +86,36 @@ class Domain
     public function setName(string $name): void
     {
         $this->name = $name;
+    }
+
+    public function getDkimEnabled(): bool
+    {
+        return $this->dkimEnabled;
+    }
+
+    public function setDkimEnabled(bool $dkimEnabled): void
+    {
+        $this->dkimEnabled = $dkimEnabled;
+    }
+
+    public function getDkimSelector(): string
+    {
+        return $this->dkimSelector;
+    }
+
+    public function setDkimSelector(string $dkimSelector): void
+    {
+        $this->dkimSelector = $dkimSelector;
+    }
+
+    public function getDkimPrivateKey(): string
+    {
+        return $this->dkimPrivateKey;
+    }
+
+    public function setDkimPrivateKey(string $dkimPrivateKey): void
+    {
+        $this->dkimPrivateKey = $dkimPrivateKey;
     }
 
     public function getUsers(): iterable
