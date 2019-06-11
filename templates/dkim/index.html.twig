@@ -1,0 +1,84 @@
+{% extends '@EasyAdmin/default/layout.html.twig' %}
+
+{% block content_title %}DKIM{% endblock %}
+{% block body_class %}list{% endblock %}
+
+{% block content_header %}
+    <div class="row">
+        <div class="col-sm-5">
+            <h1 class="title">{{ block('content_title') }}</h1>
+        </div>
+
+        <div class="col-sm-7">
+            <div class="global-actions">
+            </div>
+        </div>
+    </div>
+{% endblock content_header %}
+
+{% block main %}
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>
+                    <span>Domain</span>
+                </th>
+
+                <th>
+                    <span>Selector</span>
+                </th>
+
+                <th>
+                    <span>DKIM enabled</span>
+                </th>
+
+                <th>
+                    <span>Key found</span>
+                </th>
+
+                <th>
+                    <span>Key valid</span>
+                </th>
+
+                <th>
+                    <span>{{ 'list.row_actions'|trans([], 'EasyAdminBundle') }}</span>
+                </th>
+            </tr>
+            </thead>
+
+            <tbody>
+            {% for item in domains %}
+                <tr data-id="{{ item.entity.id }}">
+                    <td data-label="Domain">
+                        {{ item.entity.name }}
+                    </td>
+
+                    <td data-label="Selector">
+                        {{ item.entity.dkimSelector }}
+                    </td>
+
+                    <td data-label="DKIM enabled">
+                        {% if item.status.dkimEnabled %}<span class="badge badge-success">{{ 'label.true'|trans([], 'EasyAdminBundle') }}</span>{% else %}<span class="badge badge-danger">{{ 'label.false'|trans([], 'EasyAdminBundle') }}</span>{% endif %}
+                    </td>
+
+                    <td data-label="Key found">
+                        {% if item.status.dkimRecordFound %}<span class="badge badge-success">{{ 'label.true'|trans([], 'EasyAdminBundle') }}</span>{% else %}<span class="badge badge-danger">{{ 'label.false'|trans([], 'EasyAdminBundle') }}{% endif %}
+                    </td>
+
+                    <td data-label="Key valid">
+                        {% if item.status.dkimRecordValid %}<span class="badge badge-success">{{ 'label.true'|trans([], 'EasyAdminBundle') }}</span>{% else %}<span class="badge badge-danger">{{ 'label.false'|trans([], 'EasyAdminBundle') }}{% endif %}
+                    </td>
+
+                    <td data-label="{{ 'list.row_actions'|trans([], 'EasyAdminBundle') }}" class="actions">
+                        <a class="text-primary action-edit"
+                           href="{{ path('app_dkim_edit', { domain: item.entity.id }) }}">
+                            Edit
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock main %}

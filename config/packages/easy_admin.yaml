@@ -5,6 +5,9 @@ easy_admin:
             - { entity: 'Domain', icon: 'globe' }
             - { entity: 'User', icon: 'user' }
             - { entity: 'Alias', icon: 'list-alt' }
+            - { label: 'Other' }
+            - { label: 'DKIM', route: 'app_dkim_index', icon: 'shield' }
+
     entities:
         Domain:
             class: App\Entity\Domain
