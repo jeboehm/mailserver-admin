@@ -42,6 +42,7 @@ class Domain
 
     /**
      * @ORM\Column(type="string", name="dkim_selector")
+     * @Assert\Regex(pattern="/^[a-z0-9]{1,50}$/")
      */
     private $dkimSelector = '';
 

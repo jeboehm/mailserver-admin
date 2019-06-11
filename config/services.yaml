@@ -1,5 +1,6 @@
 parameters:
     locale: 'en'
+    rspamd_dkim: /var/lib/rspamd/dkim
 
 services:
     _defaults:
@@ -16,3 +17,15 @@ services:
     App\Controller\:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
+
+    App\Service\Config\MapGenerator:
+        arguments:
+            $path: '%rspamd_dkim%'
+
+    App\Service\Config\LeftoverFileCleaner:
+        arguments:
+            $path: '%rspamd_dkim%'
+
+    App\Subscriber\DKIMDomainSubscriber:
+        tags:
+            - { name: doctrine.event_subscriber, connection: default }

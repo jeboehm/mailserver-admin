@@ -21,7 +21,7 @@
     {% if domain.status.dkimEnabled and (not domain.status.dkimRecordFound or not domain.status.dkimRecordValid) %}
         {% set alert_context = 'danger' %}
         {% set alert_text %}
-            DKIM is enabled but not properly set up. Your mails may be dropped on the receivers side. Check your DNS settings.
+            DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.
         {% endset %}
     {% endif %}
 

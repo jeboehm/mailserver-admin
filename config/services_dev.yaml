@@ -1,0 +1,2 @@
+parameters:
+    rspamd_dkim: '%kernel.project_dir%/var'

@@ -24,28 +24,22 @@ class ChangePasswordSubscriberTest extends TestCase
     public function testPasswordGetsUpdatedOnPreUpdate(): void
     {
         $eventDispatcher = new EventDispatcher();
-        $passwordService = $this
-            ->getMockBuilder(PasswordService::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $passwordService = $this->createMock(PasswordService::class);
         $passwordService->expects($this->once())->method('processUserPassword');
 
         $eventDispatcher->addSubscriber(new ChangePasswordSubscriber($passwordService));
-        $eventDispatcher->dispatch(EasyAdminEvents::PRE_UPDATE, new GenericEvent(new User()));
-        $eventDispatcher->dispatch(EasyAdminEvents::PRE_UPDATE, new GenericEvent(new stdClass()));
+        $eventDispatcher->dispatch(new GenericEvent(new User()), EasyAdminEvents::PRE_UPDATE);
+        $eventDispatcher->dispatch(new GenericEvent(new stdClass()), EasyAdminEvents::PRE_UPDATE);
     }
 
     public function testPasswordGetsUpdatedOnPrePersist(): void
     {
         $eventDispatcher = new EventDispatcher();
-        $passwordService = $this
-            ->getMockBuilder(PasswordService::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $passwordService = $this->createMock(PasswordService::class);
         $passwordService->expects($this->once())->method('processUserPassword');
 
         $eventDispatcher->addSubscriber(new ChangePasswordSubscriber($passwordService));
-        $eventDispatcher->dispatch(EasyAdminEvents::PRE_PERSIST, new GenericEvent(new User()));
-        $eventDispatcher->dispatch(EasyAdminEvents::PRE_PERSIST, new GenericEvent(new stdClass()));
+        $eventDispatcher->dispatch(new GenericEvent(new User()), EasyAdminEvents::PRE_PERSIST);
+        $eventDispatcher->dispatch(new GenericEvent(new stdClass()), EasyAdminEvents::PRE_PERSIST);
     }
 }
