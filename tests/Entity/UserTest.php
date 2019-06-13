@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Entity;
 
+use App\Entity\Domain;
 use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
@@ -30,5 +31,24 @@ class UserTest extends TestCase
         $user->setPassword('$5$rounds=5000$dfee4ba3d4f76c11$OrSeU3xlQ7u58fVe.xExNwW6ImDPP2lrItyH1WhoGV/');
 
         $this->assertEquals('dfee4ba3d4f76c11', $user->getSalt());
+    }
+
+    public function testStringCast(): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.com');
+
+        $user = new User();
+        $user->setName('jeff');
+        $user->setDomain($domain);
+
+        $this->assertEquals('jeff@example.com', (string) $user);
+    }
+
+    public function testStringCastEmptyDomain(): void
+    {
+        $user = new User();
+        $user->setName('jeff');
+        $this->assertEquals('', (string) $user);
     }
 }
