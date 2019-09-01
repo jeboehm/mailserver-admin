@@ -20,7 +20,7 @@ class FormatterServiceTest extends TestCase
      */
     private $instance;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->instance = new FormatterService();
     }

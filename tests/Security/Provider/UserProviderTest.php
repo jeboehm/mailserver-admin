@@ -25,7 +25,7 @@ class UserProviderTest extends TestCase
      */
     private $repository;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->repository = $this->getMockBuilder(UserRepository::class)
             ->disableOriginalConstructor()

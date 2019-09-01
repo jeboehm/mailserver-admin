@@ -24,6 +24,12 @@ class DNSResolver
     public function resolve(string $address): array
     {
         $result = @dns_get_record($address, \DNS_TXT);
+        $result = \array_filter(
+            $result,
+            static function (array $row) use ($address) {
+                return $row['host'] === $address;
+            }
+        );
 
         if (empty($result)) {
             throw new DomainKeyNotFoundException(\sprintf('Cannot get txt record for %s', $address));

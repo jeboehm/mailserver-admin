@@ -8,18 +8,22 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Service\Config;
+namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
+use Symfony\Component\Filesystem\Exception\IOException;
+use Symfony\Component\Filesystem\Filesystem;
 
 class MapGenerator
 {
     private const MAP_FILENAME = 'dkim_selectors.map';
     private $path;
+    private $filesystem;
 
     public function __construct(string $path)
     {
         $this->path = $path;
+        $this->filesystem = new Filesystem();
     }
 
     public function generate(Domain ...$domains): void
@@ -50,6 +54,12 @@ class MapGenerator
     {
         if (false === \file_put_contents($filename, $content)) {
             throw new \LogicException(\sprintf('Cannot write %s', $filename));
+        }
+
+        try {
+            $this->filesystem->chmod($filename, 0666);
+        } catch (IOException $e) {
+            // Ignore if different owner.
         }
     }
 }
