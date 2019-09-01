@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace App\Subscriber;
 
 use App\Entity\Domain;
-use App\Service\Config\Manager;
+use App\Service\DKIM\Config\Manager;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;

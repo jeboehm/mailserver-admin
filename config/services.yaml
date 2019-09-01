@@ -18,11 +18,11 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
-    App\Service\Config\MapGenerator:
+    App\Service\DKIM\Config\MapGenerator:
         arguments:
             $path: '%rspamd_dkim%'
 
-    App\Service\Config\LeftoverFileCleaner:
+    App\Service\DKIM\Config\LeftoverFileCleaner:
         arguments:
             $path: '%rspamd_dkim%'
 

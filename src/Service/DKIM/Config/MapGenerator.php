@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Service\Config;
+namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
 
