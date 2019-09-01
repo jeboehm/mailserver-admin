@@ -60,7 +60,7 @@ class DKIMSetupCommand extends Command
 
         $regenerateKey = (bool) $input->getOption('regenerate');
 
-        if ($regenerateKey && !$this->warnOnKeyRegeneration($input, $output, $domain)) {
+        if ($regenerateKey && !$this->warnOnKeyRegeneration($input, $output)) {
             return 1;
         }
 
@@ -112,7 +112,7 @@ class DKIMSetupCommand extends Command
         return $domain;
     }
 
-    private function warnOnKeyRegeneration(InputInterface $input, OutputInterface $output, Domain $domain): bool
+    private function warnOnKeyRegeneration(InputInterface $input, OutputInterface $output): bool
     {
         /** @var QuestionHelper $questionHelper */
         $questionHelper = $this->getHelper('question');
