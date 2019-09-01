@@ -1,6 +1,6 @@
 parameters:
     locale: 'en'
-    rspamd_dkim: /var/lib/rspamd/dkim
+    rspamd_dkim: /media/dkim
 
 services:
     _defaults:
