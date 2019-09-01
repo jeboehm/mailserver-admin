@@ -33,7 +33,7 @@ class DKIMStatusServiceTest extends TestCase
     /** @var DKIMStatusService */
     private $instance;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->domainKeyReaderService = $this->createMock(DomainKeyReaderService::class);
         $this->formatterService = $this->createMock(FormatterService::class);

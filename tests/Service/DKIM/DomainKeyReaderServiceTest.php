@@ -27,7 +27,7 @@ class DomainKeyReaderServiceTest extends TestCase
      */
     private $instance;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->resolver = $this->createMock(DNSResolver::class);
         $this->instance = new DomainKeyReaderService($this->resolver);

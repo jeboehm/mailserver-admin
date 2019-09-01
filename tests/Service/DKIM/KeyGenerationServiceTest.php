@@ -18,7 +18,7 @@ class KeyGenerationServiceTest extends TestCase
     /** @var KeyGenerationService */
     private $instance;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->instance = new KeyGenerationService();
     }

@@ -19,7 +19,7 @@ class DNSResolverTest extends TestCase
     /** @var DNSResolver */
     private $instance;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         DnsMock::register(DNSResolver::class);
         $this->instance = new DNSResolver();
