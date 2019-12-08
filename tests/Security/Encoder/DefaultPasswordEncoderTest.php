@@ -37,4 +37,9 @@ class DefaultPasswordEncoderTest extends TestCase
             )
         );
     }
+
+    public function testNeedsRehash()
+    {
+        $this->assertFalse((new DefaultPasswordEncoder())->needsRehash('xy'));
+    }
 }
