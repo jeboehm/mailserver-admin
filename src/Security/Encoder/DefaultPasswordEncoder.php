@@ -26,4 +26,9 @@ class DefaultPasswordEncoder implements PasswordEncoderInterface
     {
         return crypt($raw, sprintf('$5$rounds=5000$%s$', $salt));
     }
+
+    public function needsRehash(string $encoded): bool
+    {
+        return false;
+    }
 }

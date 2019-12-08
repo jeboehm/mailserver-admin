@@ -23,12 +23,7 @@ class DomainKeyReaderService
     }
 
     /**
-     * @param string $domain
-     * @param string $selector
-     *
      * @throws DomainKeyNotFoundException
-     *
-     * @return array
      */
     public function getDomainKey(string $domain, string $selector): array
     {

@@ -15,11 +15,7 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 class DNSResolver
 {
     /**
-     * @param string $address
-     *
      * @throws DomainKeyNotFoundException
-     *
-     * @return array
      */
     public function resolve(string $address): array
     {

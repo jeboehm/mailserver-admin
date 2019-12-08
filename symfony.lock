@@ -161,6 +161,9 @@
     "symfony/dotenv": {
         "version": "v4.0.6"
     },
+    "symfony/error-handler": {
+        "version": "v4.4.1"
+    },
     "symfony/event-dispatcher": {
         "version": "v4.0.6"
     },
@@ -319,6 +322,9 @@
     },
     "symfony/validator": {
         "version": "v4.0.6"
+    },
+    "symfony/var-dumper": {
+        "version": "v5.0.1"
     },
     "symfony/var-exporter": {
         "version": "v4.3.1"
