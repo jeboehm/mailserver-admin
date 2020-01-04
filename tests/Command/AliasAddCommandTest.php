@@ -26,14 +26,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AliasAddCommandTest extends TestCase
 {
-    /** @var CommandTester */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    /** @var EntityManagerInterface|MockObject */
-    private $managerMock;
+    private MockObject $managerMock;
 
-    /** @var ValidatorInterface|MockObject */
-    private $validatorMock;
+    private MockObject $validatorMock;
 
     protected function setUp(): void
     {

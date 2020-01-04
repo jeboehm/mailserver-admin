@@ -15,14 +15,11 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 
 class DKIMStatusService
 {
-    /** @var DomainKeyReaderService */
-    private $domainKeyReaderService;
+    private DomainKeyReaderService $domainKeyReaderService;
 
-    /** @var FormatterService */
-    private $formatterService;
+    private FormatterService $formatterService;
 
-    /** @var KeyGenerationService */
-    private $keyGenerationService;
+    private KeyGenerationService $keyGenerationService;
 
     public function __construct(
         DomainKeyReaderService $domainKeyReaderService,
@@ -59,7 +56,7 @@ class DKIMStatusService
             }
 
             return new DKIMStatus($domain->getDkimEnabled(), true, false, $dnsRecord);
-        } catch (DomainKeyNotFoundException $e) {
+        } catch (DomainKeyNotFoundException $domainKeyNotFoundException) {
             return new DKIMStatus($domain->getDkimEnabled(), false, false, '');
         }
     }

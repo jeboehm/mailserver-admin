@@ -22,9 +22,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AliasAddCommand extends Command
 {
-    private $manager;
+    private EntityManagerInterface $manager;
 
-    private $validator;
+    private ValidatorInterface $validator;
 
     public function __construct(
         string $name = null,
@@ -69,7 +69,7 @@ class AliasAddCommand extends Command
         $fromParts = \explode('@', $from, 2);
         $domain = $this->getDomain($fromParts[1]);
 
-        if (!$domain) {
+        if (null === $domain) {
             $output->writeln(sprintf('<error>Domain %s has to be created before.</error>', $fromParts[1]));
 
             return 1;

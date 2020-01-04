@@ -8,6 +8,10 @@ easy_admin:
             - { label: 'Other' }
             - { label: 'DKIM', route: 'app_dkim_index', icon: 'shield' }
 
+    user:
+        display_name: true
+        display_avatar: false
+
     entities:
         Domain:
             class: App\Entity\Domain

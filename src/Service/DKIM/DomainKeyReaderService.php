@@ -14,8 +14,7 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 
 class DomainKeyReaderService
 {
-    /** @var DNSResolver */
-    private $resolver;
+    private DNSResolver $resolver;
 
     public function __construct(DNSResolver $resolver)
     {

@@ -12,11 +12,9 @@ namespace App\Service\DKIM;
 
 class KeyPair
 {
-    /** @var string */
-    private $public;
+    private string $public;
 
-    /** @var string */
-    private $private;
+    private string $private;
 
     public function __construct(string $public, string $private)
     {

@@ -21,9 +21,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class DomainAddCommand extends Command
 {
-    private $manager;
+    private EntityManagerInterface $manager;
 
-    private $validator;
+    private ValidatorInterface $validator;
 
     public function __construct(
         string $name = null,

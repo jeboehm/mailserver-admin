@@ -20,10 +20,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class UserProviderTest extends TestCase
 {
-    /**
-     * @var UserRepository|MockObject
-     */
-    private $repository;
+    private MockObject $repository;
 
     protected function setUp(): void
     {

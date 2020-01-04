@@ -15,8 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 class KeyGenerationServiceTest extends TestCase
 {
-    /** @var KeyGenerationService */
-    private $instance;
+    private KeyGenerationService $instance;
 
     protected function setUp(): void
     {

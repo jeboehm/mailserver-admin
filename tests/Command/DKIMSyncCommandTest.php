@@ -19,11 +19,9 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class DKIMSyncCommandTest extends TestCase
 {
-    /** @var CommandTester */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    /** @var Manager|MockObject */
-    private $managerMock;
+    private MockObject $managerMock;
 
     protected function setUp(): void
     {

@@ -27,17 +27,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAddCommandTest extends TestCase
 {
-    /** @var CommandTester */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    /** @var EntityManagerInterface|MockObject */
-    private $managerMock;
+    private MockObject $managerMock;
 
-    /** @var ValidatorInterface|MockObject */
-    private $validatorMock;
+    private MockObject $validatorMock;
 
-    /** @var PasswordService|MockObject */
-    private $passwordService;
+    private MockObject $passwordService;
 
     protected function setUp(): void
     {

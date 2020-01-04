@@ -17,15 +17,9 @@ use PHPUnit\Framework\TestCase;
 
 class DomainKeyReaderServiceTest extends TestCase
 {
-    /**
-     * @var DNSResolver|MockObject
-     */
-    private $resolver;
+    private MockObject $resolver;
 
-    /**
-     * @var DomainKeyReaderService
-     */
-    private $instance;
+    private DomainKeyReaderService $instance;
 
     protected function setUp(): void
     {

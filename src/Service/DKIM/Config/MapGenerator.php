@@ -11,14 +11,18 @@ declare(strict_types=1);
 namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
+use LogicException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 class MapGenerator
 {
+    /**
+     * @var string
+     */
     private const MAP_FILENAME = 'dkim_selectors.map';
-    private $path;
-    private $filesystem;
+    private string $path;
+    private Filesystem $filesystem;
 
     public function __construct(string $path)
     {
@@ -53,12 +57,12 @@ class MapGenerator
     private function writeFile(string $filename, string $content): void
     {
         if (false === \file_put_contents($filename, $content)) {
-            throw new \LogicException(\sprintf('Cannot write %s', $filename));
+            throw new LogicException(\sprintf('Cannot write %s', $filename));
         }
 
         try {
             $this->filesystem->chmod($filename, 0666);
-        } catch (IOException $e) {
+        } catch (IOException $iOException) {
             // Ignore if different owner.
         }
     }

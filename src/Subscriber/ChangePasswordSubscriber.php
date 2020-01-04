@@ -18,7 +18,7 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 
 class ChangePasswordSubscriber implements EventSubscriberInterface
 {
-    private $passwordService;
+    private PasswordService $passwordService;
 
     public function __construct(PasswordService $passwordService)
     {

@@ -1,0 +1,12 @@
+parameters:
+  sets:
+    - 'coding-style'
+    - 'code-quality'
+    - 'php71'
+    - 'php72'
+    - 'php73'
+    - 'php74'
+  paths:
+    - 'src'
+    - 'tests'
+    - 'bin/.phpunit/phpunit-6.5-0/vendor/autoload.php'

@@ -17,9 +17,9 @@ use App\Repository\DomainRepository;
 use App\Service\DKIM\DKIMStatusService;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -27,20 +27,11 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class DKIMController extends AbstractController
 {
-    /**
-     * @var DKIMStatusService
-     */
-    private $dkimStatusService;
+    private DKIMStatusService $dkimStatusService;
 
-    /**
-     * @var KeyGenerationService
-     */
-    private $keyGenerationService;
+    private KeyGenerationService $keyGenerationService;
 
-    /**
-     * @var FormatterService
-     */
-    private $formatterService;
+    private FormatterService $formatterService;
 
     public function __construct(
         DKIMStatusService $dkimStatusService,
@@ -54,9 +45,8 @@ class DKIMController extends AbstractController
 
     /**
      * @Route("/", name="app_dkim_index")
-     * @Template()
      */
-    public function indexAction(DomainRepository $domainRepository): array
+    public function indexAction(DomainRepository $domainRepository): Response
     {
         $domains = $domainRepository->findBy([], ['name' => 'asc']);
         $output = [];
@@ -65,14 +55,13 @@ class DKIMController extends AbstractController
             $output[] = $this->prepareDomainView($domain);
         }
 
-        return ['domains' => $output];
+        return $this->render('dkim/index.html.twig', ['domains' => $output]);
     }
 
     /**
      * @Route("/edit/{domain}", name="app_dkim_edit")
-     * @Template()
      */
-    public function editAction(Request $request, Domain $domain)
+    public function editAction(Request $request, Domain $domain): Response
     {
         $formType = $this->getFormTypeForDomain($domain);
         $form = $this->createForm($formType, $domain);
@@ -97,11 +86,11 @@ class DKIMController extends AbstractController
             );
         }
 
-        return [
+        return $this->render('dkim/edit.html.twig', [
             'domain' => $this->prepareDomainView($domain),
             'form' => $form->createView(),
             'expectedDnsRecord' => $expectedDnsRecord ?? null,
-        ];
+        ]);
     }
 
     private function prepareDomainView(Domain $domain): array

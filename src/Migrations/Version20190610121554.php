@@ -19,7 +19,7 @@ final class Version20190610121554 extends AbstractMigration
     {
         $this->abortIf(
             'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            'Migration can only be executed safely on \'mysql\'.'
+            "Migration can only be executed safely on 'mysql'."
         );
 
         $this->addSql(
@@ -31,7 +31,7 @@ final class Version20190610121554 extends AbstractMigration
     {
         $this->abortIf(
             'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            'Migration can only be executed safely on \'mysql\'.'
+            "Migration can only be executed safely on 'mysql'."
         );
 
         $this->addSql(

@@ -15,10 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 class FormatterServiceTest extends TestCase
 {
-    /**
-     * @var FormatterService
-     */
-    private $instance;
+    private FormatterService $instance;
 
     protected function setUp(): void
     {

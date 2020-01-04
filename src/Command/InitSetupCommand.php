@@ -14,6 +14,7 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\PasswordService;
 use Doctrine\ORM\EntityManagerInterface;
+use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,11 +25,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class InitSetupCommand extends Command
 {
-    private $validator;
+    private ValidatorInterface $validator;
 
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
-    private $passwordService;
+    private PasswordService $passwordService;
 
     public function __construct(
         string $name = null,
@@ -126,7 +127,7 @@ class InitSetupCommand extends Command
         $emailQuestion->setValidator(
             function (string $value): string {
                 if (!$value = \filter_var($value, \FILTER_VALIDATE_EMAIL)) {
-                    throw new \RuntimeException('Please enter a valid email address.');
+                    throw new RuntimeException('Please enter a valid email address.');
                 }
 
                 return $value;
@@ -151,7 +152,7 @@ class InitSetupCommand extends Command
         $passwordQuestion->setValidator(
             function (string $value): string {
                 if (\mb_strlen($value) < 8) {
-                    throw new \RuntimeException('The password should be longer.');
+                    throw new RuntimeException('The password should be longer.');
                 }
 
                 return $value;

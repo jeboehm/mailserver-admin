@@ -15,9 +15,12 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
 
 class PasswordService
 {
+    /**
+     * @var int
+     */
     private const SALT_LENGTH = 16;
 
-    private $encoderFactory;
+    private EncoderFactoryInterface $encoderFactory;
 
     public function __construct(EncoderFactoryInterface $encoderFactory)
     {

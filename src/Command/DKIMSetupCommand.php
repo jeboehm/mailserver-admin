@@ -23,9 +23,9 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMSetupCommand extends Command
 {
-    private $manager;
-    private $keyGenerationService;
-    private $formatterService;
+    private EntityManagerInterface $manager;
+    private KeyGenerationService $keyGenerationService;
+    private FormatterService $formatterService;
 
     public function __construct(
         ?string $name = null,
@@ -54,7 +54,7 @@ class DKIMSetupCommand extends Command
     {
         $domain = $this->getDomain($input, $output);
 
-        if (!$domain) {
+        if (null === $domain) {
             return 1;
         }
 
@@ -120,7 +120,7 @@ class DKIMSetupCommand extends Command
             $input,
             $output,
             new ConfirmationQuestion(
-                '<question>If you regenerate your private key, you\'ll have to update your DNS settings. Continue?</question>'
+                "<question>If you regenerate your private key, you'll have to update your DNS settings. Continue?</question>"
             )
         );
 

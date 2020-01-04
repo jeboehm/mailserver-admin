@@ -15,9 +15,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class Manager
 {
-    private $cleaner;
-    private $generator;
-    private $manager;
+    private LeftoverFileCleaner $cleaner;
+    private MapGenerator $generator;
+    private EntityManagerInterface $manager;
 
     public function __construct(LeftoverFileCleaner $cleaner, MapGenerator $generator, EntityManagerInterface $manager)
     {

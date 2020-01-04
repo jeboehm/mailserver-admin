@@ -27,58 +27,58 @@ class User implements UserInterface
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Domain", inversedBy="users")
      * @Assert\NotNull()
      */
-    private $domain;
+    private ?Domain $domain = null;
 
     /**
      * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
-    private $name = '';
+    private string $name = '';
 
     /**
      * @ORM\Column(type="string", name="password", options={"collation":"utf8_unicode_ci"})
      */
-    private $password = '';
+    private string $password = '';
 
     /**
      * @Assert\Length(min="6", max="5000")
      */
-    private $plainPassword;
+    private ?string $plainPassword = null;
 
     /**
      * @ORM\Column(type="boolean", name="admin")
      */
-    private $admin = false;
+    private bool $admin = false;
 
     /**
      * @ORM\Column(type="boolean", name="enabled")
      */
-    private $enabled = true;
+    private bool $enabled = true;
 
     /**
      * @ORM\Column(type="boolean", name="send_only")
      */
-    private $sendOnly = false;
+    private bool $sendOnly = false;
 
     /**
      * @ORM\Column(type="integer", name="quota")
      * @Assert\Range(min="0")
      * @Assert\NotBlank()
      */
-    private $quota = 0;
+    private int $quota = 0;
 
-    private $roles = ['ROLE_USER'];
+    private array $roles = ['ROLE_USER'];
 
     public function __toString(): string
     {
-        if ($this->getDomain()) {
+        if (null !== $this->getDomain()) {
             return sprintf('%s@%s', $this->name, $this->getDomain()->getName());
         }
 

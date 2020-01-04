@@ -26,11 +26,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAddCommand extends Command
 {
-    private $manager;
+    private EntityManagerInterface $manager;
 
-    private $passwordService;
+    private PasswordService $passwordService;
 
-    private $validator;
+    private ValidatorInterface $validator;
 
     public function __construct(
         string $name = null,
@@ -64,7 +64,7 @@ class UserAddCommand extends Command
         $user = new User();
         $domain = $this->getDomain($input->getArgument('domain'));
 
-        if (!$domain) {
+        if (null === $domain) {
             $output->writeln(sprintf('<error>Domain %s was not found.</error>', $input->getArgument('domain')));
 
             return 1;
@@ -88,7 +88,7 @@ class UserAddCommand extends Command
 
             $password = (string) $helper->ask($input, $output, $question);
 
-            if (!$password) {
+            if ('' === $password) {
                 $output->writeln('<error>Please set a valid password.</error>');
 
                 return 1;

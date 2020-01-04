@@ -18,7 +18,7 @@ use Doctrine\ORM\Events;
 
 class DKIMDomainSubscriber implements EventSubscriber
 {
-    private $manager;
+    private Manager $manager;
 
     public function __construct(Manager $manager)
     {

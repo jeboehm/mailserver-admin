@@ -26,31 +26,31 @@ class Alias
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\ManyToOne(targetEntity="Domain", inversedBy="aliases")
      * @Assert\NotNull()
      */
-    private $domain;
+    private ?Domain $domain = null;
 
     /**
      * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
      */
-    private $name = '';
+    private string $name = '';
 
     /**
      * @ORM\Column(type="string", name="destination", options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      * @Assert\Email()
      */
-    private $destination = '';
+    private string $destination = '';
 
     public function __toString(): string
     {
-        if ($this->getDomain()) {
+        if (null !== $this->getDomain()) {
             return sprintf('%s@%s → %s', $this->name, $this->getDomain()->getName(), $this->destination);
         }
 

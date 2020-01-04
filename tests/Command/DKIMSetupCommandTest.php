@@ -23,11 +23,9 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class DKIMSetupCommandTest extends TestCase
 {
-    /** @var CommandTester */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    /** @var EntityManagerInterface|MockObject */
-    private $managerMock;
+    private MockObject $managerMock;
 
     protected function setUp(): void
     {
