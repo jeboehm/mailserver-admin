@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Tests\Security\Encoder;
+namespace App\Tests\Security\Encoder;
 
 use App\Security\Encoder\DefaultPasswordEncoder;
 use PHPUnit\Framework\TestCase;

@@ -19,6 +19,7 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^2.10",
+    "rector/rector": "^0.6.5",
     "symfony/dotenv": "^4.0",
     "symfony/maker-bundle": "^1.2",
     "symfony/phpunit-bridge": "^4.0",
