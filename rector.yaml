@@ -9,4 +9,5 @@ parameters:
   paths:
     - 'src'
     - 'tests'
+  autoload_paths:
     - 'bin/.phpunit/phpunit-6.5-0/vendor/autoload.php'

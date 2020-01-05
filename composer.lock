@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e037efd3e94f67736fc185f2a53b5e37",
+    "content-hash": "7c897af385f5731a1aa472c5d562eebe",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -3507,64 +3507,6 @@
             "time": "2019-11-27T14:18:11+00:00"
         },
         {
-            "name": "symfony/polyfill-php73",
-            "version": "v1.13.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/polyfill-php73.git",
-                "reference": "4b0e2222c55a25b4541305a053013d5647d3a25f"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php73/zipball/4b0e2222c55a25b4541305a053013d5647d3a25f",
-                "reference": "4b0e2222c55a25b4541305a053013d5647d3a25f",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.13-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Polyfill\\Php73\\": ""
-                },
-                "files": [
-                    "bootstrap.php"
-                ],
-                "classmap": [
-                    "Resources/stubs"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Nicolas Grekas",
-                    "email": "p@tchwork.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony polyfill backporting some PHP 7.3+ features to lower PHP versions",
-            "homepage": "https://symfony.com",
-            "keywords": [
-                "compatibility",
-                "polyfill",
-                "portable",
-                "shim"
-            ],
-            "time": "2019-11-27T16:25:15+00:00"
-        },
-        {
             "name": "symfony/property-access",
             "version": "v5.0.2",
             "source": {
@@ -5680,16 +5622,16 @@
         },
         {
             "name": "rector/rector",
-            "version": "v0.6.5",
+            "version": "v0.6.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/rectorphp/rector.git",
-                "reference": "cb4b100ce29975bea0b06528a9396a31ce06fe03"
+                "reference": "817187005d9d6322d68254995bb8ac3998ccf3fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rectorphp/rector/zipball/cb4b100ce29975bea0b06528a9396a31ce06fe03",
-                "reference": "cb4b100ce29975bea0b06528a9396a31ce06fe03",
+                "url": "https://api.github.com/repos/rectorphp/rector/zipball/817187005d9d6322d68254995bb8ac3998ccf3fe",
+                "reference": "817187005d9d6322d68254995bb8ac3998ccf3fe",
                 "shasum": ""
             },
             "require": {
@@ -5796,7 +5738,8 @@
                     "Rector\\DynamicTypeAnalysis\\": "packages/DynamicTypeAnalysis/src",
                     "Rector\\PhpDeglobalize\\": "packages/PhpDeglobalize/src",
                     "Rector\\Phalcon\\": "packages/Phalcon/src",
-                    "Rector\\DoctrineGedmoToKnplabs\\": "packages/DoctrineGedmoToKnplabs/src"
+                    "Rector\\DoctrineGedmoToKnplabs\\": "packages/DoctrineGedmoToKnplabs/src",
+                    "Rector\\MinimalScope\\": "packages/MinimalScope/src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -5823,7 +5766,7 @@
                 "instant refactoring",
                 "instant upgrades"
             ],
-            "time": "2020-01-03T11:29:59+00:00"
+            "time": "2020-01-04T15:24:36+00:00"
         },
         {
             "name": "sebastian/diff",

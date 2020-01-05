@@ -22,6 +22,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Domain
 {
+    use DkimInfoTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

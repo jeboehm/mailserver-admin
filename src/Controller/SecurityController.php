@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
@@ -32,7 +31,7 @@ class SecurityController extends AbstractController
     public function loginAction(AuthenticationUtils $authenticationUtils): Response
     {
         if (null !== $this->security->getUser()) {
-            return new RedirectResponse('/');
+            return $this->redirectToRoute('easyadmin');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -48,8 +47,8 @@ class SecurityController extends AbstractController
     /**
      * @Route("/logout", name="app_logout")
      */
-    public function logoutAction(): RedirectResponse
+    public function logoutAction(): Response
     {
-        return new RedirectResponse('/');
+        return $this->redirectToRoute('easyadmin');
     }
 }

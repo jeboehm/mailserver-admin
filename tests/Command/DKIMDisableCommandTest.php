@@ -12,8 +12,8 @@ namespace App\Tests\Command;
 
 use App\Command\DKIMDisableCommand;
 use App\Entity\Domain;
-use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
