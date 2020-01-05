@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\Domain;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,9 +21,9 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMDisableCommand extends Command
 {
-    private EntityManagerInterface $manager;
+    private ManagerRegistry $manager;
 
-    public function __construct(string $name = null, EntityManagerInterface $manager)
+    public function __construct(string $name = null, ManagerRegistry $manager)
     {
         parent::__construct($name);
 
@@ -34,7 +34,7 @@ class DKIMDisableCommand extends Command
     {
         $this
             ->setName('dkim:disable')
-            ->setDescription('Disables DKIM for a specific domain and deletes its private key.')
+            ->setDescription('Disables DKIM for a specific domain.')
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @)');
     }
 
@@ -64,11 +64,9 @@ class DKIMDisableCommand extends Command
             return 1;
         }
 
-        $domain->setDkimPrivateKey('');
-        $domain->setDkimSelector('');
         $domain->setDkimEnabled(false);
 
-        $this->manager->flush();
+        $this->manager->getManager()->flush();
 
         $output->writeln('Done.');
 

@@ -14,7 +14,8 @@ use App\Command\InitSetupCommand;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\PasswordService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -26,6 +27,8 @@ class InitSetupCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
+    private MockObject $managerRegistryMock;
+
     private MockObject $managerMock;
 
     private MockObject $validatorMock;
@@ -34,12 +37,14 @@ class InitSetupCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
+        $this->managerMock = $this->createMock(ObjectManager::class);
+        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
         $this->passwordService = $this->createMock(PasswordService::class);
 
         $application = new Application();
-        $application->add(new InitSetupCommand(null, $this->validatorMock, $this->managerMock, $this->passwordService));
+        $application->add(new InitSetupCommand(null, $this->validatorMock, $this->managerRegistryMock, $this->passwordService));
 
         $this->commandTester = new CommandTester($application->find('init:setup'));
     }

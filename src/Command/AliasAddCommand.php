@@ -12,7 +12,7 @@ namespace App\Command;
 
 use App\Entity\Alias;
 use App\Entity\Domain;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,13 +22,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AliasAddCommand extends Command
 {
-    private EntityManagerInterface $manager;
+    private ManagerRegistry $manager;
 
     private ValidatorInterface $validator;
 
     public function __construct(
         string $name = null,
-        EntityManagerInterface $manager,
+        ManagerRegistry $manager,
         ValidatorInterface $validator
     ) {
         parent::__construct($name);
@@ -89,8 +89,8 @@ class AliasAddCommand extends Command
             return 1;
         }
 
-        $this->manager->persist($alias);
-        $this->manager->flush();
+        $this->manager->getManager()->persist($alias);
+        $this->manager->getManager()->flush();
 
         return 0;
     }

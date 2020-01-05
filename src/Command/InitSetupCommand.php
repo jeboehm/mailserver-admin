@@ -13,7 +13,7 @@ namespace App\Command;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\PasswordService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -27,20 +27,20 @@ class InitSetupCommand extends Command
 {
     private ValidatorInterface $validator;
 
-    private EntityManagerInterface $entityManager;
+    private ManagerRegistry $manager;
 
     private PasswordService $passwordService;
 
     public function __construct(
         string $name = null,
         ValidatorInterface $validator,
-        EntityManagerInterface $entityManager,
+        ManagerRegistry $manager,
         PasswordService $passwordService
     ) {
         parent::__construct($name);
 
         $this->validator = $validator;
-        $this->entityManager = $entityManager;
+        $this->manager = $manager;
         $this->passwordService = $passwordService;
     }
 
@@ -107,10 +107,10 @@ class InitSetupCommand extends Command
 
         $this->passwordService->processUserPassword($user);
 
-        $this->entityManager->persist($domain);
-        $this->entityManager->persist($user);
+        $this->manager->getManager()->persist($domain);
+        $this->manager->getManager()->persist($user);
 
-        $this->entityManager->flush();
+        $this->manager->getManager()->flush();
 
         $output->writeln(sprintf('<info>Your new email address %s was successfully created.</info>', $user));
         $output->writeln('<info>You can now login using the previously set password.</info>');

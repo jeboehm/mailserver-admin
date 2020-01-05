@@ -12,7 +12,8 @@ namespace App\Tests\Command;
 
 use App\Command\DKIMDisableCommand;
 use App\Entity\Domain;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -23,14 +24,18 @@ class DKIMDisableCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
+    private MockObject $managerRegistryMock;
+
     private MockObject $managerMock;
 
     protected function setUp(): void
     {
-        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
+        $this->managerMock = $this->createMock(ObjectManager::class);
+        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
 
         $application = new Application();
-        $application->add(new DKIMDisableCommand(null, $this->managerMock));
+        $application->add(new DKIMDisableCommand(null, $this->managerRegistryMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:disable'));
     }
@@ -40,7 +45,7 @@ class DKIMDisableCommandTest extends TestCase
         $repository = $this->createMock(ObjectRepository::class);
         $repository->method('findOneBy')->willReturn(null);
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);
@@ -68,7 +73,7 @@ class DKIMDisableCommandTest extends TestCase
 
         $repository->method('findOneBy')->willReturn($domain);
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);
@@ -96,7 +101,7 @@ class DKIMDisableCommandTest extends TestCase
 
         $repository->method('findOneBy')->willReturn($domain);
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);
@@ -107,8 +112,6 @@ class DKIMDisableCommandTest extends TestCase
         $this->commandTester->execute(['domain' => 'example.com']);
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
-        $this->assertEmpty($domain->getDkimPrivateKey());
-        $this->assertEmpty($domain->getDkimSelector());
         $this->assertFalse($domain->getDkimEnabled());
     }
 }

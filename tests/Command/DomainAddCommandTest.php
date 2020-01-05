@@ -12,7 +12,8 @@ namespace App\Tests\Command;
 
 use App\Command\DomainAddCommand;
 use App\Entity\Domain;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -26,17 +27,21 @@ class DomainAddCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
+    private MockObject $managerRegistryMock;
+
     private MockObject $managerMock;
 
     private MockObject $validatorMock;
 
     protected function setUp(): void
     {
-        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
+        $this->managerMock = $this->createMock(ObjectManager::class);
+        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new DomainAddCommand(null, $this->managerMock, $this->validatorMock));
+        $application->add(new DomainAddCommand(null, $this->managerRegistryMock, $this->validatorMock));
 
         $this->commandTester = new CommandTester($application->find('domain:add'));
     }
