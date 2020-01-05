@@ -25,7 +25,3 @@ services:
     App\Service\DKIM\Config\LeftoverFileCleaner:
         arguments:
             $path: '%rspamd_dkim%'
-
-    App\Subscriber\DKIMDomainSubscriber:
-        tags:
-            - { name: doctrine.event_subscriber, connection: default }

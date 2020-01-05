@@ -22,34 +22,36 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 class Domain
 {
+    use DkimInfoTrait;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer", name="id")
      */
-    private $id;
+    private ?int $id = null;
 
     /**
      * @ORM\Column(type="string", name="name", unique=true, options={"collation":"utf8_unicode_ci"})
      * @Assert\NotBlank()
      */
-    private $name = '';
+    private string $name = '';
 
     /**
      * @ORM\Column(type="boolean", name="dkim_enabled")
      */
-    private $dkimEnabled = false;
+    private bool $dkimEnabled = false;
 
     /**
      * @ORM\Column(type="string", name="dkim_selector")
      * @Assert\Regex(pattern="/^[a-z0-9]{1,50}$/")
      */
-    private $dkimSelector = '';
+    private string $dkimSelector = '';
 
     /**
      * @ORM\Column(type="text", name="dkim_private_key")
      */
-    private $dkimPrivateKey = '';
+    private string $dkimPrivateKey = '';
 
     /**
      * @ORM\OneToMany(targetEntity="User", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)

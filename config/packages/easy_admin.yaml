@@ -6,7 +6,11 @@ easy_admin:
             - { entity: 'User', icon: 'user' }
             - { entity: 'Alias', icon: 'list-alt' }
             - { label: 'Other' }
-            - { label: 'DKIM', route: 'app_dkim_index', icon: 'shield' }
+            - { entity: 'DKIM', icon: 'shield' }
+
+    user:
+        display_name: true
+        display_avatar: false
 
     entities:
         Domain:
@@ -54,3 +58,29 @@ easy_admin:
                     - { property: 'domain' }
                     - { property: 'name', type: 'text' }
                     - { property: 'destination', type: 'email' }
+
+        DKIM:
+            class: App\Entity\Domain
+            templates:
+                edit: 'admin/dkim/edit.html.twig'
+            list:
+                sort: ['name', 'ASC']
+                actions:
+                    - '-delete'
+                    - '-new'
+                    - 'edit'
+                    - { name: 'app_dkim_recreate', type: 'route', label: 'Recreate Private Key' }
+                fields:
+                    - { property: 'name', label: 'Domain' }
+                    - { property: 'dkimEnabled', label: 'Enabled' }
+                    - { property: 'dkimStatus.dkimRecordFound', label: 'Domain Key found', type: 'boolean' }
+                    - { property: 'dkimStatus.dkimRecordValid', label: 'Key valid', type: 'boolean' }
+
+            form:
+                help: If you enable DKIM for this domain, all outgoing mails will have a DKIM signature attached. You should set up the DNS record before doing this. After you have generated a private key, a DNS record is provided that needs to be added to your domain's zone.
+                actions:
+                    - '-delete'
+                fields:
+                    - { property: 'name', label: 'Domain', type_options: { disabled: true }}
+                    - { property: 'dkimEnabled', label: 'Enabled' }
+                    - { property: 'dkimSelector', label: 'Selector', help: 'Usually the current year' }

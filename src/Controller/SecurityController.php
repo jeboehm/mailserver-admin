@@ -10,33 +10,45 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
-class SecurityController
+class SecurityController extends AbstractController
 {
+    private Security $security;
+
+    public function __construct(Security $security)
+    {
+        $this->security = $security;
+    }
+
     /**
      * @Route("/login", name="app_login")
-     * @Template()
      */
-    public function loginAction(AuthenticationUtils $authenticationUtils): array
+    public function loginAction(AuthenticationUtils $authenticationUtils): Response
     {
+        if (null !== $this->security->getUser()) {
+            return $this->redirectToRoute('easyadmin');
+        }
+
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return [
+        return $this->render('@EasyAdmin/page/login.html.twig', [
             'last_username' => $lastUsername,
-            'error' => null !== $error ? $error->getMessage() : '',
-        ];
+            'error' => $error,
+            'csrf_token_intention' => 'authenticate',
+        ]);
     }
 
     /**
      * @Route("/logout", name="app_logout")
      */
-    public function logoutAction(): RedirectResponse
+    public function logoutAction(): Response
     {
-        return new RedirectResponse('/');
+        return $this->redirectToRoute('easyadmin');
     }
 }

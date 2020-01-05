@@ -14,7 +14,7 @@ class FormatterService
 {
     public function getTXTRecord(string $publicKey, string $algorithm): string
     {
-        $publicKey = preg_replace('/^-+.*?-+$/m', '', $publicKey);
+        $publicKey = preg_replace('#^-+.*?-+$#m', '', $publicKey);
         $publicKey = str_replace(["\r", "\n"], '', $publicKey);
 
         return sprintf('v=DKIM1\; h=%s\; t=s\; p=%s', $algorithm, $publicKey);

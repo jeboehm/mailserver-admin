@@ -22,9 +22,7 @@ class DNSResolver
         $result = @dns_get_record($address, \DNS_TXT);
         $result = \array_filter(
             $result,
-            static function (array $row) use ($address) {
-                return $row['host'] === $address;
-            }
+            fn (array $row) => $row['host'] === $address
         );
 
         if (empty($result)) {

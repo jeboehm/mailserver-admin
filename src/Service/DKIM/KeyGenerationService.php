@@ -14,14 +14,20 @@ use LogicException;
 
 class KeyGenerationService
 {
+    /**
+     * @var string
+     */
     public const DIGEST_ALGORITHM = 'sha256';
-    private const KEY_LENGTH = 2048;
+    /**
+     * @var int
+     */
+    private const KEY_LENGTH = 2_048;
 
     public function extractPublicKey(string $privateKey): string
     {
         $res = \openssl_pkey_get_private($privateKey);
 
-        if (false === $res) {
+        if (!$res) {
             throw new LogicException('Cannot read private key.');
         }
 

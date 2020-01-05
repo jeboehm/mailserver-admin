@@ -13,7 +13,7 @@ namespace App\Command;
 use App\Entity\Domain;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,13 +23,13 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMSetupCommand extends Command
 {
-    private $manager;
-    private $keyGenerationService;
-    private $formatterService;
+    private ManagerRegistry $manager;
+    private KeyGenerationService $keyGenerationService;
+    private FormatterService $formatterService;
 
     public function __construct(
         ?string $name = null,
-        EntityManagerInterface $manager,
+        ManagerRegistry $manager,
         KeyGenerationService $keyGenerationService,
         FormatterService $formatterService
     ) {
@@ -54,7 +54,7 @@ class DKIMSetupCommand extends Command
     {
         $domain = $this->getDomain($input, $output);
 
-        if (!$domain) {
+        if (null === $domain) {
             return 1;
         }
 
@@ -83,7 +83,7 @@ class DKIMSetupCommand extends Command
             KeyGenerationService::DIGEST_ALGORITHM
         );
 
-        $this->manager->flush();
+        $this->manager->getManager()->flush();
 
         $output->writeln(sprintf('<info>Add the following TXT record to %s.%s:</info>', $selector, $domain->getName()));
         $output->writeln('');
@@ -120,7 +120,7 @@ class DKIMSetupCommand extends Command
             $input,
             $output,
             new ConfirmationQuestion(
-                '<question>If you regenerate your private key, you\'ll have to update your DNS settings. Continue?</question>'
+                "<question>If you regenerate your private key, you'll have to update your DNS settings. Continue?</question>"
             )
         );
 

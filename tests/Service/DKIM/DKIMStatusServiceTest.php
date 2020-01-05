@@ -21,17 +21,13 @@ use PHPUnit\Framework\TestCase;
 
 class DKIMStatusServiceTest extends TestCase
 {
-    /** @var DomainKeyReaderService|MockObject */
-    private $domainKeyReaderService;
+    private MockObject $domainKeyReaderService;
 
-    /** @var FormatterService|MockObject */
-    private $formatterService;
+    private MockObject $formatterService;
 
-    /** @var KeyGenerationService|MockObject */
-    private $keyGenerationService;
+    private MockObject $keyGenerationService;
 
-    /** @var DKIMStatusService */
-    private $instance;
+    private DKIMStatusService $instance;
 
     protected function setUp(): void
     {

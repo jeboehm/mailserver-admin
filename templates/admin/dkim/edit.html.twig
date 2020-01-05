@@ -1,0 +1,70 @@
+{% extends '@EasyAdmin/default/edit.html.twig' %}
+
+{% block main %}
+    {{ parent() }}
+
+    {% if entity.dkimStatus.dkimEnabled and (not entity.dkimStatus.dkimRecordFound or not entity.dkimStatus.dkimRecordValid) %}
+        {% set alert_context = 'danger' %}
+        {% set alert_text %}
+            DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.
+        {% endset %}
+    {% endif %}
+
+    {% if not entity.dkimStatus.dkimEnabled %}
+        {% set alert_context = 'info' %}
+        {% set alert_text %}
+            {% if entity.dkimStatus.dkimRecordFound and entity.dkimStatus.dkimRecordValid %}
+                DKIM is set up properly and can now be enabled.
+            {% else %}
+                DKIM is disabled.
+            {% endif %}
+        {% endset %}
+    {% endif %}
+
+    {% if entity.dkimStatus.dkimEnabled and entity.dkimStatus.dkimRecordFound and entity.dkimStatus.dkimRecordValid %}
+        {% set alert_context = 'success' %}
+        {% set alert_text %}
+            Well done! DKIM is set up properly.
+        {% endset %}
+    {% endif %}
+
+    {% if alert_text is not empty %}
+        <div class="alert alert-{{ alert_context }}" role="alert">
+            {{ alert_text }}
+        </div>
+    {% endif %}
+
+    {% if entity.dkimSelector and entity.dkimPrivateKey %}
+        <section class="content-footer">
+            <div class="row">
+                <div class="col-2">
+                    Domain:
+                </div>
+                <div class="col-10">
+                    {{ entity.dkimSelector }}._domainkey.{{ entity.name }}
+                </div>
+
+                <div class="col-2">
+                    Record type:
+                </div>
+                <div class="col-10">
+                    TXT
+                </div>
+
+                <div class="col-2">
+                    Expected value:
+                </div>
+                <div class="col-10">
+                    <pre class="pre-scrollable"><code>{{ entity.expectedDnsRecord }}</code></pre>
+                </div>
+
+                <div class="col-2">
+                    Current value:
+                </div>
+                <div class="col-10">
+                    <pre class="pre-scrollable"><code>{{ entity.currentDnsRecord }}</code></pre>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}

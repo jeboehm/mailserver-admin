@@ -16,8 +16,7 @@ use Symfony\Bridge\PhpUnit\DnsMock;
 
 class DNSResolverTest extends TestCase
 {
-    /** @var DNSResolver */
-    private $instance;
+    private DNSResolver $instance;
 
     protected function setUp(): void
     {

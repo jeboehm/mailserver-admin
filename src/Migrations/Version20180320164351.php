@@ -10,27 +10,27 @@ declare(strict_types=1);
 
 namespace App\Migrations;
 
-use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
 use Exception;
 
 class Version20180320164351 extends AbstractMigration
 {
-    private $users = [];
+    private array $users = [];
 
-    private $aliases = [];
+    private array $aliases = [];
 
-    public function preUp(Schema $schema)
+    public function preUp(Schema $schema): void
     {
         $this->fillUsers();
         $this->fillAliases();
     }
 
-    public function up(Schema $schema)
+    public function up(Schema $schema): void
     {
         $this->abortIf(
             'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            'Migration can only be executed safely on \'mysql\'.'
+            "Migration can only be executed safely on 'mysql'."
         );
 
         $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
@@ -53,7 +53,7 @@ class Version20180320164351 extends AbstractMigration
         $this->addSql('DROP TABLE virtual_users');
     }
 
-    public function postUp(Schema $schema)
+    public function postUp(Schema $schema): void
     {
         foreach ($this->users as $user) {
             $this->connection->insert('mail_users', $user);
@@ -64,12 +64,12 @@ class Version20180320164351 extends AbstractMigration
         }
     }
 
-    public function down(Schema $schema)
+    public function down(Schema $schema): void
     {
         throw new Exception('Not implemented');
     }
 
-    private function fillUsers()
+    private function fillUsers(): void
     {
         $qb = $this->connection->createQueryBuilder();
         $qb
@@ -89,7 +89,7 @@ class Version20180320164351 extends AbstractMigration
         }
     }
 
-    private function fillAliases()
+    private function fillAliases(): void
     {
         $qb = $this->connection->createQueryBuilder();
         $qb

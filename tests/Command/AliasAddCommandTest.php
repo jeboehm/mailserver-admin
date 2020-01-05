@@ -13,8 +13,9 @@ namespace App\Tests\Command;
 use App\Command\AliasAddCommand;
 use App\Entity\Alias;
 use App\Entity\Domain;
-use Doctrine\Common\Persistence\ObjectRepository;
-use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -26,22 +27,23 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AliasAddCommandTest extends TestCase
 {
-    /** @var CommandTester */
-    private $commandTester;
+    private CommandTester $commandTester;
 
-    /** @var EntityManagerInterface|MockObject */
-    private $managerMock;
+    private MockObject $managerRegistryMock;
 
-    /** @var ValidatorInterface|MockObject */
-    private $validatorMock;
+    private MockObject $managerMock;
+
+    private MockObject $validatorMock;
 
     protected function setUp(): void
     {
-        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
+        $this->managerMock = $this->createMock(ObjectManager::class);
+        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new AliasAddCommand(null, $this->managerMock, $this->validatorMock));
+        $application->add(new AliasAddCommand(null, $this->managerRegistryMock, $this->validatorMock));
 
         $this->commandTester = new CommandTester($application->find('alias:add'));
     }
@@ -71,7 +73,7 @@ class AliasAddCommandTest extends TestCase
         $repository = $this->createMock(ObjectRepository::class);
         $repository->method('findOneBy')->willReturn(null);
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);
@@ -95,7 +97,7 @@ class AliasAddCommandTest extends TestCase
         $violationList = new ConstraintViolationList();
         $violationList->add(new ConstraintViolation('Test', null, [], null, 'name', 1));
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);
@@ -119,7 +121,7 @@ class AliasAddCommandTest extends TestCase
 
         $violationList = $this->createMock(ConstraintViolationListInterface::class);
 
-        $this->managerMock
+        $this->managerRegistryMock
             ->method('getRepository')
             ->with(Domain::class)
             ->willReturn($repository);

@@ -16,8 +16,8 @@ use Symfony\Component\Finder\Finder;
 
 class LeftoverFileCleaner
 {
-    private $path;
-    private $filesystem;
+    private string $path;
+    private Filesystem $filesystem;
 
     public function __construct(string $path)
     {

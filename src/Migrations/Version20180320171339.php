@@ -10,15 +10,15 @@ declare(strict_types=1);
 
 namespace App\Migrations;
 
-use Doctrine\DBAL\Migrations\AbstractMigration;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Migrations\AbstractMigration;
 use Exception;
 
 class Version20180320171339 extends AbstractMigration
 {
-    public function up(Schema $schema)
+    public function up(Schema $schema): void
     {
-        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), 'Migration can only be executed safely on \'mysql\'.');
+        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), "Migration can only be executed safely on 'mysql'.");
 
         $this->addSql('ALTER TABLE mail_aliases RENAME INDEX idx_5f12bb39115f0ee5 TO IDX_85AF3A56115F0EE5');
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL');
@@ -27,7 +27,7 @@ class Version20180320171339 extends AbstractMigration
         $this->addSql('ALTER TABLE mail_users RENAME INDEX idx_1483a5e9115f0ee5 TO IDX_20400786115F0EE5');
     }
 
-    public function down(Schema $schema)
+    public function down(Schema $schema): void
     {
         throw new Exception('Not implemented');
     }
