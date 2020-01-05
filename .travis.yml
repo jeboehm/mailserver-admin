@@ -6,6 +6,3 @@ php:
 script:
   - composer install --dev
   - bin/phpunit
-
-env:
-  - SYMFONY_DEPRECATIONS_HELPER=disabled=1
