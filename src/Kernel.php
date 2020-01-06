@@ -21,9 +21,6 @@ class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
 
-    /**
-     * @var string
-     */
     private const CONFIG_EXTS = '.{php,xml,yaml,yml}';
 
     public function getCacheDir(): string

@@ -12,7 +12,6 @@ namespace App\Controller;
 
 use App\Entity\Domain;
 use App\Service\DKIM\KeyGenerationService;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -32,10 +31,11 @@ class DKIMController extends AbstractController
 
     /**
      * @Route("/recreate", name="app_dkim_recreate")
-     * @Security("has_role('ROLE_ADMIN')")
      */
     public function recreateAction(Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $em = $this->getDoctrine()->getManager();
         $repository = $this->getDoctrine()->getRepository(Domain::class);
 

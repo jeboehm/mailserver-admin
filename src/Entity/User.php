@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -20,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(name="mail_users", uniqueConstraints={@ORM\UniqueConstraint(name="user_idx", columns={"name", "domain_id"})})
  * @UniqueEntity({"name", "domain"})
  */
-class User implements UserInterface
+class User implements UserInterface, Serializable
 {
     /**
      * @ORM\Id()
@@ -74,12 +75,16 @@ class User implements UserInterface
      */
     private int $quota = 0;
 
-    private array $roles = ['ROLE_USER'];
+    private ?string $domainName = null;
 
     public function __toString(): string
     {
-        if (null !== $this->getDomain()) {
-            return sprintf('%s@%s', $this->name, $this->getDomain()->getName());
+        if (null !== $this->domain) {
+            return sprintf('%s@%s', $this->name, $this->domain->getName());
+        }
+
+        if (null !== $this->domainName) {
+            return sprintf('%s@%s', $this->name, $this->domainName);
         }
 
         return '';
@@ -122,12 +127,11 @@ class User implements UserInterface
 
     public function getRoles(): array
     {
-        return $this->roles;
-    }
+        if ($this->admin) {
+            return ['ROLE_ADMIN', 'ROLE_USER'];
+        }
 
-    public function addRole(string $role): void
-    {
-        $this->roles[] = $role;
+        return ['ROLE_USER'];
     }
 
     public function isAdmin(): bool
@@ -195,5 +199,15 @@ class User implements UserInterface
     public function setQuota(int $quota): void
     {
         $this->quota = $quota;
+    }
+
+    public function serialize(): string
+    {
+        return serialize([$this->id, $this->password, $this->domain->getName(), $this->admin, $this->name]);
+    }
+
+    public function unserialize($serialized): void
+    {
+        [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = unserialize($serialized, ['allowed_classes' => false]);
     }
 }
