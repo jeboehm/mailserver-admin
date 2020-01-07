@@ -12,6 +12,7 @@ namespace App\Tests\Command;
 
 use App\Command\DKIMSetupCommand;
 use App\Entity\Domain;
+use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -30,15 +31,18 @@ class DKIMSetupCommandTest extends TestCase
 
     private MockObject $managerMock;
 
+    private MockObject $dkimManagerMock;
+
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->dkimManagerMock = $this->createMock(Manager::class);
 
         $application = new Application();
         $application->add(
-            new DKIMSetupCommand(null, $this->managerRegistryMock, new KeyGenerationService(), new FormatterService())
+            new DKIMSetupCommand(null, $this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock)
         );
 
         $this->commandTester = new CommandTester($application->find('dkim:setup'));
@@ -55,6 +59,7 @@ class DKIMSetupCommandTest extends TestCase
             ->willReturn($repository);
 
         $this->managerMock->expects($this->never())->method('flush');
+        $this->dkimManagerMock->expects($this->never())->method('refresh');
 
         $this->commandTester->execute(['domain' => 'example.com']);
 
@@ -125,6 +130,7 @@ class DKIMSetupCommandTest extends TestCase
             ->willReturn($repository);
 
         $this->managerMock->expects($this->once())->method('flush');
+        $this->dkimManagerMock->expects($this->once())->method('refresh');
 
         $this->commandTester->execute(['domain' => 'example.com', '--enable' => true]);
 
