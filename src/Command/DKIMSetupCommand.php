@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Entity\Domain;
+use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -26,18 +27,21 @@ class DKIMSetupCommand extends Command
     private ManagerRegistry $manager;
     private KeyGenerationService $keyGenerationService;
     private FormatterService $formatterService;
+    private Manager $dkimManager;
 
     public function __construct(
         ?string $name = null,
         ManagerRegistry $manager,
         KeyGenerationService $keyGenerationService,
-        FormatterService $formatterService
+        FormatterService $formatterService,
+        Manager $dkimManager
     ) {
         parent::__construct($name);
 
         $this->manager = $manager;
         $this->keyGenerationService = $keyGenerationService;
         $this->formatterService = $formatterService;
+        $this->dkimManager = $dkimManager;
     }
 
     protected function configure(): void
@@ -84,6 +88,7 @@ class DKIMSetupCommand extends Command
         );
 
         $this->manager->getManager()->flush();
+        $this->dkimManager->refresh();
 
         $output->writeln(sprintf('<info>Add the following TXT record to %s.%s:</info>', $selector, $domain->getName()));
         $output->writeln('');
