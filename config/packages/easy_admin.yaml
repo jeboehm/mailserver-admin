@@ -1,5 +1,5 @@
 easy_admin:
-    site_name: docker-mailserver
+    site_name: mailserver-admin
     design:
         menu:
             - { entity: 'Domain', icon: 'globe' }
