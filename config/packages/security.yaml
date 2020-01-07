@@ -1,7 +1,8 @@
 security:
     providers:
-        mail:
-            id: App\Security\Provider\UserProvider
+        main:
+            entity:
+                class: App\Entity\User
 
     encoders:
         App\Entity\User:

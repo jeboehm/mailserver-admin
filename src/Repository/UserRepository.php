@@ -13,6 +13,7 @@ namespace App\Repository;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -20,7 +21,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method User[]    findAll()
  * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UserRepository extends ServiceEntityRepository
+class UserRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
@@ -44,5 +45,10 @@ class UserRepository extends ServiceEntityRepository
             ->setParameter('domainPart', $parts[1]);
 
         return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function loadUserByUsername($username)
+    {
+        return $this->findOneByEmailAddress((string) $username);
     }
 }

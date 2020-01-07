@@ -14,11 +14,11 @@ use App\Service\DKIM\DKIMStatus;
 
 trait DkimInfoTrait
 {
-    private DKIMStatus $dkimStatus;
-    private string $expectedDnsRecord;
-    private string $currentDnsRecord;
+    private ?DKIMStatus $dkimStatus;
+    private ?string $expectedDnsRecord;
+    private ?string $currentDnsRecord;
 
-    public function getDkimStatus(): DKIMStatus
+    public function getDkimStatus(): ?DKIMStatus
     {
         return $this->dkimStatus;
     }
@@ -28,7 +28,7 @@ trait DkimInfoTrait
         $this->dkimStatus = $dkimStatus;
     }
 
-    public function getExpectedDnsRecord(): string
+    public function getExpectedDnsRecord(): ?string
     {
         return $this->expectedDnsRecord;
     }
@@ -38,7 +38,7 @@ trait DkimInfoTrait
         $this->expectedDnsRecord = $expectedDnsRecord;
     }
 
-    public function getCurrentDnsRecord(): string
+    public function getCurrentDnsRecord(): ?string
     {
         return $this->currentDnsRecord;
     }
