@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -57,13 +58,13 @@ class Domain
      * @ORM\OneToMany(targetEntity="User", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)
      * @Assert\Valid()
      */
-    private $users;
+    private Collection $users;
 
     /**
      * @ORM\OneToMany(targetEntity="Alias", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)
      * @Assert\Valid()
      */
-    private $aliases;
+    private Collection $aliases;
 
     public function __construct()
     {
