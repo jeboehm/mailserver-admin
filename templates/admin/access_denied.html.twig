@@ -1,0 +1,28 @@
+{% extends '@EasyAdmin/page/login.html.twig' %}
+
+{% block wrapper_wrapper %}
+    <div class="login-wrapper">
+        <header class="main-header mb-4">
+            <div id="header-logo">
+                {% block header_logo %}
+                    <a class="logo {{ easyadmin_config('site_name')|length > 14 ? 'logo-long' }}" title="{{ easyadmin_config('site_name')|striptags }}" href="{{ path('easyadmin') }}">
+                        {{ easyadmin_config('site_name')|raw }}
+                    </a>
+                {% endblock header_logo %}
+            </div>
+        </header>
+
+        <div class="w-100 alert alert-danger">
+            You need to have admin permissions to access the management interface.
+        </div>
+
+        <section class="content">
+            <a href="{{ path('app_logout') }}" class="btn btn-primary btn-lg btn-block">Login</a>
+
+            <section class="content-footer">
+                <a href="/webmail" class="btn btn-secondary btn-lg btn-block">Webmail</a><br/>
+                <small class="text-muted"><a href="https://github.com/jeboehm/docker-mailserver">docker-mailserver</a></small>
+            </section>
+        </section>
+    </div>
+{% endblock %}

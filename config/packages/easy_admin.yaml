@@ -7,6 +7,7 @@ easy_admin:
             - { entity: 'Alias', icon: 'list-alt' }
             - { label: 'Other' }
             - { entity: 'DKIM', icon: 'shield' }
+            - { label: 'Webmail', icon: 'folder-open', url: '/webmail' }
 
     user:
         display_name: true
