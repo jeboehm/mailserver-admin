@@ -19,6 +19,7 @@ security:
                 login_path: app_login
                 check_path: app_login
                 csrf_token_generator: security.csrf.token_manager
+            access_denied_handler: App\Security\AccessDeniedHandler
 
     access_control:
         - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
