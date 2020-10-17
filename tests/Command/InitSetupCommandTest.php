@@ -13,7 +13,6 @@ namespace App\Tests\Command;
 use App\Command\InitSetupCommand;
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Service\PasswordService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -33,18 +32,15 @@ class InitSetupCommandTest extends TestCase
 
     private MockObject $validatorMock;
 
-    private MockObject $passwordService;
-
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
-        $this->passwordService = $this->createMock(PasswordService::class);
 
         $application = new Application();
-        $application->add(new InitSetupCommand(null, $this->validatorMock, $this->managerRegistryMock, $this->passwordService));
+        $application->add(new InitSetupCommand($this->validatorMock, $this->managerRegistryMock));
 
         $this->commandTester = new CommandTester($application->find('init:setup'));
     }
@@ -56,8 +52,6 @@ class InitSetupCommandTest extends TestCase
         $this->validatorMock
             ->method('validate')
             ->willReturn($violationList);
-
-        $this->passwordService->expects($this->once())->method('processUserPassword');
 
         $this->managerMock->expects($this->once())->method('flush');
         $this->managerMock

@@ -13,7 +13,6 @@ namespace App\Tests\Command;
 use App\Command\UserAddCommand;
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Service\PasswordService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
@@ -36,18 +35,15 @@ class UserAddCommandTest extends TestCase
 
     private MockObject $validatorMock;
 
-    private MockObject $passwordService;
-
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
-        $this->passwordService = $this->createMock(PasswordService::class);
 
         $application = new Application();
-        $application->add(new UserAddCommand(null, $this->managerRegistryMock, $this->passwordService, $this->validatorMock));
+        $application->add(new UserAddCommand($this->managerRegistryMock, $this->validatorMock));
 
         $this->commandTester = new CommandTester($application->find('user:add'));
     }
@@ -114,8 +110,6 @@ class UserAddCommandTest extends TestCase
         $this->validatorMock
             ->method('validate')
             ->willReturn($violationList);
-
-        $this->passwordService->expects($this->once())->method('processUserPassword');
 
         $this->managerMock->expects($this->once())->method('flush');
         $this->managerMock

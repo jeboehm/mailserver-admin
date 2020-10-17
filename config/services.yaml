@@ -16,7 +16,7 @@ services:
 
     App\Controller\:
         resource: '../src/Controller'
-        tags: ['controller.service_arguments']
+        tags: [ 'controller.service_arguments' ]
 
     App\Service\DKIM\Config\MapGenerator:
         arguments:
@@ -25,3 +25,19 @@ services:
     App\Service\DKIM\Config\LeftoverFileCleaner:
         arguments:
             $path: '%rspamd_dkim%'
+
+    App\Subscriber\DKIM\ConfigSyncSubscriber:
+        tags:
+            - { name: 'doctrine.event_subscriber' }
+
+    App\Subscriber\DKIM\CreatePrivateKeyOnActivationSubscriber:
+        tags:
+            - { name: 'doctrine.event_subscriber' }
+
+    App\Subscriber\DKIM\DomainInfoSubscriber:
+        tags:
+            - { name: 'doctrine.event_subscriber' }
+
+    App\Subscriber\ChangePasswordSubscriber:
+        tags:
+            - { name: 'doctrine.event_subscriber' }

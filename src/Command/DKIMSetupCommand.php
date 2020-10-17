@@ -30,13 +30,12 @@ class DKIMSetupCommand extends Command
     private Manager $dkimManager;
 
     public function __construct(
-        ?string $name = null,
         ManagerRegistry $manager,
         KeyGenerationService $keyGenerationService,
         FormatterService $formatterService,
         Manager $dkimManager
     ) {
-        parent::__construct($name);
+        parent::__construct();
 
         $this->manager = $manager;
         $this->keyGenerationService = $keyGenerationService;

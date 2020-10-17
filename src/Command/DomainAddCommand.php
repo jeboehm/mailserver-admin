@@ -25,12 +25,9 @@ class DomainAddCommand extends Command
 
     private ValidatorInterface $validator;
 
-    public function __construct(
-        string $name = null,
-        ManagerRegistry $manager,
-        ValidatorInterface $validator
-    ) {
-        parent::__construct($name);
+    public function __construct(ManagerRegistry $manager, ValidatorInterface $validator)
+    {
+        parent::__construct();
 
         $this->manager = $manager;
         $this->validator = $validator;

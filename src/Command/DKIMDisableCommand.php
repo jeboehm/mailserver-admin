@@ -23,9 +23,9 @@ class DKIMDisableCommand extends Command
 {
     private ManagerRegistry $manager;
 
-    public function __construct(string $name = null, ManagerRegistry $manager)
+    public function __construct(ManagerRegistry $manager)
     {
-        parent::__construct($name);
+        parent::__construct();
 
         $this->manager = $manager;
     }

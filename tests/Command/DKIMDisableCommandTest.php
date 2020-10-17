@@ -35,7 +35,7 @@ class DKIMDisableCommandTest extends TestCase
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
 
         $application = new Application();
-        $application->add(new DKIMDisableCommand(null, $this->managerRegistryMock));
+        $application->add(new DKIMDisableCommand($this->managerRegistryMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:disable'));
     }
