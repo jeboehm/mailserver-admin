@@ -19,9 +19,9 @@ class DKIMSyncCommand extends Command
 {
     private Manager $manager;
 
-    public function __construct(string $name = null, Manager $manager)
+    public function __construct(Manager $manager)
     {
-        parent::__construct($name);
+        parent::__construct();
 
         $this->manager = $manager;
     }

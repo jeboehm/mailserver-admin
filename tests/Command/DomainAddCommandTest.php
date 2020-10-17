@@ -41,7 +41,7 @@ class DomainAddCommandTest extends TestCase
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new DomainAddCommand(null, $this->managerRegistryMock, $this->validatorMock));
+        $application->add(new DomainAddCommand($this->managerRegistryMock, $this->validatorMock));
 
         $this->commandTester = new CommandTester($application->find('domain:add'));
     }

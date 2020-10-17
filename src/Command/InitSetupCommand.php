@@ -12,7 +12,6 @@ namespace App\Command;
 
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Service\PasswordService;
 use Doctrine\Persistence\ManagerRegistry;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
@@ -26,22 +25,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class InitSetupCommand extends Command
 {
     private ValidatorInterface $validator;
-
     private ManagerRegistry $manager;
 
-    private PasswordService $passwordService;
-
-    public function __construct(
-        string $name = null,
-        ValidatorInterface $validator,
-        ManagerRegistry $manager,
-        PasswordService $passwordService
-    ) {
-        parent::__construct($name);
+    public function __construct(ValidatorInterface $validator, ManagerRegistry $manager)
+    {
+        parent::__construct();
 
         $this->validator = $validator;
         $this->manager = $manager;
-        $this->passwordService = $passwordService;
     }
 
     protected function configure(): void
@@ -104,8 +95,6 @@ class InitSetupCommand extends Command
 
             return 1;
         }
-
-        $this->passwordService->processUserPassword($user);
 
         $this->manager->getManager()->persist($domain);
         $this->manager->getManager()->persist($user);

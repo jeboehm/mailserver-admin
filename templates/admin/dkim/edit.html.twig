@@ -1,19 +1,19 @@
-{% extends '@EasyAdmin/default/edit.html.twig' %}
+{% extends '@EasyAdmin/crud/edit.html.twig' %}
 
 {% block main %}
     {{ parent() }}
 
-    {% if entity.dkimStatus.dkimEnabled and (not entity.dkimStatus.dkimRecordFound or not entity.dkimStatus.dkimRecordValid) %}
+    {% if entity.instance.dkimStatus.dkimEnabled and (not entity.instance.dkimStatus.dkimRecordFound or not entity.instance.dkimStatus.dkimRecordValid) %}
         {% set alert_context = 'danger' %}
         {% set alert_text %}
             DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.
         {% endset %}
     {% endif %}
 
-    {% if not entity.dkimStatus.dkimEnabled %}
+    {% if not entity.instance.dkimStatus.dkimEnabled %}
         {% set alert_context = 'info' %}
         {% set alert_text %}
-            {% if entity.dkimStatus.dkimRecordFound and entity.dkimStatus.dkimRecordValid %}
+            {% if entity.instance.dkimStatus.dkimRecordFound and entity.instance.dkimStatus.dkimRecordValid %}
                 DKIM is set up properly and can now be enabled.
             {% else %}
                 DKIM is disabled.
@@ -21,7 +21,7 @@
         {% endset %}
     {% endif %}
 
-    {% if entity.dkimStatus.dkimEnabled and entity.dkimStatus.dkimRecordFound and entity.dkimStatus.dkimRecordValid %}
+    {% if entity.instance.dkimStatus.dkimEnabled and entity.instance.dkimStatus.dkimRecordFound and entity.instance.dkimStatus.dkimRecordValid %}
         {% set alert_context = 'success' %}
         {% set alert_text %}
             Well done! DKIM is set up properly.
@@ -34,14 +34,14 @@
         </div>
     {% endif %}
 
-    {% if entity.dkimSelector and entity.dkimPrivateKey %}
+    {% if entity.instance.dkimSelector and entity.instance.dkimPrivateKey %}
         <section class="content-footer">
             <div class="row">
                 <div class="col-2">
                     Domain:
                 </div>
                 <div class="col-10">
-                    {{ entity.dkimSelector }}._domainkey.{{ entity.name }}
+                    {{ entity.instance.dkimSelector }}._domainkey.{{ entity.instance.name }}
                 </div>
 
                 <div class="col-2">
@@ -55,14 +55,14 @@
                     Expected value:
                 </div>
                 <div class="col-10">
-                    <pre class="pre-scrollable"><code>{{ entity.expectedDnsRecord }}</code></pre>
+                    <pre class="pre-scrollable"><code>{{ entity.instance.expectedDnsRecord }}</code></pre>
                 </div>
 
                 <div class="col-2">
                     Current value:
                 </div>
                 <div class="col-10">
-                    <pre class="pre-scrollable"><code>{{ entity.currentDnsRecord }}</code></pre>
+                    <pre class="pre-scrollable"><code>{{ entity.instance.currentDnsRecord }}</code></pre>
                 </div>
             </div>
         </section>

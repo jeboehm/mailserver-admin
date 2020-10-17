@@ -12,11 +12,11 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\KeyGenerationService;
-use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class CreatePrivateKeyOnActivationSubscriber implements EventSubscriberInterface
+class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
 {
     private KeyGenerationService $keyGenerationService;
 
@@ -25,16 +25,14 @@ class CreatePrivateKeyOnActivationSubscriber implements EventSubscriberInterface
         $this->keyGenerationService = $keyGenerationService;
     }
 
-    public static function getSubscribedEvents(): array
+    public function getSubscribedEvents(): array
     {
-        return [
-            EasyAdminEvents::PRE_UPDATE => 'onPreUpdate',
-        ];
+        return [Events::preUpdate, Events::prePersist];
     }
 
-    public function onPreUpdate(GenericEvent $event): void
+    public function preUpdate(LifecycleEventArgs $event): void
     {
-        $entity = $event->getArgument('entity');
+        $entity = $event->getObject();
 
         if (!($entity instanceof Domain)) {
             return;
@@ -47,5 +45,10 @@ class CreatePrivateKeyOnActivationSubscriber implements EventSubscriberInterface
         if ('' === $entity->getDkimSelector()) {
             $entity->setDkimSelector(date('Y'));
         }
+    }
+
+    public function prePersist(LifecycleEventArgs $event): void
+    {
+        $this->preUpdate($event);
     }
 }

@@ -12,11 +12,11 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\Config\Manager;
-use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class ConfigSyncSubscriber implements EventSubscriberInterface
+class ConfigSyncSubscriber implements EventSubscriber
 {
     private Manager $manager;
 
@@ -25,21 +25,24 @@ class ConfigSyncSubscriber implements EventSubscriberInterface
         $this->manager = $manager;
     }
 
-    public static function getSubscribedEvents(): array
+    public function getSubscribedEvents(): array
     {
-        return [
-            EasyAdminEvents::POST_UPDATE => 'onPostUpdate',
-        ];
+        return [Events::postUpdate, Events::postPersist];
     }
 
-    public function onPostUpdate(GenericEvent $event): void
+    public function postUpdate(LifecycleEventArgs $event): void
     {
-        $entity = $event->getArgument('entity');
+        $entity = $event->getObject();
 
         if (!($entity instanceof Domain)) {
             return;
         }
 
         $this->manager->refresh();
+    }
+
+    public function postPersist(LifecycleEventArgs $event): void
+    {
+        $this->postUpdate($event);
     }
 }

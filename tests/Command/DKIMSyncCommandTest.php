@@ -28,7 +28,7 @@ class DKIMSyncCommandTest extends TestCase
         $this->managerMock = $this->createMock(Manager::class);
 
         $application = new Application();
-        $application->add(new DKIMSyncCommand(null, $this->managerMock));
+        $application->add(new DKIMSyncCommand($this->managerMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:refresh'));
     }

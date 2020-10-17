@@ -12,7 +12,6 @@ namespace App\Command;
 
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Service\PasswordService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -27,21 +26,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserAddCommand extends Command
 {
     private ManagerRegistry $manager;
-
-    private PasswordService $passwordService;
-
     private ValidatorInterface $validator;
 
-    public function __construct(
-        string $name = null,
-        ManagerRegistry $manager,
-        PasswordService $passwordService,
-        ValidatorInterface $validator
-    ) {
-        parent::__construct($name);
+    public function __construct(ManagerRegistry $manager, ValidatorInterface $validator)
+    {
+        parent::__construct();
 
         $this->manager = $manager;
-        $this->passwordService = $passwordService;
         $this->validator = $validator;
     }
 
@@ -109,8 +100,6 @@ class UserAddCommand extends Command
 
             return 1;
         }
-
-        $this->passwordService->processUserPassword($user);
 
         $this->manager->getManager()->persist($user);
         $this->manager->getManager()->flush();

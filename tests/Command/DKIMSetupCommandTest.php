@@ -42,7 +42,7 @@ class DKIMSetupCommandTest extends TestCase
 
         $application = new Application();
         $application->add(
-            new DKIMSetupCommand(null, $this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock)
+            new DKIMSetupCommand($this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock)
         );
 
         $this->commandTester = new CommandTester($application->find('dkim:setup'));

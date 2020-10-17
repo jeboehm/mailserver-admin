@@ -12,79 +12,33 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\DKIMStatusService;
-use App\Service\DKIM\FormatterService;
-use App\Service\DKIM\KeyGenerationService;
-use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
-use Pagerfanta\Pagerfanta;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
-use Symfony\Component\HttpFoundation\Request;
+use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class DomainInfoSubscriber implements EventSubscriberInterface
+class DomainInfoSubscriber implements EventSubscriber
 {
     private DKIMStatusService $dkimStatusService;
-    private FormatterService $formatterService;
-    private KeyGenerationService $keyGenerationService;
 
-    public function __construct(DKIMStatusService $dkimStatusService, FormatterService $formatterService, KeyGenerationService $keyGenerationService)
+    public function __construct(DKIMStatusService $dkimStatusService)
     {
         $this->dkimStatusService = $dkimStatusService;
-        $this->formatterService = $formatterService;
-        $this->keyGenerationService = $keyGenerationService;
     }
 
-    public static function getSubscribedEvents(): array
+    public function getSubscribedEvents(): array
     {
-        return [
-            EasyAdminEvents::POST_LIST => 'onPostList',
-            EasyAdminEvents::POST_EDIT => 'onPostEdit',
-        ];
+        return [Events::postLoad];
     }
 
-    public function onPostList(GenericEvent $event): void
+    public function postLoad(LifecycleEventArgs $event): void
     {
-        if ('DKIM' !== $event->getArgument('entity')['name']) {
+        $entity = $event->getObject();
+
+        if (!($entity instanceof Domain)) {
             return;
         }
 
-        /** @var Pagerfanta $paginator */
-        $paginator = $event->getArgument('paginator');
-        $entities = $paginator->getIterator();
-
-        foreach ($entities as $entity) {
-            if (!($entity instanceof Domain)) {
-                throw new \DomainException('Wrong entity type');
-            }
-
-            $status = $this->dkimStatusService->getStatus($entity);
-            $entity->setDkimStatus($status);
-        }
-    }
-
-    public function onPostEdit(GenericEvent $event): void
-    {
-        if ('DKIM' !== $event->getArgument('entity')['name']) {
-            return;
-        }
-
-        /** @var Request $request */
-        $request = $event->getArgument('request');
-        $item = $request->attributes->get('easyadmin')['item'];
-
-        if (!($item instanceof Domain)) {
-            return;
-        }
-
-        $status = $this->dkimStatusService->getStatus($item);
-        $item->setDkimStatus($status);
-
-        if ('' !== $item->getDkimPrivateKey()) {
-            $expectedRecord = $this->formatterService->getTXTRecord(
-                $this->keyGenerationService->extractPublicKey($item->getDkimPrivateKey()),
-                KeyGenerationService::DIGEST_ALGORITHM
-            );
-            $item->setExpectedDnsRecord(wordwrap($expectedRecord, 40, "\n", true));
-            $item->setCurrentDnsRecord(wordwrap($status->getCurrentRecord(), 40, "\n", true));
-        }
+        $status = $this->dkimStatusService->getStatus($entity);
+        $entity->setDkimStatus($status);
     }
 }

@@ -12,11 +12,11 @@ namespace App\Subscriber;
 
 use App\Entity\User;
 use App\Service\PasswordService;
-use EasyCorp\Bundle\EasyAdminBundle\Event\EasyAdminEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\GenericEvent;
+use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Events;
+use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class ChangePasswordSubscriber implements EventSubscriberInterface
+class ChangePasswordSubscriber implements EventSubscriber
 {
     private PasswordService $passwordService;
 
@@ -25,22 +25,24 @@ class ChangePasswordSubscriber implements EventSubscriberInterface
         $this->passwordService = $passwordService;
     }
 
-    public static function getSubscribedEvents(): array
+    public function getSubscribedEvents(): array
     {
-        return [
-            EasyAdminEvents::PRE_UPDATE => 'onPreUpdatePersist',
-            EasyAdminEvents::PRE_PERSIST => 'onPreUpdatePersist',
-        ];
+        return [Events::preUpdate, Events::prePersist];
     }
 
-    public function onPreUpdatePersist(GenericEvent $event): void
+    public function preUpdate(LifecycleEventArgs $event): void
     {
-        $user = $event->getSubject();
+        $user = $event->getObject();
 
         if (!($user instanceof User)) {
             return;
         }
 
         $this->passwordService->processUserPassword($user);
+    }
+
+    public function prePersist(LifecycleEventArgs $event): void
+    {
+        $this->preUpdate($event);
     }
 }

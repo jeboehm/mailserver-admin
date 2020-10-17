@@ -43,7 +43,7 @@ class AliasAddCommandTest extends TestCase
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new AliasAddCommand(null, $this->managerRegistryMock, $this->validatorMock));
+        $application->add(new AliasAddCommand($this->managerRegistryMock, $this->validatorMock));
 
         $this->commandTester = new CommandTester($application->find('alias:add'));
     }

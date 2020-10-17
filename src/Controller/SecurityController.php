@@ -31,17 +31,23 @@ class SecurityController extends AbstractController
     public function loginAction(AuthenticationUtils $authenticationUtils): Response
     {
         if (null !== $this->security->getUser()) {
-            return $this->redirectToRoute('easyadmin');
+            return $this->redirectToRoute('admin_index');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('admin/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
-            'csrf_token_intention' => 'authenticate',
-        ]);
+        return $this->render(
+            'admin/login.html.twig',
+            [
+                'last_username' => $lastUsername,
+                'error' => $error,
+                'target_path' => $this->generateUrl('admin_index'),
+                'username_label' => 'Email address',
+                'page_title' => 'mailserver-admin',
+                'csrf_token_intention' => 'authenticate',
+            ]
+        );
     }
 
     /**
@@ -49,6 +55,6 @@ class SecurityController extends AbstractController
      */
     public function logoutAction(): Response
     {
-        return $this->redirectToRoute('easyadmin');
+        return $this->redirectToRoute('admin_index');
     }
 }
