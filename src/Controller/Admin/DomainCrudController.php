@@ -41,14 +41,18 @@ class DomainCrudController extends AbstractCrudController
         $users = AssociationField::new('users');
         $aliases = AssociationField::new('aliases');
 
-        if (Crud::PAGE_INDEX === $pageName) {
-            return [$name, $aliases, $users];
-        } elseif (Crud::PAGE_DETAIL === $pageName) {
+        if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $dkimEnabled, $dkimSelector, $dkimPrivateKey, $users, $aliases];
-        } elseif (Crud::PAGE_NEW === $pageName) {
-            return [$name];
-        } elseif (Crud::PAGE_EDIT === $pageName) {
+        }
+
+        if (Crud::PAGE_NEW === $pageName) {
             return [$name];
         }
+
+        if (Crud::PAGE_EDIT === $pageName) {
+            return [$name];
+        }
+
+        return [$name, $aliases, $users];
     }
 }

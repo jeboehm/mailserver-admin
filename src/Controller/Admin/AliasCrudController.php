@@ -40,14 +40,18 @@ class AliasCrudController extends AbstractCrudController
         $destination = EmailField::new('destination');
         $id = IdField::new('id', 'ID');
 
-        if (Crud::PAGE_INDEX === $pageName) {
-            return [$domain, $name, $destination];
-        } elseif (Crud::PAGE_DETAIL === $pageName) {
+        if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $destination, $domain];
-        } elseif (Crud::PAGE_NEW === $pageName) {
-            return [$domain, $name, $destination];
-        } elseif (Crud::PAGE_EDIT === $pageName) {
+        }
+
+        if (Crud::PAGE_NEW === $pageName) {
             return [$domain, $name, $destination];
         }
+
+        if (Crud::PAGE_EDIT === $pageName) {
+            return [$domain, $name, $destination];
+        }
+
+        return [$domain, $name, $destination];
     }
 }

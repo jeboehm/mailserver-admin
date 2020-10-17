@@ -121,14 +121,18 @@ class DKIMCrudController extends AbstractCrudController
             false
         );
 
-        if (Crud::PAGE_INDEX === $pageName) {
-            return [$name, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];
-        } elseif (Crud::PAGE_DETAIL === $pageName) {
+        if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $dkimEnabled, $dkimSelector];
-        } elseif (Crud::PAGE_NEW === $pageName) {
-            return [$name, $dkimEnabled, $dkimSelector];
-        } elseif (Crud::PAGE_EDIT === $pageName) {
+        }
+
+        if (Crud::PAGE_NEW === $pageName) {
             return [$name, $dkimEnabled, $dkimSelector];
         }
+
+        if (Crud::PAGE_EDIT === $pageName) {
+            return [$name, $dkimEnabled, $dkimSelector];
+        }
+
+        return [$name, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];
     }
 }

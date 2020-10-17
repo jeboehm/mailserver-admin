@@ -52,15 +52,19 @@ class UserCrudController extends AbstractCrudController
         $plainPassword = Field::new('plainPassword')->setLabel('Change password');
         $id = IdField::new('id', 'ID');
 
-        if (Crud::PAGE_INDEX === $pageName) {
-            return [$domain, $name, $enabled, $sendOnly, $admin];
-        } elseif (Crud::PAGE_DETAIL === $pageName) {
+        if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $plainPassword, $admin, $enabled, $sendOnly, $quota, $domain];
-        } elseif (Crud::PAGE_NEW === $pageName) {
-            return [$domain, $name, $admin, $enabled, $sendOnly, $quota, $plainPassword];
-        } elseif (Crud::PAGE_EDIT === $pageName) {
+        }
+
+        if (Crud::PAGE_NEW === $pageName) {
             return [$domain, $name, $admin, $enabled, $sendOnly, $quota, $plainPassword];
         }
+
+        if (Crud::PAGE_EDIT === $pageName) {
+            return [$domain, $name, $admin, $enabled, $sendOnly, $quota, $plainPassword];
+        }
+
+        return [$domain, $name, $enabled, $sendOnly, $admin];
     }
 
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
