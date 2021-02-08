@@ -6,7 +6,7 @@
     "ext-openssl": "*",
     "ext-iconv": "*",
     "doctrine/doctrine-migrations-bundle": "2.2.0",
-    "easycorp/easyadmin-bundle": "3.1.6",
+    "easycorp/easyadmin-bundle": "3.2.3",
     "symfony/console": "5.1.7",
     "symfony/flex": "1.9.10",
     "symfony/framework-bundle": "5.1.7",
