@@ -47,4 +47,10 @@ jobs:
           composer install --no-progress --prefer-dist --optimize-autoloader
           php bin/phpunit install
       - name: Run Tests
-        run: php bin/phpunit --coverage-text
+        run: php bin/phpunit
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DATABASE: symfony
+          MYSQL_USER: root
+          MYSQL_PASSWORD: symfony
