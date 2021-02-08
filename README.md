@@ -1,6 +1,6 @@
 mailserver-admin
 ================
-[![Build Status](https://travis-ci.org/jeboehm/mailserver-admin.svg?branch=master)](https://travis-ci.org/jeboehm/mailserver-admin)
+![Testing Symfony with MySQL](https://github.com/jeboehm/mailserver-admin/workflows/Testing%20Symfony%20with%20MySQL/badge.svg)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jeboehm/mailserver-admin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jeboehm/mailserver-admin/?branch=master)
 
 Description
