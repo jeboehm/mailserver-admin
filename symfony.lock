@@ -370,9 +370,6 @@
     "twig/twig": {
         "version": "v2.4.6"
     },
-    "webimpress/safe-writer": {
-        "version": "2.1.0"
-    },
     "zendframework/zend-code": {
         "version": "3.3.0"
     },
