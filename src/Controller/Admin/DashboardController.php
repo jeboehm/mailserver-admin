@@ -13,8 +13,6 @@ namespace App\Controller\Admin;
 use App\Entity\Alias;
 use App\Entity\Domain;
 use App\Entity\User;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -41,11 +39,6 @@ class DashboardController extends AbstractDashboardController
         return Dashboard::new()->setTitle('mailserver-admin');
     }
 
-    public function configureCrud(): Crud
-    {
-        return Crud::new();
-    }
-
     public function configureUserMenu(UserInterface $user): UserMenu
     {
         return parent::configureUserMenu($user)->displayUserAvatar(false);
@@ -53,14 +46,15 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        $routeBuilder = $this->get(CrudUrlGenerator::class)->build();
-
         yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class);
         yield MenuItem::linkToCrud('User', 'fas fa-user', User::class);
         yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class);
 
         yield MenuItem::section('Other', 'fas fa-folder-open');
-        yield MenuItem::linkToUrl('DKIM', 'fas fa-shield-alt', $routeBuilder->setController(DKIMCrudController::class)->setAction(Action::INDEX)->generateUrl());
+        yield MenuItem::linkToCrud('DKIM', 'fas fa-shield-alt', Domain::class)
+            ->setController(DKIMCrudController::class);
+
         yield MenuItem::linkToUrl('Webmail', 'fas fa-folder-open', '/webmail')->setLinkRel('noreferrer');
+        yield MenuItem::linkToUrl('Rspamd', 'fas fa-folder-open', '/rspamd')->setLinkRel('noreferrer');
     }
 }
