@@ -1,4 +1,6 @@
 {
+  "name": "jeboehm/mailserver-admin",
+  "description": "This is an administration interface for docker-mailserver.",
   "type": "project",
   "license": "MIT",
   "require": {
@@ -7,21 +9,19 @@
     "ext-iconv": "*",
     "doctrine/doctrine-migrations-bundle": "2.2.2",
     "easycorp/easyadmin-bundle": "3.2.7",
-    "symfony/console": "5.1.7",
-    "symfony/flex": "1.9.10",
-    "symfony/framework-bundle": "5.1.7",
+    "symfony/console": "5.2.6",
+    "symfony/flex": "1.12.2",
+    "symfony/framework-bundle": "5.2.6",
     "symfony/orm-pack": "2.1.0",
-    "symfony/security-bundle": "5.1.7",
-    "symfony/twig-bundle": "5.1.7",
-    "symfony/validator": "5.1.7",
-    "symfony/yaml": "5.1.7"
+    "symfony/security-bundle": "5.2.6",
+    "symfony/twig-bundle": "5.2.4",
+    "symfony/validator": "5.2.6",
+    "symfony/yaml": "5.2.5"
   },
   "require-dev": {
-    "roave/security-advisories": "dev-master",
     "friendsofphp/php-cs-fixer": "2.18.2",
-    "rector/rector-prefixed": "0.9.21",
-    "symfony/dotenv": "5.1.7",
-    "symfony/phpunit-bridge": "5.1.7",
+    "symfony/dotenv": "5.2.4",
+    "symfony/phpunit-bridge": "5.2.6",
     "symfony/profiler-pack": "1.0.5"
   },
   "config": {
@@ -62,7 +62,7 @@
   "extra": {
     "symfony": {
       "allow-contrib": false,
-      "require": "5.1.*"
+      "require": "5.2.*"
     }
   }
 }
