@@ -119,6 +119,9 @@
     "php-cs-fixer/diff": {
         "version": "v1.3.0"
     },
+    "phpstan/phpstan": {
+        "version": "0.12.74"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
@@ -271,6 +274,9 @@
     },
     "symfony/property-info": {
         "version": "v5.1.7"
+    },
+    "symfony/proxy-manager-bridge": {
+        "version": "v5.2.3"
     },
     "symfony/routing": {
         "version": "4.0",

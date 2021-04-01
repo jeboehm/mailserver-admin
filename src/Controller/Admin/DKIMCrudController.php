@@ -23,7 +23,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Router\CrudUrlGenerator;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 
 class DKIMCrudController extends AbstractCrudController
@@ -65,25 +65,25 @@ class DKIMCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
+        $helpMessage = 'If you enable DKIM for this domain, all outgoing mails will have a DKIM signature attached. You should set up the DNS record before doing this. After you have generated a private key, a DNS record is provided that needs to be added to your domain\'s zone.';
+
         return $crud
-            ->setHelp(
-                'edit',
-                'If you enable DKIM for this domain, all outgoing mails will have a DKIM signature attached. You should set up the DNS record before doing this. After you have generated a private key, a DNS record is provided that needs to be added to your domain\'s zone.'
-            )
-            ->setHelp(
-                'new',
-                'If you enable DKIM for this domain, all outgoing mails will have a DKIM signature attached. You should set up the DNS record before doing this. After you have generated a private key, a DNS record is provided that needs to be added to your domain\'s zone.'
-            )
+            ->setHelp(Crud::PAGE_EDIT, $helpMessage)
+            ->setHelp(Crud::PAGE_NEW, $helpMessage)
             ->setSearchFields(['name'])
             ->overrideTemplate('crud/edit', 'admin/dkim/edit.html.twig')
-            ->setPageTitle('index', 'DKIM');
+            ->setPageTitle(Crud::PAGE_INDEX, 'DKIM');
     }
 
     public function configureActions(Actions $actions): Actions
     {
-        $recreateKey = Action::new('recreateKey', 'Recreate Key', 'fa fa-file-invoice')->linkToCrudAction(
-            'recreateKey'
-        );
+        $recreateKey = Action::new(
+            'recreateKey',
+            'Recreate Key',
+            'fas fa-certificate'
+        )
+            ->linkToCrudAction('recreateKey')
+            ->setCssClass('btn btn-danger');
 
         return $actions->add(Crud::PAGE_EDIT, $recreateKey);
     }
@@ -91,7 +91,7 @@ class DKIMCrudController extends AbstractCrudController
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
-        $crudUrlGenerator = $this->get(CrudUrlGenerator::class);
+        $adminUrlGenerator = $this->get(AdminUrlGenerator::class);
 
         if (!$domain) {
             throw new DomainException('Domain not found.');
@@ -104,7 +104,13 @@ class DKIMCrudController extends AbstractCrudController
 
         $this->getDoctrine()->getManager()->flush();
 
-        return $this->redirect($crudUrlGenerator->build()->setAction(Action::EDIT)->generateUrl());
+        $url = $adminUrlGenerator
+            ->setController(DKIMCrudController::class)
+            ->setAction(Crud::PAGE_EDIT)
+            ->setEntityId($domain->getId())
+            ->generateUrl();
+
+        return $this->redirect($url);
     }
 
     public function configureFields(string $pageName): iterable
