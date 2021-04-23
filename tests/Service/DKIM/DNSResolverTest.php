@@ -53,7 +53,7 @@ class DNSResolverTest extends TestCase
 
     /**
      * @expectedException \App\Exception\DKIM\DomainKeyNotFoundException
-     * @expectedExceptionMessage Cannot get txt record for example.com
+     * @expectedExceptionMessage txt record for example.com was not found
      */
     public function testResolveWithError(): void
     {
