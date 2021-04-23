@@ -20,13 +20,18 @@ class DNSResolver
     public function resolve(string $address): array
     {
         $result = @dns_get_record($address, \DNS_TXT);
+
+        if (!\is_array($result)) {
+            throw new DomainKeyNotFoundException(\sprintf('Cannot get DNS records for %s', $address));
+        }
+
         $result = \array_filter(
             $result,
-            fn (array $row) => $row['host'] === $address
+            static fn (array $row) => $row['host'] === $address
         );
 
-        if (empty($result)) {
-            throw new DomainKeyNotFoundException(\sprintf('Cannot get txt record for %s', $address));
+        if (0 === \count($result)) {
+            throw new DomainKeyNotFoundException(\sprintf('txt record for %s was not found', $address));
         }
 
         return $result;
