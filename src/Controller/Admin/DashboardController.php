@@ -24,16 +24,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class DashboardController extends AbstractDashboardController
 {
-    private AdminUrlGenerator $adminUrlGenerator;
-
-    public function __construct(AdminUrlGenerator $adminUrlGenerator)
+    public function __construct(private AdminUrlGenerator $adminUrlGenerator)
     {
-        $this->adminUrlGenerator = $adminUrlGenerator;
     }
 
-    /**
-     * @Route("/", name="admin_index")
-     */
+    #[Route(path: '/', name: 'admin_index')]
     public function index(): Response
     {
         return $this->redirect($this->adminUrlGenerator->setController(DomainCrudController::class)->generateUrl());

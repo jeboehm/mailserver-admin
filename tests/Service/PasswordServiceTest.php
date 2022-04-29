@@ -15,7 +15,7 @@ use App\Service\PasswordService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
 class PasswordServiceTest extends TestCase
 {
@@ -23,20 +23,25 @@ class PasswordServiceTest extends TestCase
 
     private PasswordService $passwordService;
 
-    private MockObject|UserPasswordHasherInterface $userPasswordHasher;
+    private MockObject|PasswordHasherInterface $passwordHasher;
 
     protected function setUp(): void
     {
         $this->passwordHasherFactory = $this->createMock(PasswordHasherFactoryInterface::class);
-        $this->userPasswordHasher = $this->createMock(UserPasswordHasherInterface::class);
+        $this->passwordHasher = $this->createMock(PasswordHasherInterface::class);
+        $this->passwordService = new PasswordService($this->passwordHasherFactory);
     }
 
     public function testProcessUserPassword(): void
     {
         $user = new User();
-        $this->passwordHasherFactory->expects(self::once())->method('getPasswordHasher')->with([$user])->willReturn($this->userPasswordHasher);
-        $user->setPlainPassword('test1234');
+
+        $this->passwordHasherFactory->expects(self::once())->method('getPasswordHasher')->with($user)->willReturn($this->passwordHasher);
+        $this->passwordHasher->method('hash')->willReturn('test1234');
+
+        $user->setPlainPassword('test4321');
+
         $this->passwordService->processUserPassword($user);
-        $this->assertNotEmpty($user->getPassword());
+        $this->assertEquals('test1234', $user->getPassword());
     }
 }

@@ -15,11 +15,8 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 class PasswordService
 {
-    private PasswordHasherFactoryInterface $passwordHasherFactory;
-
-    public function __construct(PasswordHasherFactoryInterface $passwordHasherFactory)
+    public function __construct(private PasswordHasherFactoryInterface $passwordHasherFactory)
     {
-        $this->passwordHasherFactory = $passwordHasherFactory;
     }
 
     public function processUserPassword(User $user): void

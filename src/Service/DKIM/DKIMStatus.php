@@ -12,17 +12,8 @@ namespace App\Service\DKIM;
 
 class DKIMStatus
 {
-    private bool $dkimEnabled;
-    private bool $dkimRecordFound;
-    private bool $dkimRecordValid;
-    private string $currentRecord;
-
-    public function __construct(bool $dkimEnabled, bool $dkimRecordFound, bool $dkimRecordValid, string $currentRecord)
+    public function __construct(private bool $dkimEnabled, private bool $dkimRecordFound, private bool $dkimRecordValid, private string $currentRecord)
     {
-        $this->dkimEnabled = $dkimEnabled;
-        $this->dkimRecordFound = $dkimRecordFound;
-        $this->dkimRecordValid = $dkimRecordValid;
-        $this->currentRecord = $currentRecord;
     }
 
     public function isDkimEnabled(): bool

@@ -24,23 +24,13 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMSetupCommand extends Command
 {
-    private ManagerRegistry $manager;
-    private KeyGenerationService $keyGenerationService;
-    private FormatterService $formatterService;
-    private Manager $dkimManager;
-
     public function __construct(
-        ManagerRegistry $manager,
-        KeyGenerationService $keyGenerationService,
-        FormatterService $formatterService,
-        Manager $dkimManager
+        private ManagerRegistry $manager,
+        private KeyGenerationService $keyGenerationService,
+        private FormatterService $formatterService,
+        private Manager $dkimManager
     ) {
         parent::__construct();
-
-        $this->manager = $manager;
-        $this->keyGenerationService = $keyGenerationService;
-        $this->formatterService = $formatterService;
-        $this->dkimManager = $dkimManager;
     }
 
     protected function configure(): void

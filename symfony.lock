@@ -28,7 +28,7 @@
         "version": "v2.8.1"
     },
     "doctrine/dbal": {
-        "version": "v2.6.3"
+        "version": "3.3.5"
     },
     "doctrine/deprecations": {
         "version": "v0.5.3"
@@ -76,7 +76,7 @@
         "version": "v1.6.2"
     },
     "doctrine/orm": {
-        "version": "v2.6.1"
+        "version": "2.12.1"
     },
     "doctrine/persistence": {
         "version": "1.1.1"
@@ -115,6 +115,9 @@
     "php-cs-fixer/diff": {
         "version": "v1.3.0"
     },
+    "phpstan/phpstan": {
+        "version": "1.6.3"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
@@ -126,6 +129,9 @@
     },
     "psr/log": {
         "version": "1.0.2"
+    },
+    "rector/rector": {
+        "version": "0.12.22"
     },
     "symfony/asset": {
         "version": "v4.0.6"
@@ -274,6 +280,9 @@
     },
     "symfony/property-info": {
         "version": "v5.1.7"
+    },
+    "symfony/proxy-manager-bridge": {
+        "version": "v6.0.6"
     },
     "symfony/routing": {
         "version": "6.0",

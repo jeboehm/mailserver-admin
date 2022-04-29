@@ -11,12 +11,13 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
+            lazy: true
             provider: main
             logout: true
             form_login:
               login_path: app_login
               check_path: app_login
-              enable_csrf: true
+              enable_csrf: false
             access_denied_handler: App\Security\AccessDeniedHandler
 
     access_control:

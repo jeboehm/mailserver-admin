@@ -13,6 +13,7 @@ namespace App\Controller\Admin;
 use App\Entity\Domain;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
+use Doctrine\ORM\EntityManagerInterface;
 use DomainException;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -28,13 +29,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class DKIMCrudController extends AbstractCrudController
 {
-    private FormatterService $formatterService;
-    private KeyGenerationService $keyGenerationService;
-
-    public function __construct(FormatterService $formatterService, KeyGenerationService $keyGenerationService)
+    public function __construct(private FormatterService $formatterService, private KeyGenerationService $keyGenerationService, private AdminUrlGenerator $adminUrlGenerator, private EntityManagerInterface $entityManager)
     {
-        $this->formatterService = $formatterService;
-        $this->keyGenerationService = $keyGenerationService;
     }
 
     public static function getEntityFqcn(): string
@@ -91,7 +87,6 @@ class DKIMCrudController extends AbstractCrudController
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
-        $adminUrlGenerator = $this->get(AdminUrlGenerator::class);
 
         if (!$domain) {
             throw new DomainException('Domain not found.');
@@ -102,9 +97,9 @@ class DKIMCrudController extends AbstractCrudController
 
         $this->addFlash('info', 'Private key successfully recreated. You need to update your DNS zone now.');
 
-        $this->getDoctrine()->getManager()->flush();
+        $this->entityManager->flush();
 
-        $url = $adminUrlGenerator
+        $url = $this->adminUrlGenerator
             ->setController(DKIMCrudController::class)
             ->setAction(Crud::PAGE_EDIT)
             ->setEntityId($domain->getId())

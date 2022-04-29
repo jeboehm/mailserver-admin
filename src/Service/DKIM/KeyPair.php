@@ -12,14 +12,8 @@ namespace App\Service\DKIM;
 
 class KeyPair
 {
-    private string $public;
-
-    private string $private;
-
-    public function __construct(string $public, string $private)
+    public function __construct(private string $public, private string $private)
     {
-        $this->public = $public;
-        $this->private = $private;
     }
 
     public function getPublic(): string

@@ -58,12 +58,14 @@ class InitSetupCommandTest extends TestCase
             ->expects($this->exactly(2))
             ->method('persist')
             ->withConsecutive(
-                $this->callback(
+                [$this->callback(
                     function (Domain $domain) {
                         $this->assertEquals('example.com', $domain->getName());
+
+                        return true;
                     }
-                ),
-                $this->callback(
+                )],
+                [$this->callback(
                     function (User $user) {
                         $this->assertEquals('jeff', $user->getName());
                         $this->assertEquals('123456789', $user->getPlainPassword());
@@ -71,11 +73,11 @@ class InitSetupCommandTest extends TestCase
 
                         return true;
                     }
-                )
+                )]
             );
 
         $this->commandTester->setInputs([
-           'jEff@eXample.com',
+           'jeff@example.com',
            '123456789',
            '123456789',
         ]);

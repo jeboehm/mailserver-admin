@@ -16,12 +16,10 @@ use Symfony\Component\Finder\Finder;
 
 class LeftoverFileCleaner
 {
-    private string $path;
     private Filesystem $filesystem;
 
-    public function __construct(string $path)
+    public function __construct(private string $path)
     {
-        $this->path = $path;
         $this->filesystem = new Filesystem();
     }
 

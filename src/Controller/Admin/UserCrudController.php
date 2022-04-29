@@ -24,11 +24,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class UserCrudController extends AbstractCrudController
 {
-    private PasswordService $passwordService;
-
-    public function __construct(PasswordService $passwordService)
+    public function __construct(private PasswordService $passwordService)
     {
-        $this->passwordService = $passwordService;
     }
 
     public static function getEntityFqcn(): string

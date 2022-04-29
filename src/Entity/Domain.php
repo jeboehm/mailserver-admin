@@ -10,60 +10,38 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\DomainRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\DomainRepository")
- * @ORM\Table(name="mail_domains")
- * @UniqueEntity("name")
- */
-class Domain
+#[ORM\Entity(repositoryClass: DomainRepository::class)]
+#[ORM\Table(name: 'mail_domains')]
+#[UniqueEntity(fields: ['name'])]
+class Domain implements \Stringable
 {
     use DkimInfoTrait;
-
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer", name="id")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(name: 'id', type: 'integer')]
     private ?int $id = null;
-
-    /**
-     * @ORM\Column(type="string", name="name", unique=true, options={"collation":"utf8_unicode_ci"})
-     * @Assert\NotBlank()
-     */
+    #[Assert\NotBlank]
+    #[ORM\Column(name: 'name', type: 'string', unique: true, options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
-
-    /**
-     * @ORM\Column(type="boolean", name="dkim_enabled")
-     */
+    #[ORM\Column(name: 'dkim_enabled', type: 'boolean')]
     private bool $dkimEnabled = false;
-
-    /**
-     * @ORM\Column(type="string", name="dkim_selector")
-     * @Assert\Regex(pattern="/^[a-z0-9]{1,50}$/")
-     */
+    #[Assert\Regex(pattern: '/^[a-z0-9]{1,50}$/')]
+    #[ORM\Column(name: 'dkim_selector', type: 'string')]
     private string $dkimSelector = '';
-
-    /**
-     * @ORM\Column(type="text", name="dkim_private_key")
-     */
+    #[ORM\Column(name: 'dkim_private_key', type: 'text')]
     private string $dkimPrivateKey = '';
-
-    /**
-     * @ORM\OneToMany(targetEntity="User", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)
-     * @Assert\Valid()
-     */
+    #[Assert\Valid]
+    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: 'User', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $users;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Alias", mappedBy="domain", cascade={"persist", "remove"}, orphanRemoval=true)
-     * @Assert\Valid()
-     */
+    #[Assert\Valid]
+    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: 'Alias', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $aliases;
 
     public function __construct()

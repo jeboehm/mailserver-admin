@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -17,65 +18,37 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ORM\Table(name="mail_users", uniqueConstraints={@ORM\UniqueConstraint(name="user_idx", columns={"name", "domain_id"})})
- * @UniqueEntity({"name", "domain"})
- */
-class User implements UserInterface, PasswordAuthenticatedUserInterface, Serializable
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'mail_users')]
+#[ORM\UniqueConstraint(name: 'user_idx', columns: ['name', 'domain_id'])]
+#[UniqueEntity(['name', 'domain'])]
+class User implements UserInterface, PasswordAuthenticatedUserInterface, Serializable, \Stringable
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Domain", inversedBy="users")
-     * @Assert\NotNull()
-     */
+    #[Assert\NotNull]
+    #[ORM\ManyToOne(targetEntity: 'Domain', inversedBy: 'users')]
     private ?Domain $domain = null;
-
-    /**
-     * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
-     * @Assert\NotBlank()
-     * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
-     */
+    #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
+    #[ORM\Column(type: 'string', name: 'name', options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
-
-    /**
-     * @ORM\Column(type="string", name="password", options={"collation":"utf8_unicode_ci"})
-     */
+    #[ORM\Column(type: 'string', name: 'password', options: ['collation' => 'utf8_unicode_ci'])]
     private string $password = '';
-
-    /**
-     * @Assert\Length(min="6", max="5000")
-     */
+    #[Assert\Length(min: 6, max: 5000)]
     private ?string $plainPassword = null;
-
-    /**
-     * @ORM\Column(type="boolean", name="admin")
-     */
+    #[ORM\Column(type: 'boolean', name: 'admin')]
     private bool $admin = false;
-
-    /**
-     * @ORM\Column(type="boolean", name="enabled")
-     */
+    #[ORM\Column(type: 'boolean', name: 'enabled')]
     private bool $enabled = true;
-
-    /**
-     * @ORM\Column(type="boolean", name="send_only")
-     */
+    #[ORM\Column(type: 'boolean', name: 'send_only')]
     private bool $sendOnly = false;
-
-    /**
-     * @ORM\Column(type="integer", name="quota")
-     * @Assert\Range(min="0")
-     * @Assert\NotBlank()
-     */
+    #[Assert\Range(min: 0)]
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'integer', name: 'quota')]
     private int $quota = 0;
-
     private ?string $domainName = null;
 
     public function __toString(): string
@@ -152,11 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
         return $parts[3] ?? '';
     }
 
-    public function getUsername(): string
-    {
-        return (string) $this;
-    }
-
     public function eraseCredentials(): void
     {
         $this->plainPassword = '';
@@ -214,6 +182,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
 
     public function getUserIdentifier(): string
     {
-        return $this->getUsername();
+        return (string) $this;
     }
 }

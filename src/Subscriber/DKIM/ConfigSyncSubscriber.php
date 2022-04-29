@@ -18,11 +18,8 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class ConfigSyncSubscriber implements EventSubscriber
 {
-    private Manager $manager;
-
-    public function __construct(Manager $manager)
+    public function __construct(private Manager $manager)
     {
-        $this->manager = $manager;
     }
 
     public function getSubscribedEvents(): array
