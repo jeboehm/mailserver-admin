@@ -18,11 +18,8 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
 {
-    private KeyGenerationService $keyGenerationService;
-
-    public function __construct(KeyGenerationService $keyGenerationService)
+    public function __construct(private KeyGenerationService $keyGenerationService)
     {
-        $this->keyGenerationService = $keyGenerationService;
     }
 
     public function getSubscribedEvents(): array

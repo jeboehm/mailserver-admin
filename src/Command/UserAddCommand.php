@@ -25,15 +25,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAddCommand extends Command
 {
-    private ManagerRegistry $manager;
-    private ValidatorInterface $validator;
-
-    public function __construct(ManagerRegistry $manager, ValidatorInterface $validator)
+    public function __construct(private ManagerRegistry $manager, private ValidatorInterface $validator)
     {
         parent::__construct();
-
-        $this->manager = $manager;
-        $this->validator = $validator;
     }
 
     protected function configure(): void

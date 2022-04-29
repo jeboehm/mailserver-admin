@@ -14,9 +14,9 @@ use App\Service\DKIM\DKIMStatus;
 
 trait DkimInfoTrait
 {
-    private ?DKIMStatus $dkimStatus;
-    private ?string $expectedDnsRecord;
-    private ?string $currentDnsRecord;
+    private ?DKIMStatus $dkimStatus = null;
+    private ?string $expectedDnsRecord = null;
+    private ?string $currentDnsRecord = null;
 
     public function getDkimStatus(): ?DKIMStatus
     {

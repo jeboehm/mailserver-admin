@@ -1,4 +1,4 @@
-{% extends '@EasyAdmin/page/login.html.twig' %}
+{% extends 'admin/login.html.twig' %}
 
 {% block wrapper_wrapper %}
     <div class="login-wrapper">
@@ -18,8 +18,6 @@
 
         <section class="content">
             <a href="{{ path('app_logout') }}" class="btn btn-primary btn-lg btn-block">Login</a>
-
-            {% include "admin/_includes/footer.html.twig" %}
         </section>
     </div>
 {% endblock %}

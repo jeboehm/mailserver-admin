@@ -24,15 +24,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class InitSetupCommand extends Command
 {
-    private ValidatorInterface $validator;
-    private ManagerRegistry $manager;
-
-    public function __construct(ValidatorInterface $validator, ManagerRegistry $manager)
+    public function __construct(private ValidatorInterface $validator, private ManagerRegistry $manager)
     {
         parent::__construct();
-
-        $this->validator = $validator;
-        $this->manager = $manager;
     }
 
     protected function configure(): void

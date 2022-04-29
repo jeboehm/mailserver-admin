@@ -18,11 +18,8 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class ChangePasswordSubscriber implements EventSubscriber
 {
-    private PasswordService $passwordService;
-
-    public function __construct(PasswordService $passwordService)
+    public function __construct(private PasswordService $passwordService)
     {
-        $this->passwordService = $passwordService;
     }
 
     public function getSubscribedEvents(): array

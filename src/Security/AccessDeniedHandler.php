@@ -18,11 +18,8 @@ use Twig\Environment;
 
 class AccessDeniedHandler implements AccessDeniedHandlerInterface
 {
-    private Environment $twig;
-
-    public function __construct(Environment $twig)
+    public function __construct(private Environment $twig)
     {
-        $this->twig = $twig;
     }
 
     public function handle(Request $request, AccessDeniedException $accessDeniedException): Response

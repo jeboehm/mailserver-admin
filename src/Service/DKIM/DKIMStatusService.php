@@ -15,20 +15,8 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 
 class DKIMStatusService
 {
-    private DomainKeyReaderService $domainKeyReaderService;
-
-    private FormatterService $formatterService;
-
-    private KeyGenerationService $keyGenerationService;
-
-    public function __construct(
-        DomainKeyReaderService $domainKeyReaderService,
-        FormatterService $formatterService,
-        KeyGenerationService $keyGenerationService
-    ) {
-        $this->domainKeyReaderService = $domainKeyReaderService;
-        $this->formatterService = $formatterService;
-        $this->keyGenerationService = $keyGenerationService;
+    public function __construct(private DomainKeyReaderService $domainKeyReaderService, private FormatterService $formatterService, private KeyGenerationService $keyGenerationService)
+    {
     }
 
     public function getStatus(Domain $domain): DKIMStatus
@@ -56,7 +44,7 @@ class DKIMStatusService
             }
 
             return new DKIMStatus($domain->getDkimEnabled(), true, false, $dnsRecord);
-        } catch (DomainKeyNotFoundException $domainKeyNotFoundException) {
+        } catch (DomainKeyNotFoundException) {
             return new DKIMStatus($domain->getDkimEnabled(), false, false, '');
         }
     }
