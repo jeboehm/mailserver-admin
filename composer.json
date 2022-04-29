@@ -7,7 +7,7 @@
     "php": "^7.4|^8.0",
     "ext-openssl": "*",
     "ext-iconv": "*",
-    "doctrine/doctrine-migrations-bundle": "2.2.2",
+    "doctrine/doctrine-migrations-bundle": "2.2.3",
     "easycorp/easyadmin-bundle": "3.2.8",
     "symfony/console": "5.2.6",
     "symfony/flex": "1.12.2",
