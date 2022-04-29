@@ -11,32 +11,19 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
-use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
 class PasswordService
 {
-    /**
-     * @var int
-     */
-    private const SALT_LENGTH = 16;
-
-    private EncoderFactoryInterface $encoderFactory;
-
-    public function __construct(EncoderFactoryInterface $encoderFactory)
+    public function __construct(private PasswordHasherFactoryInterface $passwordHasherFactory)
     {
-        $this->encoderFactory = $encoderFactory;
     }
 
     public function processUserPassword(User $user): void
     {
         if (null !== $user->getPlainPassword()) {
-            $encoder = $this->encoderFactory->getEncoder($user);
-            $user->setPassword(
-                $encoder->encodePassword(
-                    $user->getPlainPassword(),
-                    substr(sha1(\random_bytes(50)), 0, self::SALT_LENGTH)
-                )
-            );
+            $passwordHasher = $this->passwordHasherFactory->getPasswordHasher($user);
+            $user->setPassword($passwordHasher->hash($user->getPlainPassword()));
         }
     }
 }

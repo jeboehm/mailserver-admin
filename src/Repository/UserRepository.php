@@ -14,6 +14,7 @@ use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @method User|null find($id, $lockMode = null, $lockVersion = null)
@@ -47,8 +48,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return $qb->getQuery()->getOneOrNullResult();
     }
 
-    public function loadUserByUsername($username)
+    public function loadUserByIdentifier(string $identifier): ?UserInterface
     {
-        return $this->findOneByEmailAddress((string) $username);
+        return $this->findOneByEmailAddress((string) $identifier);
     }
 }

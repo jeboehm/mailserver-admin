@@ -21,13 +21,9 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMDisableCommand extends Command
 {
-    private ManagerRegistry $manager;
-
-    public function __construct(ManagerRegistry $manager)
+    public function __construct(private ManagerRegistry $manager)
     {
         parent::__construct();
-
-        $this->manager = $manager;
     }
 
     protected function configure(): void

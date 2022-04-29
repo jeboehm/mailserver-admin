@@ -17,13 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DKIMSyncCommand extends Command
 {
-    private Manager $manager;
-
-    public function __construct(Manager $manager)
+    public function __construct(private Manager $manager)
     {
         parent::__construct();
-
-        $this->manager = $manager;
     }
 
     protected function configure(): void

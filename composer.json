@@ -4,31 +4,41 @@
   "type": "project",
   "license": "MIT",
   "require": {
-    "php": "^7.4|^8.0",
-    "ext-openssl": "*",
+    "php": ">=8.0.2",
     "ext-iconv": "*",
-    "doctrine/doctrine-migrations-bundle": "2.2.2",
-    "easycorp/easyadmin-bundle": "3.2.8",
-    "symfony/console": "5.2.6",
-    "symfony/flex": "1.12.2",
-    "symfony/framework-bundle": "5.2.6",
-    "symfony/orm-pack": "2.1.0",
-    "symfony/security-bundle": "5.2.6",
-    "symfony/twig-bundle": "5.2.4",
-    "symfony/validator": "5.2.6",
-    "symfony/yaml": "5.2.5"
+    "ext-openssl": "*",
+    "doctrine/dbal": "^3.1",
+    "doctrine/doctrine-bundle": "^2.5",
+    "doctrine/doctrine-migrations-bundle": "^3.2",
+    "doctrine/orm": "^2.10",
+    "easycorp/easyadmin-bundle": "4.1.2",
+    "symfony/console": "^6.0",
+    "symfony/flex": "^2.0",
+    "symfony/framework-bundle": "6.0.8",
+    "symfony/proxy-manager-bridge": "6.0.*",
+    "symfony/runtime": "6.0.*",
+    "symfony/security-bundle": "6.0.8",
+    "symfony/twig-bundle": "6.0.8",
+    "symfony/validator": "6.0.8",
+    "symfony/yaml": "6.0.3"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": "2.18.5",
-    "symfony/dotenv": "5.2.4",
-    "symfony/phpunit-bridge": "5.2.6",
-    "symfony/profiler-pack": "1.0.5"
+    "friendsofphp/php-cs-fixer": "3.8.0",
+    "rector/rector": "^0.12.22",
+    "symfony/dotenv": "^6.0",
+    "symfony/phpunit-bridge": "^6.0",
+    "symfony/stopwatch": "^6.0",
+    "symfony/web-profiler-bundle": "6.0.*"
   },
   "config": {
     "preferred-install": {
       "*": "dist"
     },
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "symfony/flex": true,
+      "symfony/runtime": true
+    }
   },
   "autoload": {
     "psr-4": {
@@ -50,19 +60,21 @@
   "scripts": {
     "auto-scripts": {
       "cache:clear": "symfony-cmd",
-      "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd"
+      "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd",
+      "assets:install %PUBLIC_DIR%": "symfony-cmd"
     },
     "post-install-cmd": [
       "@auto-scripts"
     ],
     "post-update-cmd": [
       "@auto-scripts"
-    ]
+    ],
+    "csfix": "php-cs-fixer fix --allow-risky=yes"
   },
   "extra": {
     "symfony": {
       "allow-contrib": false,
-      "require": "5.2.*"
+      "require": "6.0.*"
     }
   }
 }

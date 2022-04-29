@@ -14,38 +14,26 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\AliasRepository")
- * @ORM\Table(name="mail_aliases", uniqueConstraints={@ORM\UniqueConstraint(name="alias_idx", columns={"domain_id", "name", "destination"})})
- * @UniqueEntity(fields={"destination", "name", "domain"})
- */
-class Alias
+#[ORM\Entity(repositoryClass: \App\Repository\AliasRepository::class)]
+#[ORM\Table(name: 'mail_aliases')]
+#[ORM\UniqueConstraint(name: 'alias_idx', columns: ['domain_id', 'name', 'destination'])]
+#[UniqueEntity(fields: ['destination', 'name', 'domain'])]
+class Alias implements \Stringable
 {
-    /**
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Domain", inversedBy="aliases")
-     * @Assert\NotNull()
-     */
+    #[Assert\NotNull]
+    #[ORM\ManyToOne(targetEntity: 'Domain', inversedBy: 'aliases')]
     private ?Domain $domain = null;
-
-    /**
-     * @ORM\Column(type="string", name="name", options={"collation":"utf8_unicode_ci"})
-     * @Assert\NotBlank()
-     * @Assert\Regex(pattern="/^[a-z0-9\-\_.]{1,50}$/")
-     */
+    #[Assert\NotBlank]
+    #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
+    #[ORM\Column(type: 'string', name: 'name', options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
-
-    /**
-     * @ORM\Column(type="string", name="destination", options={"collation":"utf8_unicode_ci"})
-     * @Assert\NotBlank()
-     * @Assert\Email()
-     */
+    #[Assert\NotBlank]
+    #[Assert\Email]
+    #[ORM\Column(type: 'string', name: 'destination', options: ['collation' => 'utf8_unicode_ci'])]
     private string $destination = '';
 
     public function __toString(): string

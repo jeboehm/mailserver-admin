@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Service\DKIM;
 
+use App\Exception\DKIM\DomainKeyNotFoundException;
 use App\Service\DKIM\DNSResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\DnsMock;
@@ -51,12 +52,11 @@ class DNSResolverTest extends TestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    /**
-     * @expectedException \App\Exception\DKIM\DomainKeyNotFoundException
-     * @expectedExceptionMessage txt record for example.com was not found
-     */
     public function testResolveWithError(): void
     {
+        $this->expectException(DomainKeyNotFoundException::class);
+        $this->expectExceptionMessage('txt record for example.com was not found');
+
         DnsMock::withMockedHosts(
             [
                 'example.com' => [],

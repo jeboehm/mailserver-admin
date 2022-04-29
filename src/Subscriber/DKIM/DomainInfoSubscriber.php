@@ -18,11 +18,8 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class DomainInfoSubscriber implements EventSubscriber
 {
-    private DKIMStatusService $dkimStatusService;
-
-    public function __construct(DKIMStatusService $dkimStatusService)
+    public function __construct(private DKIMStatusService $dkimStatusService)
     {
-        $this->dkimStatusService = $dkimStatusService;
     }
 
     public function getSubscribedEvents(): array

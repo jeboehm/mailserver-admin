@@ -21,12 +21,10 @@ class MapGenerator
      * @var string
      */
     private const MAP_FILENAME = 'dkim_selectors.map';
-    private string $path;
     private Filesystem $filesystem;
 
-    public function __construct(string $path)
+    public function __construct(private string $path)
     {
-        $this->path = $path;
         $this->filesystem = new Filesystem();
     }
 
@@ -62,7 +60,7 @@ class MapGenerator
 
         try {
             $this->filesystem->chmod($filename, 0666);
-        } catch (IOException $iOException) {
+        } catch (IOException) {
             // Ignore if different owner.
         }
     }
