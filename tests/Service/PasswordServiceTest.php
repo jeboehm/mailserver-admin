@@ -11,22 +11,32 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Entity\User;
-use App\Security\Encoder\DefaultPasswordEncoder;
 use App\Service\PasswordService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Core\Encoder\EncoderFactory;
+use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class PasswordServiceTest extends TestCase
 {
+    private MockObject|PasswordHasherFactoryInterface $passwordHasherFactory;
+
+    private PasswordService $passwordService;
+
+    private MockObject|UserPasswordHasherInterface $userPasswordHasher;
+
+    protected function setUp(): void
+    {
+        $this->passwordHasherFactory = $this->createMock(PasswordHasherFactoryInterface::class);
+        $this->userPasswordHasher = $this->createMock(UserPasswordHasherInterface::class);
+    }
+
     public function testProcessUserPassword(): void
     {
-        $factory = new EncoderFactory([User::class => new DefaultPasswordEncoder()]);
-        $service = new PasswordService($factory);
-
         $user = new User();
+        $this->passwordHasherFactory->expects(self::once())->method('getPasswordHasher')->with([$user])->willReturn($this->userPasswordHasher);
         $user->setPlainPassword('test1234');
-
-        $service->processUserPassword($user);
+        $this->passwordService->processUserPassword($user);
         $this->assertNotEmpty($user->getPassword());
     }
 }

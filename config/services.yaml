@@ -41,3 +41,7 @@ services:
     App\Subscriber\ChangePasswordSubscriber:
         tags:
             - { name: 'doctrine.event_subscriber' }
+
+    App\Security\PasswordHasher\DefaultPasswordHasher:
+        arguments:
+            $secret: '%kernel.secret%'

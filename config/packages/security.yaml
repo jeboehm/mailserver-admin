@@ -1,26 +1,25 @@
 security:
+    enable_authenticator_manager: true
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+            id: 'App\Security\PasswordHasher\DefaultPasswordHasher'
     providers:
         main:
-            entity:
-                class: App\Entity\User
-
-    encoders:
-        App\Entity\User:
-            id: App\Security\Encoder\DefaultPasswordEncoder
-
+          entity:
+            class: App\Entity\User
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
-            anonymous: ~
+            provider: main
             logout: true
             form_login:
-                login_path: app_login
-                check_path: app_login
-                csrf_token_generator: security.csrf.token_manager
+              login_path: app_login
+              check_path: app_login
+              enable_csrf: true
             access_denied_handler: App\Security\AccessDeniedHandler
 
     access_control:
-        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/, roles: ROLE_ADMIN }
+      - { path: ^/login, roles: PUBLIC_ACCESS }
+      - { path: ^/, roles: ROLE_ADMIN }

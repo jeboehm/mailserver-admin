@@ -8,16 +8,16 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Security\Encoder;
+namespace App\Tests\Security\PasswordHasher;
 
-use App\Security\Encoder\DefaultPasswordEncoder;
+use App\Security\PasswordHasher\DefaultPasswordHasher;
 use PHPUnit\Framework\TestCase;
 
-class DefaultPasswordEncoderTest extends TestCase
+class DefaultPasswordHasherTest extends TestCase
 {
-    public function testEncodePassword()
+    public function testEncodePassword(): void
     {
-        $encoder = new DefaultPasswordEncoder();
+        $encoder = new DefaultPasswordHasher();
 
         $this->assertEquals(
             '$5$rounds=5000$foobar$joZHfrY.Gm7dk58W7QpTp5emRPtnOQqbv9p/MIFdJ2.',
@@ -25,9 +25,9 @@ class DefaultPasswordEncoderTest extends TestCase
         );
     }
 
-    public function testIsPasswordValid()
+    public function testIsPasswordValid(): void
     {
-        $encoder = new DefaultPasswordEncoder();
+        $encoder = new DefaultPasswordHasher();
 
         $this->assertTrue(
             $encoder->isPasswordValid(
@@ -38,8 +38,8 @@ class DefaultPasswordEncoderTest extends TestCase
         );
     }
 
-    public function testNeedsRehash()
+    public function testNeedsRehash(): void
     {
-        $this->assertFalse((new DefaultPasswordEncoder())->needsRehash('xy'));
+        $this->assertFalse((new DefaultPasswordHasher())->needsRehash('xy'));
     }
 }

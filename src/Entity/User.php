@@ -13,6 +13,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -21,7 +22,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @ORM\Table(name="mail_users", uniqueConstraints={@ORM\UniqueConstraint(name="user_idx", columns={"name", "domain_id"})})
  * @UniqueEntity({"name", "domain"})
  */
-class User implements UserInterface, Serializable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, Serializable
 {
     /**
      * @ORM\Id()
@@ -209,5 +210,10 @@ class User implements UserInterface, Serializable
     public function unserialize($serialized): void
     {
         [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = unserialize($serialized, ['allowed_classes' => false]);
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->getUsername();
     }
 }
