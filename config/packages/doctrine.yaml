@@ -4,7 +4,7 @@ parameters:
 doctrine:
     dbal:
         charset: utf8mb4
-        server_version: '13'
+        server_version: '5.7'
         url: '%env(resolve:DATABASE_URL)%'
     orm:
         auto_generate_proxy_classes: true
