@@ -1,9 +1,10 @@
 {% extends '@!EasyAdmin/layout.html.twig' %}
 
-{% block wrapper_wrapper %}
-    {{ parent() }}
-
-    <footer class="text-center">
-        <small class="text-muted"><a href="https://github.com/jeboehm/docker-mailserver">docker-mailserver</a></small>
-    </footer>
+{% block content_footer_wrapper %}
+    <section class="content-footer">
+        <footer class="text-center">
+            <small class="text-muted">
+                <a href="https://github.com/jeboehm/docker-mailserver">docker-mailserver</a></small>
+        </footer>
+    </section>
 {% endblock %}

@@ -38,7 +38,7 @@ class SecurityController extends AbstractController
                 'error' => $error,
                 'target_path' => $this->generateUrl('admin_index'),
                 'username_label' => 'Email address',
-                'page_title' => 'mailserver-admin',
+                'page_title' => '',
                 'csrf_token_intention' => 'authenticate',
             ]
         );

@@ -13,13 +13,15 @@ security:
         main:
             lazy: true
             provider: main
-            logout: true
             form_login:
               login_path: app_login
               check_path: app_login
               enable_csrf: false
+            logout:
+              path: app_logout
             access_denied_handler: App\Security\AccessDeniedHandler
 
     access_control:
       - { path: ^/login, roles: PUBLIC_ACCESS }
+      - { path: ^/logout, roles: PUBLIC_ACCESS }
       - { path: ^/, roles: ROLE_ADMIN }
