@@ -1,5 +1,5 @@
 parameters:
-    rspamd_dkim: /media/dkim
+    rspamd_dkim: '%env(DKIM_PATH)%'
 
 services:
     _defaults:
