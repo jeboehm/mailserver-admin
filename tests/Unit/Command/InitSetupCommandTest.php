@@ -8,22 +8,21 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Command;
+namespace App\Tests\Unit\Command;
 
-use App\Command\DomainAddCommand;
+use App\Command\InitSetupCommand;
 use App\Entity\Domain;
+use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Validator\ConstraintViolation;
-use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class DomainAddCommandTest extends TestCase
+class InitSetupCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
@@ -41,26 +40,9 @@ class DomainAddCommandTest extends TestCase
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new DomainAddCommand($this->managerRegistryMock, $this->validatorMock));
+        $application->add(new InitSetupCommand($this->validatorMock, $this->managerRegistryMock));
 
-        $this->commandTester = new CommandTester($application->find('domain:add'));
-    }
-
-    public function testValidationFail(): void
-    {
-        $violationList = new ConstraintViolationList();
-        $violationList->add(new ConstraintViolation('Test', null, [], null, 'name', 1));
-
-        $this->validatorMock
-            ->method('validate')
-            ->willReturn($violationList);
-
-        $this->managerMock->expects($this->never())->method('persist');
-
-        $this->commandTester->execute(['domain' => 'example.com']);
-
-        $this->assertEquals('name: Test', trim($this->commandTester->getDisplay(true)));
-        $this->assertEquals(1, $this->commandTester->getStatusCode());
+        $this->commandTester = new CommandTester($application->find('init:setup'));
     }
 
     public function testExecute(): void
@@ -73,19 +55,33 @@ class DomainAddCommandTest extends TestCase
 
         $this->managerMock->expects($this->once())->method('flush');
         $this->managerMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('persist')
-            ->with(
-                $this->callback(
+            ->withConsecutive(
+                [$this->callback(
                     function (Domain $domain) {
                         $this->assertEquals('example.com', $domain->getName());
 
                         return true;
                     }
-                )
+                )],
+                [$this->callback(
+                    function (User $user) {
+                        $this->assertEquals('jeff', $user->getName());
+                        $this->assertEquals('123456789', $user->getPlainPassword());
+                        $this->assertEquals('example.com', $user->getDomain()->getName());
+
+                        return true;
+                    }
+                )]
             );
 
-        $this->commandTester->execute(['domain' => 'Example.com']);
+        $this->commandTester->setInputs([
+           'jeff@example.com',
+           '123456789',
+           '123456789',
+        ]);
+        $this->commandTester->execute([]);
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
     }

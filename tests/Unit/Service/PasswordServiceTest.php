@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Service;
+namespace App\Tests\Unit\Service;
 
 use App\Entity\User;
 use App\Service\PasswordService;

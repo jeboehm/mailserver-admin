@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Command;
+namespace App\Tests\Unit\Command;
 
 use App\Command\DKIMSetupCommand;
 use App\Entity\Domain;
