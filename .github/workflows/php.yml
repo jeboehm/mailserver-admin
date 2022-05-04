@@ -49,7 +49,6 @@ jobs:
       - name: Install Composer dependencies
         run: |
           composer install --no-progress --prefer-dist --optimize-autoloader
-          php bin/phpunit install
 
       - name: Prepare database
         run: |
