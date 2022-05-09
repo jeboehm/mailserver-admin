@@ -8,20 +8,21 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Unit\Service\DKIM;
+namespace App\Service\DKIM;
 
 use App\Exception\DKIM\DomainKeyNotFoundException;
-use App\Service\DKIM\DNSResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\DnsMock;
 
+/**
+ * @group dns-sensitive
+ */
 class DNSResolverTest extends TestCase
 {
     private DNSResolver $instance;
 
     protected function setUp(): void
     {
-        DnsMock::register(DNSResolver::class);
         $this->instance = new DNSResolver();
     }
 
