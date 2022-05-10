@@ -13,6 +13,8 @@ namespace App\Tests\Integration\Controller\Admin;
 use App\Controller\Admin\DKIMCrudController;
 use App\Entity\Domain;
 use App\Repository\DomainRepository;
+use App\Service\DKIM\DKIMStatus;
+use App\Service\DKIM\DKIMStatusService;
 use App\Tests\Integration\Helper\UserTrait;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -41,6 +43,26 @@ class DKIMCrudControllerTest extends WebTestCase
         $domain = $client->getContainer()->get(DomainRepository::class)->findOneBy(['name' => 'example.com']);
         self::assertInstanceOf(Domain::class, $domain);
 
+        $this->navigateToDomain($client, $domain);
+
+        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.');
+    }
+
+    public function testDkimEditDnsWrong(): void
+    {
+        $client = static::createClient();
+
+        $dkimStatusService = $this->createMock(DKIMStatusService::class);
+        $client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+
+        $dkimStatusService->method('getStatus')->willReturn(
+            new DKIMStatus(true, true, false, 'hi')
+        );
+
+        $domain = $client->getContainer()->get(DomainRepository::class)->findOneBy(['name' => 'example.com']);
+        self::assertInstanceOf(Domain::class, $domain);
+
+        $this->loginClient($client);
         $this->navigateToDomain($client, $domain);
 
         self::assertSelectorTextContains('.alert', 'DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.');

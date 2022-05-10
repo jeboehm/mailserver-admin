@@ -37,3 +37,9 @@ services:
     App\Subscriber\ChangePasswordSubscriber:
         tags:
             - { name: 'doctrine.event_subscriber' }
+
+when@test:
+    services:
+        App\Service\DKIM\DKIMStatusService:
+            autowire: true
+            public: true
