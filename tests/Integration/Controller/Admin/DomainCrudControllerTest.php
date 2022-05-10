@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Controller\Admin;
 
+use App\Controller\Admin\DomainCrudController;
 use App\Tests\Integration\Helper\UserTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -22,7 +23,7 @@ class DomainCrudControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginClient($client);
 
-        $client->request('GET', '/');
+        $client->request('GET', $this->getUrlGenerator($client)->setController(DomainCrudController::class)->generateUrl());
         self::assertResponseIsSuccessful();
 
         $client->clickLink('Add Domain');
@@ -41,7 +42,7 @@ class DomainCrudControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginClient($client);
 
-        $client->request('GET', '/');
+        $client->request('GET', $this->getUrlGenerator($client)->setController(DomainCrudController::class)->generateUrl());
         self::assertResponseIsSuccessful();
 
         $client->clickLink('Add Domain');
@@ -52,7 +53,7 @@ class DomainCrudControllerTest extends WebTestCase
         ]);
         self::assertResponseIsSuccessful();
 
-        $client->request('GET', '/');
+        $client->request('GET', $this->getUrlGenerator($client)->setController(DomainCrudController::class)->generateUrl());
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('span[title="example-new.com"]', 'example-new.com');
     }
@@ -62,10 +63,9 @@ class DomainCrudControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginClient($client);
 
-        $client->request('GET', '/');
+        $client->request('GET', $this->getUrlGenerator($client)->setController(DomainCrudController::class)->generateUrl());
         self::assertResponseIsSuccessful();
 
-        $crawler = $client->getCrawler();
-        self::assertStringContainsString('example.com', $crawler->filter('tbody > tr')->text());
+        self::assertSelectorTextContains('span[title="example.com"]', 'example.com');
     }
 }
