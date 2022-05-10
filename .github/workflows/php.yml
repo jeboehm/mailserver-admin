@@ -55,6 +55,8 @@ jobs:
           php bin/console doctrine:schema:create
           php bin/console domain:add example.com
           php bin/console user:add --password=changeme --admin --enable admin example.com
+          php bin/console dkim:setup --enable --selector 2022 example.com
+
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
           APP_ENV: test
