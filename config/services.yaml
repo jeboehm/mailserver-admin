@@ -17,10 +17,12 @@ services:
     App\Service\DKIM\Config\MapGenerator:
         arguments:
             $path: '%rspamd_dkim%'
+            $rootDir: '%kernel.project_dir%'
 
     App\Service\DKIM\Config\LeftoverFileCleaner:
         arguments:
             $path: '%rspamd_dkim%'
+            $rootDir: '%kernel.project_dir%'
 
     App\Subscriber\DKIM\ConfigSyncSubscriber:
         tags:

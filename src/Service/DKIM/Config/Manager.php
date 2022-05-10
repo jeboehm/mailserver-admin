@@ -21,7 +21,7 @@ class Manager
 
     public function refresh(): void
     {
-        /** @var Domain $domains */
+        /** @var Domain[] $domains */
         $domains = $this->manager->getRepository(Domain::class)->findAll();
 
         $this->cleaner->clean(...$domains);
