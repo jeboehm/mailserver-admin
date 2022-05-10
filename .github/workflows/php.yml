@@ -1,6 +1,5 @@
-# GitHub Action for Symfony with MySQL
 name: Testing Symfony with MySQL
-on: [ push, pull_request ]
+on: [ pull_request ]
 
 jobs:
   symfony:
@@ -8,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:5.7
+        image: mariadb:10
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: false
           MYSQL_ROOT_PASSWORD: symfony
@@ -25,34 +24,46 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2 #https://github.com/shivammathur/setup-php
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, mysql
+          extensions: mbstring, xml, ctype, iconv, intl, mysql
           coverage: xdebug
+
       - name: Start mysql service
         run: sudo /etc/init.d/mysql start
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
       - name: Cache composer dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          # Use composer.json for key, if composer.lock is not committed.
-          # key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
+
       - name: Install Composer dependencies
         run: |
           composer install --no-progress --prefer-dist --optimize-autoloader
-          php bin/phpunit install
+
+      - name: Prepare database
+        run: |
+          php bin/console doctrine:schema:create
+          php bin/console domain:add example.com
+          php bin/console user:add --password=changeme --admin --enable admin example.com
+          php bin/console dkim:setup --enable --selector 2022 example.com
+
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          APP_ENV: test
+
       - name: Run Tests
         run: php bin/phpunit
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_DATABASE: symfony
-          MYSQL_USER: root
-          MYSQL_PASSWORD: symfony
+          APP_ENV: test
+

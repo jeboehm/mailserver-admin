@@ -38,7 +38,7 @@ class DKIMCrudController extends AbstractCrudController
         return Domain::class;
     }
 
-    public function edit(AdminContext $context)
+    public function edit(AdminContext $context): KeyValueStore|Response
     {
         $parameters = parent::edit($context);
 

@@ -1,5 +1,5 @@
 parameters:
-    rspamd_dkim: /media/dkim
+    rspamd_dkim: '%env(DKIM_PATH)%'
 
 services:
     _defaults:
@@ -17,10 +17,12 @@ services:
     App\Service\DKIM\Config\MapGenerator:
         arguments:
             $path: '%rspamd_dkim%'
+            $rootDir: '%kernel.project_dir%'
 
     App\Service\DKIM\Config\LeftoverFileCleaner:
         arguments:
             $path: '%rspamd_dkim%'
+            $rootDir: '%kernel.project_dir%'
 
     App\Subscriber\DKIM\ConfigSyncSubscriber:
         tags:
@@ -37,3 +39,9 @@ services:
     App\Subscriber\ChangePasswordSubscriber:
         tags:
             - { name: 'doctrine.event_subscriber' }
+
+when@test:
+    services:
+        App\Service\DKIM\DKIMStatusService:
+            autowire: true
+            public: true

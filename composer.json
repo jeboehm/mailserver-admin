@@ -23,8 +23,12 @@
     "symfony/yaml": "6.0.3"
   },
   "require-dev": {
+    "dama/doctrine-test-bundle": "^7.0",
     "friendsofphp/php-cs-fixer": "3.8.0",
+    "phpunit/phpunit": "^9.5",
     "rector/rector": "0.12.22",
+    "symfony/browser-kit": "6.0.*",
+    "symfony/css-selector": "6.0.*",
     "symfony/dotenv": "6.0.5",
     "symfony/phpunit-bridge": "6.0.8",
     "symfony/stopwatch": "6.0.5",
@@ -69,7 +73,8 @@
     "post-update-cmd": [
       "@auto-scripts"
     ],
-    "csfix": "php-cs-fixer fix --allow-risky=yes"
+    "csfix": "php-cs-fixer fix --allow-risky=yes",
+    "test": "phpunit"
   },
   "extra": {
     "symfony": {

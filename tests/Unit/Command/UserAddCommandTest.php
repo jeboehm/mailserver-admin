@@ -8,11 +8,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Command;
+namespace App\Tests\Unit\Command;
 
-use App\Command\AliasAddCommand;
-use App\Entity\Alias;
+use App\Command\UserAddCommand;
 use App\Entity\Domain;
+use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
@@ -25,7 +25,7 @@ use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class AliasAddCommandTest extends TestCase
+class UserAddCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
@@ -43,29 +43,9 @@ class AliasAddCommandTest extends TestCase
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
 
         $application = new Application();
-        $application->add(new AliasAddCommand($this->managerRegistryMock, $this->validatorMock));
+        $application->add(new UserAddCommand($this->managerRegistryMock, $this->validatorMock));
 
-        $this->commandTester = new CommandTester($application->find('alias:add'));
-    }
-
-    public function testInvalidEmailFrom(): void
-    {
-        $this->managerMock->expects($this->never())->method('persist');
-
-        $this->commandTester->execute(['from' => 'yolo', 'to' => 'jeff@example.com']);
-
-        $this->assertEquals('yolo is not a valid email address.', trim($this->commandTester->getDisplay(true)));
-        $this->assertEquals(1, $this->commandTester->getStatusCode());
-    }
-
-    public function testInvalidEmailTo(): void
-    {
-        $this->managerMock->expects($this->never())->method('persist');
-
-        $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'yolo']);
-
-        $this->assertEquals('yolo is not a valid email address.', trim($this->commandTester->getDisplay(true)));
-        $this->assertEquals(1, $this->commandTester->getStatusCode());
+        $this->commandTester = new CommandTester($application->find('user:add'));
     }
 
     public function testDomainNotFound(): void
@@ -80,10 +60,10 @@ class AliasAddCommandTest extends TestCase
 
         $this->managerMock->expects($this->never())->method('persist');
 
-        $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'admin@example.com']);
+        $this->commandTester->execute(['name' => 'jeff', 'domain' => 'example.com']);
 
         $this->assertEquals(
-            'Domain example.com has to be created before.',
+            'Domain example.com was not found.',
             trim($this->commandTester->getDisplay(true))
         );
         $this->assertEquals(1, $this->commandTester->getStatusCode());
@@ -108,7 +88,7 @@ class AliasAddCommandTest extends TestCase
 
         $this->managerMock->expects($this->never())->method('persist');
 
-        $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'admin@example.com']);
+        $this->commandTester->execute(['name' => 'JEFF', 'domain' => 'example.com', '--password' => 'jeff']);
 
         $this->assertEquals('name: Test', trim($this->commandTester->getDisplay(true)));
         $this->assertEquals(1, $this->commandTester->getStatusCode());
@@ -117,7 +97,8 @@ class AliasAddCommandTest extends TestCase
     public function testExecute(): void
     {
         $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(new Domain());
+        $domain = new Domain();
+        $repository->method('findOneBy')->willReturn($domain);
 
         $violationList = $this->createMock(ConstraintViolationListInterface::class);
 
@@ -136,16 +117,17 @@ class AliasAddCommandTest extends TestCase
             ->method('persist')
             ->with(
                 $this->callback(
-                    function (Alias $alias) {
-                        $this->assertEquals('jeff', $alias->getName());
-                        $this->assertEquals('admin@example.com', $alias->getDestination());
+                    function (User $user) use ($domain) {
+                        $this->assertSame($domain, $user->getDomain());
+                        $this->assertEquals('jeff', $user->getName());
+                        $this->assertEquals('jeff', $user->getPlainPassword());
 
                         return true;
                     }
                 )
             );
 
-        $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'admin@example.com']);
+        $this->commandTester->execute(['name' => 'JEFF', 'domain' => 'example.com', '--password' => 'jeff']);
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
     }
