@@ -10,7 +10,7 @@
     "doctrine/dbal": "3.3.5",
     "doctrine/doctrine-bundle": "2.6.3",
     "doctrine/doctrine-migrations-bundle": "3.2.2",
-    "doctrine/orm": "2.12.1",
+    "doctrine/orm": "2.12.2",
     "easycorp/easyadmin-bundle": "4.1.2",
     "symfony/console": "6.0.8",
     "symfony/flex": "2.1.7",
