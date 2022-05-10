@@ -7,7 +7,7 @@
     "php": ">=8.0.2",
     "ext-iconv": "*",
     "ext-openssl": "*",
-    "doctrine/dbal": "3.3.5",
+    "doctrine/dbal": "3.3.6",
     "doctrine/doctrine-bundle": "2.6.3",
     "doctrine/doctrine-migrations-bundle": "3.2.2",
     "doctrine/orm": "2.12.2",
