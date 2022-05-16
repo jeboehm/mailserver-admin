@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8697f3b48400e6552e20ca986bdd1d6",
+    "content-hash": "8085e8b13eb6b7bd44e686a011cd9e03",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1380,16 +1380,16 @@
         },
         {
             "name": "easycorp/easyadmin-bundle",
-            "version": "v4.1.2",
+            "version": "v4.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EasyCorp/EasyAdminBundle.git",
-                "reference": "428c1fa868562a70b684e7df5e41d9d7365c5cb9"
+                "reference": "6738c4eb2b997e2b29f01b486aafb3aa94e48fd3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/428c1fa868562a70b684e7df5e41d9d7365c5cb9",
-                "reference": "428c1fa868562a70b684e7df5e41d9d7365c5cb9",
+                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/6738c4eb2b997e2b29f01b486aafb3aa94e48fd3",
+                "reference": "6738c4eb2b997e2b29f01b486aafb3aa94e48fd3",
                 "shasum": ""
             },
             "require": {
@@ -1456,7 +1456,7 @@
             ],
             "support": {
                 "issues": "https://github.com/EasyCorp/EasyAdminBundle/issues",
-                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.1.2"
+                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.2.1"
             },
             "funding": [
                 {
@@ -1464,7 +1464,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-04-23T15:40:27+00:00"
+            "time": "2022-05-16T08:14:40+00:00"
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
