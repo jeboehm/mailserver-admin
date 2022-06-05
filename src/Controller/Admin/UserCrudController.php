@@ -49,6 +49,8 @@ class UserCrudController extends AbstractCrudController
         $plainPassword = Field::new('plainPassword')->setLabel('Change password');
         $id = IdField::new('id', 'ID');
 
+        $domain->setRequired(true);
+
         if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $plainPassword, $admin, $enabled, $sendOnly, $quota, $domain];
         }

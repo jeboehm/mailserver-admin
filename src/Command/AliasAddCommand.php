@@ -16,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -32,20 +33,28 @@ class AliasAddCommand extends Command
         $this
             ->setName('alias:add')
             ->setDescription('Add aliases.')
+            ->addOption('catchall', null, InputOption::VALUE_NONE, 'Catch all mails to this domain.')
             ->addArgument('from', InputArgument::REQUIRED, 'Address of the new alias.')
             ->addArgument('to', InputArgument::REQUIRED, 'Where mails to the new alias go to.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $from = \filter_var($input->getArgument('from'), \FILTER_VALIDATE_EMAIL);
-        $to = \filter_var($input->getArgument('to'), \FILTER_VALIDATE_EMAIL);
+        $from = $input->getArgument('from');
 
-        if (!$from) {
-            $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
+        if (!$input->getOption('catchall')) {
+            $from = \filter_var($from, \FILTER_VALIDATE_EMAIL);
 
-            return 1;
+            if (!$from) {
+                $output->writeln(
+                    sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from'))
+                );
+
+                return 1;
+            }
         }
+
+        $to = \filter_var($input->getArgument('to'), \FILTER_VALIDATE_EMAIL);
 
         if (!$to) {
             $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('to')));
@@ -57,6 +66,13 @@ class AliasAddCommand extends Command
         $alias->setDestination($to);
 
         $fromParts = \explode('@', $from, 2);
+
+        if (2 !== count($fromParts)) {
+            $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
+
+            return 1;
+        }
+
         $domain = $this->getDomain($fromParts[1]);
 
         if (null === $domain) {

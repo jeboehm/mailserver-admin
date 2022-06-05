@@ -27,7 +27,6 @@ class Alias implements \Stringable
     #[Assert\NotNull]
     #[ORM\ManyToOne(targetEntity: 'Domain', inversedBy: 'aliases')]
     private ?Domain $domain = null;
-    #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
     #[ORM\Column(type: 'string', name: 'name', options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
@@ -65,9 +64,9 @@ class Alias implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): void
+    public function setName(string|null $name): void
     {
-        $this->name = $name;
+        $this->name = (string) $name;
     }
 
     public function getDestination(): string

@@ -29,7 +29,7 @@ class AliasCrudController extends AbstractCrudController
     {
         return $crud
             ->setEntityLabelInSingular('Alias')
-            ->setEntityLabelInPlural('Alias')
+            ->setEntityLabelInPlural('Aliases')
             ->setSearchFields(['id', 'name', 'destination']);
     }
 
@@ -39,6 +39,11 @@ class AliasCrudController extends AbstractCrudController
         $name = TextField::new('name');
         $destination = EmailField::new('destination');
         $id = IdField::new('id', 'ID');
+
+        $name->setRequired(false);
+        $name->setHelp('Leave empty to create a catch all address.');
+
+        $domain->setRequired(true);
 
         if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $destination, $domain];
