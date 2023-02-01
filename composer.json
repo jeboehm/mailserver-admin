@@ -17,7 +17,7 @@
     "symfony/framework-bundle": "6.0.8",
     "symfony/proxy-manager-bridge": "6.0.6",
     "symfony/runtime": "6.0.8",
-    "symfony/security-bundle": "6.0.8",
+    "symfony/security-bundle": "6.0.20",
     "symfony/twig-bundle": "6.0.8",
     "symfony/validator": "6.0.8",
     "symfony/yaml": "6.0.3"
