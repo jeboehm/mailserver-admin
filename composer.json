@@ -11,7 +11,7 @@
     "doctrine/doctrine-bundle": "2.6.3",
     "doctrine/doctrine-migrations-bundle": "3.2.2",
     "doctrine/orm": "2.12.2",
-    "easycorp/easyadmin-bundle": "4.2.1",
+    "easycorp/easyadmin-bundle": "4.10.5",
     "symfony/console": "6.0.8",
     "symfony/flex": "2.1.8",
     "symfony/framework-bundle": "6.0.8",
