@@ -17,16 +17,12 @@ class Version20180322081734 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), "Migration can only be executed safely on 'mysql'.");
-
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL COLLATE utf8_unicode_ci');
         $this->addSql('ALTER TABLE mail_users ADD admin TINYINT(1) NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
-        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), "Migration can only be executed safely on 'mysql'.");
-
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL COLLATE utf8_general_ci');
         $this->addSql('ALTER TABLE mail_users DROP admin');
     }

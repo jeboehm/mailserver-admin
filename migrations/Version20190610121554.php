@@ -17,11 +17,6 @@ final class Version20190610121554 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        $this->abortIf(
-            'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            "Migration can only be executed safely on 'mysql'."
-        );
-
         $this->addSql(
             'ALTER TABLE mail_domains ADD dkim_enabled TINYINT(1) NOT NULL, ADD dkim_selector VARCHAR(255) NOT NULL, ADD dkim_private_key LONGTEXT NOT NULL'
         );
@@ -29,11 +24,6 @@ final class Version20190610121554 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        $this->abortIf(
-            'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            "Migration can only be executed safely on 'mysql'."
-        );
-
         $this->addSql(
             'ALTER TABLE mail_domains DROP dkim_enabled, DROP dkim_selector, DROP dkim_private_key'
         );

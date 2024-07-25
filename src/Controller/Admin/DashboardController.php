@@ -19,31 +19,35 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class DashboardController extends AbstractDashboardController
 {
-    public function __construct(private AdminUrlGenerator $adminUrlGenerator)
+    public function __construct(private readonly AdminUrlGenerator $adminUrlGenerator)
     {
     }
 
     #[Route(path: '/', name: 'admin_index')]
+    #[\Override]
     public function index(): Response
     {
         return $this->redirect($this->adminUrlGenerator->setController(DomainCrudController::class)->generateUrl());
     }
 
+    #[\Override]
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()->setTitle('mailserver-admin');
     }
 
+    #[\Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
         return parent::configureUserMenu($user)->displayUserAvatar(false);
     }
 
+    #[\Override]
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class);

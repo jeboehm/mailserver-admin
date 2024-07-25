@@ -21,16 +21,19 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class DomainCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Domain::class;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setSearchFields(['name']);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $name = TextField::new('name');

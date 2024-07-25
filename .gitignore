@@ -21,3 +21,14 @@
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

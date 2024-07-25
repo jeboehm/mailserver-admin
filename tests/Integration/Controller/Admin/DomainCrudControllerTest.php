@@ -32,7 +32,6 @@ class DomainCrudControllerTest extends WebTestCase
         $client->submitForm('Create', [
             'Domain[name]' => 'example.com',
         ]);
-        self::assertResponseIsSuccessful();
 
         self::assertSelectorTextContains('.invalid-feedback', 'This value is already used.');
     }

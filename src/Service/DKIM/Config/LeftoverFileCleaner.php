@@ -16,9 +16,9 @@ use Symfony\Component\Finder\Finder;
 
 class LeftoverFileCleaner
 {
-    private Filesystem $filesystem;
+    private readonly Filesystem $filesystem;
 
-    public function __construct(private string $path, private string $rootDir)
+    public function __construct(private string $path, private readonly string $rootDir)
     {
         if (str_starts_with($this->path, './')) {
             $this->path = realpath(sprintf('%s/%s', $this->rootDir, $this->path));

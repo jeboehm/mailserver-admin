@@ -12,7 +12,6 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Serializable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -22,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'mail_users')]
 #[ORM\UniqueConstraint(name: 'user_idx', columns: ['name', 'domain_id'])]
 #[UniqueEntity(['name', 'domain'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, Serializable, \Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, \Serializable, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -51,6 +50,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
     private int $quota = 0;
     private ?string $domainName = null;
 
+    #[\Override]
     public function __toString(): string
     {
         if (null !== $this->domain) {
@@ -89,6 +89,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
         $this->name = $name;
     }
 
+    #[\Override]
     public function getPassword(): string
     {
         return $this->password;
@@ -99,6 +100,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
         $this->password = $password;
     }
 
+    #[\Override]
     public function getRoles(): array
     {
         if ($this->admin) {
@@ -125,6 +127,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
         return $parts[3] ?? '';
     }
 
+    #[\Override]
     public function eraseCredentials(): void
     {
         $this->plainPassword = '';
@@ -170,16 +173,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Seriali
         $this->quota = $quota;
     }
 
+    #[\Override]
     public function serialize(): string
     {
         return serialize([$this->id, $this->password, $this->domain->getName(), $this->admin, $this->name]);
     }
 
+    #[\Override]
     public function unserialize($serialized): void
     {
         [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = unserialize($serialized, ['allowed_classes' => false]);
     }
 
+    #[\Override]
     public function getUserIdentifier(): string
     {
         return (string) $this;

@@ -24,20 +24,23 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class UserCrudController extends AbstractCrudController
 {
-    public function __construct(private PasswordService $passwordService)
+    public function __construct(private readonly PasswordService $passwordService)
     {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return User::class;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setSearchFields(['name']);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $domain = AssociationField::new('domain');
@@ -66,6 +69,7 @@ class UserCrudController extends AbstractCrudController
         return [$domain, $name, $enabled, $sendOnly, $admin];
     }
 
+    #[\Override]
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $this->passwordService->processUserPassword($entityInstance);
@@ -73,6 +77,7 @@ class UserCrudController extends AbstractCrudController
         parent::updateEntity($entityManager, $entityInstance);
     }
 
+    #[\Override]
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $this->passwordService->processUserPassword($entityInstance);

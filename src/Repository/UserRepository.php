@@ -48,6 +48,7 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return $qb->getQuery()->getOneOrNullResult();
     }
 
+    #[\Override]
     public function loadUserByIdentifier(string $identifier): ?UserInterface
     {
         return $this->findOneByEmailAddress((string) $identifier);

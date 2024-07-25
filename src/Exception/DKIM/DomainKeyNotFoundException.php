@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace App\Exception\DKIM;
 
-use Exception;
-
-class DomainKeyNotFoundException extends Exception
+class DomainKeyNotFoundException extends \Exception
 {
 }

@@ -20,11 +20,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
 class AliasCrudController extends AbstractCrudController
 {
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Alias::class;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
@@ -33,6 +35,7 @@ class AliasCrudController extends AbstractCrudController
             ->setSearchFields(['id', 'name', 'destination']);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $domain = AssociationField::new('domain');

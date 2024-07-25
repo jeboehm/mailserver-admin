@@ -12,7 +12,7 @@ namespace App\Service\DKIM;
 
 class KeyPair
 {
-    public function __construct(private string $public, private string $private)
+    public function __construct(private readonly string $public, private readonly string $private)
     {
     }
 

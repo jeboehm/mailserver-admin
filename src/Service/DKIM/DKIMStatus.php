@@ -12,7 +12,7 @@ namespace App\Service\DKIM;
 
 class DKIMStatus
 {
-    public function __construct(private bool $dkimEnabled, private bool $dkimRecordFound, private bool $dkimRecordValid, private string $currentRecord)
+    public function __construct(private readonly bool $dkimEnabled, private readonly bool $dkimRecordFound, private readonly bool $dkimRecordValid, private readonly string $currentRecord)
     {
     }
 

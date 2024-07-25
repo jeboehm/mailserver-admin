@@ -18,17 +18,10 @@ class Version20180320171339 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        $this->abortIf('mysql' !== $this->connection->getDatabasePlatform()->getName(), "Migration can only be executed safely on 'mysql'.");
-
         $this->addSql('ALTER TABLE mail_aliases RENAME INDEX idx_5f12bb39115f0ee5 TO IDX_85AF3A56115F0EE5');
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_56C63EF25E237E06 ON mail_domains (name)');
         $this->addSql('DROP INDEX UNIQ_1483A5E95E237E06 ON mail_users');
         $this->addSql('ALTER TABLE mail_users RENAME INDEX idx_1483a5e9115f0ee5 TO IDX_20400786115F0EE5');
-    }
-
-    public function down(Schema $schema): void
-    {
-        throw new Exception('Not implemented');
     }
 }
