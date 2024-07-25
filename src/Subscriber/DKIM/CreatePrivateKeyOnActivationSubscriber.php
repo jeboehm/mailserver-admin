@@ -18,10 +18,11 @@ use Doctrine\Persistence\Event\LifecycleEventArgs;
 
 class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
 {
-    public function __construct(private KeyGenerationService $keyGenerationService)
+    public function __construct(private readonly KeyGenerationService $keyGenerationService)
     {
     }
 
+    #[\Override]
     public function getSubscribedEvents(): array
     {
         return [Events::preUpdate, Events::prePersist];

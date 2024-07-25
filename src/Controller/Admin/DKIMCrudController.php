@@ -14,7 +14,6 @@ use App\Entity\Domain;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use Doctrine\ORM\EntityManagerInterface;
-use DomainException;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -29,15 +28,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class DKIMCrudController extends AbstractCrudController
 {
-    public function __construct(private FormatterService $formatterService, private KeyGenerationService $keyGenerationService, private AdminUrlGenerator $adminUrlGenerator, private EntityManagerInterface $entityManager)
+    public function __construct(private readonly FormatterService $formatterService, private readonly KeyGenerationService $keyGenerationService, private readonly AdminUrlGenerator $adminUrlGenerator, private readonly EntityManagerInterface $entityManager)
     {
     }
 
+    #[\Override]
     public static function getEntityFqcn(): string
     {
         return Domain::class;
     }
 
+    #[\Override]
     public function edit(AdminContext $context): KeyValueStore|Response
     {
         $parameters = parent::edit($context);
@@ -59,6 +60,7 @@ class DKIMCrudController extends AbstractCrudController
         return $parameters;
     }
 
+    #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
         $helpMessage = 'If you enable DKIM for this domain, all outgoing mails will have a DKIM signature attached. You should set up the DNS record before doing this. After you have generated a private key, a DNS record is provided that needs to be added to your domain\'s zone.';
@@ -71,6 +73,7 @@ class DKIMCrudController extends AbstractCrudController
             ->setPageTitle(Crud::PAGE_INDEX, 'DKIM');
     }
 
+    #[\Override]
     public function configureActions(Actions $actions): Actions
     {
         $recreateKey = Action::new(
@@ -89,7 +92,7 @@ class DKIMCrudController extends AbstractCrudController
         $domain = $adminContext->getEntity()->getInstance();
 
         if (!$domain) {
-            throw new DomainException('Domain not found.');
+            throw new \DomainException('Domain not found.');
         }
 
         $keyPair = $this->keyGenerationService->createKeyPair();
@@ -108,6 +111,7 @@ class DKIMCrudController extends AbstractCrudController
         return $this->redirect($url);
     }
 
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $name = TextField::new('name')->setFormTypeOption('disabled', true);

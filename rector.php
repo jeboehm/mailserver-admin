@@ -18,10 +18,10 @@ return static function (RectorConfig $rectorConfig): void {
 
     // define sets of rules
     $rectorConfig->sets([
-                            LevelSetList::UP_TO_PHP_80,
-                            SymfonySetList::SYMFONY_60,
+                            LevelSetList::UP_TO_PHP_84,
                             SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
                             DoctrineSetList::DOCTRINE_ORM_29,
-                            DoctrineSetList::DOCTRINE_DBAL_30,
+                            DoctrineSetList::DOCTRINE_DBAL_40,
+                            SymfonySetList::SYMFONY_64
                             ]);
 };

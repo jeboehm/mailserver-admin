@@ -14,7 +14,7 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 
 class DomainKeyReaderService
 {
-    public function __construct(private DNSResolver $resolver)
+    public function __construct(private readonly DNSResolver $resolver)
     {
     }
 
@@ -30,7 +30,7 @@ class DomainKeyReaderService
             $result[0]['txt'] = implode('', $result[0]['entries']);
         }
 
-        $parts = explode(';', trim($result[0]['txt']));
+        $parts = explode(';', trim((string) $result[0]['txt']));
         $record = [];
 
         foreach ($parts as $part) {

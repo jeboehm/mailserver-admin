@@ -28,11 +28,6 @@ class Version20180320164351 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->abortIf(
-            'mysql' !== $this->connection->getDatabasePlatform()->getName(),
-            "Migration can only be executed safely on 'mysql'."
-        );
-
         $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
 
         $this->addSql('RENAME TABLE virtual_domains TO mail_domains');
@@ -64,11 +59,6 @@ class Version20180320164351 extends AbstractMigration
         }
     }
 
-    public function down(Schema $schema): void
-    {
-        throw new Exception('Not implemented');
-    }
-
     private function fillUsers(): void
     {
         $qb = $this->connection->createQueryBuilder();
@@ -78,7 +68,7 @@ class Version20180320164351 extends AbstractMigration
             ->addSelect('password')
             ->from('virtual_users');
 
-        $result = $qb->execute()->fetchAll();
+        $result = $qb->fetchAllAssociative();
 
         foreach ($result as $row) {
             $this->users[] = [
@@ -98,7 +88,7 @@ class Version20180320164351 extends AbstractMigration
             ->addSelect('destination')
             ->from('virtual_aliases');
 
-        $result = $qb->execute()->fetchAll();
+        $result = $qb->fetchAllAssociative();
 
         foreach ($result as $row) {
             $this->aliases[] = [

@@ -18,10 +18,11 @@ use Twig\Environment;
 
 class AccessDeniedHandler implements AccessDeniedHandlerInterface
 {
-    public function __construct(private Environment $twig)
+    public function __construct(private readonly Environment $twig)
     {
     }
 
+    #[\Override]
     public function handle(Request $request, AccessDeniedException $accessDeniedException): Response
     {
         return new Response($this->twig->render('admin/access_denied.html.twig'));

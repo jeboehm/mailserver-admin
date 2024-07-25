@@ -35,6 +35,7 @@ class Alias implements \Stringable
     #[ORM\Column(type: 'string', name: 'destination', options: ['collation' => 'utf8_unicode_ci'])]
     private string $destination = '';
 
+    #[\Override]
     public function __toString(): string
     {
         if (null !== $this->getDomain()) {
@@ -64,7 +65,7 @@ class Alias implements \Stringable
         return $this->name;
     }
 
-    public function setName(string|null $name): void
+    public function setName(?string $name): void
     {
         $this->name = (string) $name;
     }

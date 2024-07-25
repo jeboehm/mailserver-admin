@@ -21,11 +21,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class DomainAddCommand extends Command
 {
-    public function __construct(private ManagerRegistry $manager, private ValidatorInterface $validator)
+    public function __construct(private readonly ManagerRegistry $manager, private readonly ValidatorInterface $validator)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -34,10 +35,11 @@ class DomainAddCommand extends Command
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @)');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $domain = new Domain();
-        $domain->setName(\mb_strtolower($input->getArgument('domain')));
+        $domain->setName(\mb_strtolower((string) $input->getArgument('domain')));
 
         $validationResult = $this->validator->validate($domain);
 

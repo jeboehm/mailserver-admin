@@ -25,11 +25,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAddCommand extends Command
 {
-    public function __construct(private ManagerRegistry $manager, private ValidatorInterface $validator)
+    public function __construct(private readonly ManagerRegistry $manager, private readonly ValidatorInterface $validator)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -44,6 +45,7 @@ class UserAddCommand extends Command
             ->addOption('enable', null, InputOption::VALUE_NONE, 'Enable the new created account');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $user = new User();
@@ -56,7 +58,7 @@ class UserAddCommand extends Command
         }
 
         $user->setDomain($domain);
-        $user->setName(\mb_strtolower($input->getArgument('name')));
+        $user->setName(\mb_strtolower((string) $input->getArgument('name')));
         $user->setAdmin((bool) $input->getOption('admin'));
         $user->setSendOnly((bool) $input->getOption('sendonly'));
         $user->setEnabled((bool) $input->getOption('enable'));

@@ -13,7 +13,6 @@ namespace App\Command;
 use App\Entity\Domain;
 use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
-use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,11 +23,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class InitSetupCommand extends Command
 {
-    public function __construct(private ValidatorInterface $validator, private ManagerRegistry $manager)
+    public function __construct(private readonly ValidatorInterface $validator, private readonly ManagerRegistry $manager)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -36,6 +36,7 @@ class InitSetupCommand extends Command
             ->setDescription('Does an initially setup for docker-mailserver.');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var QuestionHelper $questionHelper */
@@ -110,7 +111,7 @@ class InitSetupCommand extends Command
         $emailQuestion->setValidator(
             function (string $value): string {
                 if (!$value = \filter_var($value, \FILTER_VALIDATE_EMAIL)) {
-                    throw new RuntimeException('Please enter a valid email address.');
+                    throw new \RuntimeException('Please enter a valid email address.');
                 }
 
                 return $value;
@@ -135,7 +136,7 @@ class InitSetupCommand extends Command
         $passwordQuestion->setValidator(
             function (string $value): string {
                 if (\mb_strlen($value) < 8) {
-                    throw new RuntimeException('The password should be longer.');
+                    throw new \RuntimeException('The password should be longer.');
                 }
 
                 return $value;

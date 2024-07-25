@@ -25,14 +25,15 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 class DKIMSetupCommand extends Command
 {
     public function __construct(
-        private ManagerRegistry $manager,
-        private KeyGenerationService $keyGenerationService,
-        private FormatterService $formatterService,
-        private Manager $dkimManager
+        private readonly ManagerRegistry $manager,
+        private readonly KeyGenerationService $keyGenerationService,
+        private readonly FormatterService $formatterService,
+        private readonly Manager $dkimManager
     ) {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -43,6 +44,7 @@ class DKIMSetupCommand extends Command
             ->addOption('selector', null, InputOption::VALUE_REQUIRED, 'Set DKIM selector.');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $domain = $this->getDomain($input, $output);

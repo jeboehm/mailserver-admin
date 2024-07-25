@@ -17,11 +17,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DKIMSyncCommand extends Command
 {
-    public function __construct(private Manager $manager)
+    public function __construct(private readonly Manager $manager)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -29,6 +30,7 @@ class DKIMSyncCommand extends Command
             ->setDescription('Updates the DKIM configuration folder.');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->manager->refresh();

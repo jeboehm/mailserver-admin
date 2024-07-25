@@ -50,6 +50,7 @@ class Domain implements \Stringable
         $this->aliases = new ArrayCollection();
     }
 
+    #[\Override]
     public function __toString(): string
     {
         return $this->name;

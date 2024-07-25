@@ -21,11 +21,12 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMDisableCommand extends Command
 {
-    public function __construct(private ManagerRegistry $manager)
+    public function __construct(private readonly ManagerRegistry $manager)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -34,6 +35,7 @@ class DKIMDisableCommand extends Command
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @)');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $name = $input->getArgument('domain');

@@ -22,8 +22,4 @@ class Version20180520173959 extends AbstractMigration
         );
         $this->addSql('UPDATE mail_users SET enabled = 1');
     }
-
-    public function down(Schema $schema): void
-    {
-    }
 }

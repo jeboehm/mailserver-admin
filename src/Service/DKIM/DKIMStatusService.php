@@ -15,7 +15,7 @@ use App\Exception\DKIM\DomainKeyNotFoundException;
 
 class DKIMStatusService
 {
-    public function __construct(private DomainKeyReaderService $domainKeyReaderService, private FormatterService $formatterService, private KeyGenerationService $keyGenerationService)
+    public function __construct(private readonly DomainKeyReaderService $domainKeyReaderService, private readonly FormatterService $formatterService, private readonly KeyGenerationService $keyGenerationService)
     {
     }
 

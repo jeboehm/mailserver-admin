@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service\DKIM;
 
 use App\Service\DKIM\KeyGenerationService;
-use LogicException;
 use PHPUnit\Framework\TestCase;
 
 class KeyGenerationServiceTest extends TestCase
@@ -40,7 +39,7 @@ class KeyGenerationServiceTest extends TestCase
 
     public function testExtractPublicKeyWithInvalidPrivateKey(): void
     {
-        $this->expectException(LogicException::class);
+        $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Cannot read private key.');
 
         $this->instance->extractPublicKey('yolo');

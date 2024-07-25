@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Service\DKIM;
 
 use App\Exception\DKIM\DomainKeyNotFoundException;
+use App\Service\DKIM\DNSResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\DnsMock;
 

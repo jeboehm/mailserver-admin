@@ -77,9 +77,9 @@ class InitSetupCommandTest extends TestCase
             );
 
         $this->commandTester->setInputs([
-           'jeff@example.com',
-           '123456789',
-           '123456789',
+            'jeff@example.com',
+            '123456789',
+            '123456789',
         ]);
         $this->commandTester->execute([]);
 

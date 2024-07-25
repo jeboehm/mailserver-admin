@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
-use LogicException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -20,10 +19,10 @@ class MapGenerator
     /**
      * @var string
      */
-    private const MAP_FILENAME = 'dkim_selectors.map';
-    private Filesystem $filesystem;
+    private const string MAP_FILENAME = 'dkim_selectors.map';
+    private readonly Filesystem $filesystem;
 
-    public function __construct(private string $path, private string $rootDir)
+    public function __construct(private string $path, private readonly string $rootDir)
     {
         if (str_starts_with($this->path, './')) {
             $this->path = realpath(sprintf('%s/%s', $this->rootDir, $this->path));
@@ -59,7 +58,7 @@ class MapGenerator
     private function writeFile(string $filename, string $content): void
     {
         if (false === \file_put_contents($filename, $content)) {
-            throw new LogicException(\sprintf('Cannot write %s', $filename));
+            throw new \LogicException(\sprintf('Cannot write %s', $filename));
         }
 
         try {

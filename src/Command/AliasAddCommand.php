@@ -23,11 +23,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AliasAddCommand extends Command
 {
-    public function __construct(private ManagerRegistry $manager, private ValidatorInterface $validator)
+    public function __construct(private readonly ManagerRegistry $manager, private readonly ValidatorInterface $validator)
     {
         parent::__construct();
     }
 
+    #[\Override]
     protected function configure(): void
     {
         $this
@@ -38,6 +39,7 @@ class AliasAddCommand extends Command
             ->addArgument('to', InputArgument::REQUIRED, 'Where mails to the new alias go to.');
     }
 
+    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $from = $input->getArgument('from');
@@ -65,7 +67,7 @@ class AliasAddCommand extends Command
         $alias = new Alias();
         $alias->setDestination($to);
 
-        $fromParts = \explode('@', $from, 2);
+        $fromParts = \explode('@', (string) $from, 2);
 
         if (2 !== count($fromParts)) {
             $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
