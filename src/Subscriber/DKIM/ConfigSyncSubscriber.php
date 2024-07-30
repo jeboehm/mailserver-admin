@@ -12,23 +12,20 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\Config\Manager;
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PostPersistEventArgs;
+use Doctrine\ORM\Event\PostUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class ConfigSyncSubscriber implements EventSubscriber
+#[AsDoctrineListener(event: Events::postUpdate)]
+#[AsDoctrineListener(event: Events::postPersist)]
+readonly class ConfigSyncSubscriber
 {
-    public function __construct(private readonly Manager $manager)
+    public function __construct(private Manager $manager)
     {
     }
 
-    #[\Override]
-    public function getSubscribedEvents(): array
-    {
-        return [Events::postUpdate, Events::postPersist];
-    }
-
-    public function postUpdate(LifecycleEventArgs $event): void
+    public function postUpdate(PostUpdateEventArgs $event): void
     {
         $entity = $event->getObject();
 
@@ -39,8 +36,14 @@ class ConfigSyncSubscriber implements EventSubscriber
         $this->manager->refresh();
     }
 
-    public function postPersist(LifecycleEventArgs $event): void
+    public function postPersist(PostPersistEventArgs $event): void
     {
-        $this->postUpdate($event);
+        $entity = $event->getObject();
+
+        if (!($entity instanceof Domain)) {
+            return;
+        }
+
+        $this->manager->refresh();
     }
 }

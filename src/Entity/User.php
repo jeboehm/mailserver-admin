@@ -21,7 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'mail_users')]
 #[ORM\UniqueConstraint(name: 'user_idx', columns: ['name', 'domain_id'])]
 #[UniqueEntity(['name', 'domain'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, \Serializable, \Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -62,6 +62,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \Serial
         }
 
         return '';
+    }
+
+    public function __serialize(): array
+    {
+        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->name];
+    }
+
+    public function __unserialize(array $data): void
+    {
+        [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = $data;
     }
 
     public function getDomain(): ?Domain
@@ -171,18 +181,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \Serial
     public function setQuota(int $quota): void
     {
         $this->quota = $quota;
-    }
-
-    #[\Override]
-    public function serialize(): string
-    {
-        return serialize([$this->id, $this->password, $this->domain->getName(), $this->admin, $this->name]);
-    }
-
-    #[\Override]
-    public function unserialize($serialized): void
-    {
-        [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = unserialize($serialized, ['allowed_classes' => false]);
     }
 
     #[\Override]
