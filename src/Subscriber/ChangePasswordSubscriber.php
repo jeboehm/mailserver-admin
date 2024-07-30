@@ -12,23 +12,20 @@ namespace App\Subscriber;
 
 use App\Entity\User;
 use App\Service\PasswordService;
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class ChangePasswordSubscriber implements EventSubscriber
+#[AsDoctrineListener(event: Events::preUpdate)]
+#[AsDoctrineListener(event: Events::prePersist)]
+readonly class ChangePasswordSubscriber
 {
-    public function __construct(private readonly PasswordService $passwordService)
+    public function __construct(private PasswordService $passwordService)
     {
     }
 
-    #[\Override]
-    public function getSubscribedEvents(): array
-    {
-        return [Events::preUpdate, Events::prePersist];
-    }
-
-    public function preUpdate(LifecycleEventArgs $event): void
+    public function preUpdate(PreUpdateEventArgs $event): void
     {
         $user = $event->getObject();
 
@@ -39,8 +36,14 @@ class ChangePasswordSubscriber implements EventSubscriber
         $this->passwordService->processUserPassword($user);
     }
 
-    public function prePersist(LifecycleEventArgs $event): void
+    public function prePersist(PrePersistEventArgs $event): void
     {
-        $this->preUpdate($event);
+        $user = $event->getObject();
+
+        if (!($user instanceof User)) {
+            return;
+        }
+
+        $this->passwordService->processUserPassword($user);
     }
 }

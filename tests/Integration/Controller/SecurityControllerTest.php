@@ -11,19 +11,21 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 class SecurityControllerTest extends WebTestCase
 {
     public function testLoginPage(): void
     {
         $client = static::createClient();
-        $client->request('GET', '/login');
+        $client->followRedirects();
+
+        $client->request(Request::METHOD_GET, '/login');
         $client->submitForm('Sign in', [
             '_username' => 'admin@example.com',
             '_password' => 'changeme',
         ]);
 
-        self::assertResponseRedirects('http://localhost/', Response::HTTP_FOUND);
+        self::assertPageTitleSame('Domain');
     }
 }

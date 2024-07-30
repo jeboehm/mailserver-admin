@@ -12,23 +12,18 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\DKIMStatusService;
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PostLoadEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class DomainInfoSubscriber implements EventSubscriber
+#[AsDoctrineListener(event: Events::postLoad)]
+readonly class DomainInfoSubscriber
 {
-    public function __construct(private readonly DKIMStatusService $dkimStatusService)
+    public function __construct(private DKIMStatusService $dkimStatusService)
     {
     }
 
-    #[\Override]
-    public function getSubscribedEvents(): array
-    {
-        return [Events::postLoad];
-    }
-
-    public function postLoad(LifecycleEventArgs $event): void
+    public function postLoad(PostLoadEventArgs $event): void
     {
         $entity = $event->getObject();
 

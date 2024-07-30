@@ -12,23 +12,20 @@ namespace App\Subscriber\DKIM;
 
 use App\Entity\Domain;
 use App\Service\DKIM\KeyGenerationService;
-use Doctrine\Common\EventSubscriber;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\Persistence\Event\LifecycleEventArgs;
 
-class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
+#[AsDoctrineListener(event: Events::preUpdate)]
+#[AsDoctrineListener(event: Events::prePersist)]
+readonly class CreatePrivateKeyOnActivationSubscriber
 {
-    public function __construct(private readonly KeyGenerationService $keyGenerationService)
+    public function __construct(private KeyGenerationService $keyGenerationService)
     {
     }
 
-    #[\Override]
-    public function getSubscribedEvents(): array
-    {
-        return [Events::preUpdate, Events::prePersist];
-    }
-
-    public function preUpdate(LifecycleEventArgs $event): void
+    public function preUpdate(PreUpdateEventArgs $event): void
     {
         $entity = $event->getObject();
 
@@ -36,6 +33,22 @@ class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
             return;
         }
 
+        $this->setPrivateKey($entity);
+    }
+
+    public function prePersist(PrePersistEventArgs $event): void
+    {
+        $entity = $event->getObject();
+
+        if (!($entity instanceof Domain)) {
+            return;
+        }
+
+        $this->setPrivateKey($entity);
+    }
+
+    private function setPrivateKey(Domain $entity): void
+    {
         if ('' === $entity->getDkimPrivateKey()) {
             $entity->setDkimPrivateKey($this->keyGenerationService->createKeyPair()->getPrivate());
         }
@@ -43,10 +56,5 @@ class CreatePrivateKeyOnActivationSubscriber implements EventSubscriber
         if ('' === $entity->getDkimSelector()) {
             $entity->setDkimSelector(date('Y'));
         }
-    }
-
-    public function prePersist(LifecycleEventArgs $event): void
-    {
-        $this->preUpdate($event);
     }
 }
