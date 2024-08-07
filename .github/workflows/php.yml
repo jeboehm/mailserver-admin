@@ -4,8 +4,6 @@ name: Testing Symfony with MySQL
 
 on:
   pull_request:
-    paths:
-      - '**/renovate.json'
 
 jobs:
   symfony:
