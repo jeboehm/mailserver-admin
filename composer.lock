@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cd9622f4f0e3d151c9932007ec7ba6e2",
+    "content-hash": "d3fed4f83aa2846a7fe4cea94873c929",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -187,16 +187,16 @@
         },
         {
             "name": "doctrine/dbal",
-            "version": "4.0.4",
+            "version": "4.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "50fda19f80724b55ff770bb4ff352407008e63c5"
+                "reference": "389230389ed2d73a5fbf9a07d2bc0f8d0d56070e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/50fda19f80724b55ff770bb4ff352407008e63c5",
-                "reference": "50fda19f80724b55ff770bb4ff352407008e63c5",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/389230389ed2d73a5fbf9a07d2bc0f8d0d56070e",
+                "reference": "389230389ed2d73a5fbf9a07d2bc0f8d0d56070e",
                 "shasum": ""
             },
             "require": {
@@ -209,13 +209,13 @@
                 "doctrine/coding-standard": "12.0.0",
                 "fig/log-test": "^1",
                 "jetbrains/phpstorm-stubs": "2023.2",
-                "phpstan/phpstan": "1.11.5",
+                "phpstan/phpstan": "1.11.7",
                 "phpstan/phpstan-phpunit": "1.4.0",
                 "phpstan/phpstan-strict-rules": "^1.6",
-                "phpunit/phpunit": "10.5.22",
+                "phpunit/phpunit": "10.5.28",
                 "psalm/plugin-phpunit": "0.19.0",
                 "slevomat/coding-standard": "8.13.1",
-                "squizlabs/php_codesniffer": "3.10.1",
+                "squizlabs/php_codesniffer": "3.10.2",
                 "symfony/cache": "^6.3.8|^7.0",
                 "symfony/console": "^5.4|^6.3|^7.0",
                 "vimeo/psalm": "5.24.0"
@@ -275,7 +275,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/4.0.4"
+                "source": "https://github.com/doctrine/dbal/tree/4.0.5"
             },
             "funding": [
                 {
@@ -291,7 +291,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-06-19T11:57:23+00:00"
+            "time": "2024-08-07T12:53:48+00:00"
         },
         {
             "name": "doctrine/deprecations",
