@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ab3dede164e93e049741dc6d087cd6e",
+    "content-hash": "2017213a25b7549ebe5f2a4ea6685119",
     "packages": [
         {
             "name": "doctrine/cache",
@@ -1225,16 +1225,16 @@
         },
         {
             "name": "easycorp/easyadmin-bundle",
-            "version": "v4.11.0",
+            "version": "v4.11.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EasyCorp/EasyAdminBundle.git",
-                "reference": "39bb75340b1747d607991ed6d9e72cdcfe9b5e90"
+                "reference": "d0945053e9dbf81d0c10f8cacec25c8ec5e87053"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/39bb75340b1747d607991ed6d9e72cdcfe9b5e90",
-                "reference": "39bb75340b1747d607991ed6d9e72cdcfe9b5e90",
+                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/d0945053e9dbf81d0c10f8cacec25c8ec5e87053",
+                "reference": "d0945053e9dbf81d0c10f8cacec25c8ec5e87053",
                 "shasum": ""
             },
             "require": {
@@ -1308,7 +1308,7 @@
             ],
             "support": {
                 "issues": "https://github.com/EasyCorp/EasyAdminBundle/issues",
-                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.11.0"
+                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.11.1"
             },
             "funding": [
                 {
@@ -1316,7 +1316,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-07-27T17:32:52+00:00"
+            "time": "2024-08-06T18:21:54+00:00"
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
@@ -2816,16 +2816,16 @@
         },
         {
             "name": "symfony/flex",
-            "version": "v2.4.5",
+            "version": "v2.4.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/flex.git",
-                "reference": "b0a405f40614c9f584b489d54f91091817b0e26e"
+                "reference": "4dc11919791f81d087a12db2ab4c7e044431ef6b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/flex/zipball/b0a405f40614c9f584b489d54f91091817b0e26e",
-                "reference": "b0a405f40614c9f584b489d54f91091817b0e26e",
+                "url": "https://api.github.com/repos/symfony/flex/zipball/4dc11919791f81d087a12db2ab4c7e044431ef6b",
+                "reference": "4dc11919791f81d087a12db2ab4c7e044431ef6b",
                 "shasum": ""
             },
             "require": {
@@ -2861,7 +2861,7 @@
             "description": "Composer plugin for Symfony",
             "support": {
                 "issues": "https://github.com/symfony/flex/issues",
-                "source": "https://github.com/symfony/flex/tree/v2.4.5"
+                "source": "https://github.com/symfony/flex/tree/v2.4.6"
             },
             "funding": [
                 {
@@ -2877,7 +2877,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-03-02T08:16:47+00:00"
+            "time": "2024-04-27T10:22:22+00:00"
         },
         {
             "name": "symfony/form",
