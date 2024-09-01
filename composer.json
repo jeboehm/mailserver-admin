@@ -8,7 +8,7 @@
     "ext-iconv": "*",
     "ext-openssl": "*",
     "doctrine/dbal": "4.1.0",
-    "doctrine/doctrine-bundle": "2.12.0",
+    "doctrine/doctrine-bundle": "2.13.0",
     "doctrine/doctrine-migrations-bundle": "3.3.1",
     "doctrine/orm": "3.2.2",
     "easycorp/easyadmin-bundle": "v4.11.1",
