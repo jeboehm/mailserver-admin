@@ -13,7 +13,7 @@
     "doctrine/orm": "3.2.2",
     "easycorp/easyadmin-bundle": "v4.12.0",
     "symfony/console": "v6.4.12",
-    "symfony/flex": "v2.4.6",
+    "symfony/flex": "v2.4.7",
     "symfony/framework-bundle": "v6.4.12",
     "symfony/proxy-manager-bridge": "v6.4.8",
     "symfony/runtime": "v6.4.12",
