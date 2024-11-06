@@ -16,7 +16,7 @@
     "symfony/flex": "v2.4.7",
     "symfony/framework-bundle": "v6.4.12",
     "symfony/proxy-manager-bridge": "v6.4.8",
-    "symfony/runtime": "v6.4.12",
+    "symfony/runtime": "v6.4.14",
     "symfony/security-bundle": "v6.4.11",
     "symfony/twig-bundle": "v6.4.12",
     "symfony/validator": "v6.4.12",
