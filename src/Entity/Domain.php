@@ -32,16 +32,15 @@ class Domain implements \Stringable
     private string $name = '';
     #[ORM\Column(name: 'dkim_enabled', type: 'boolean')]
     private bool $dkimEnabled = false;
-    #[Assert\Regex(pattern: '/^[a-z0-9]{1,50}$/')]
     #[ORM\Column(name: 'dkim_selector', type: 'string')]
-    private string $dkimSelector = '';
+    private string $dkimSelector = 'dkim';
     #[ORM\Column(name: 'dkim_private_key', type: 'text')]
     private string $dkimPrivateKey = '';
     #[Assert\Valid]
-    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: 'User', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: 'User', mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $users;
     #[Assert\Valid]
-    #[ORM\OneToMany(mappedBy: 'domain', targetEntity: 'Alias', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: 'Alias', mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $aliases;
 
     public function __construct()

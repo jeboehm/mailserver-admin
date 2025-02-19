@@ -12,7 +12,6 @@ namespace DoctrineMigrations;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Exception;
 
 class Version20180320164351 extends AbstractMigration
 {
