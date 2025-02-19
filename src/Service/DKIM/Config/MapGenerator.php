@@ -11,60 +11,36 @@ declare(strict_types=1);
 namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
-use Symfony\Component\Filesystem\Exception\IOException;
-use Symfony\Component\Filesystem\Filesystem;
+use Predis\Client;
 
 class MapGenerator
 {
-    /**
-     * @var string
-     */
-    private const string MAP_FILENAME = 'dkim_selectors.map';
-    private readonly Filesystem $filesystem;
+    private const string KEY_SELECTOR_MAP = 'dkim_selectors.map';
+    private const string KEY_HASHMAP = 'dkim_keys';
 
-    public function __construct(private string $path, private readonly string $rootDir)
+    public function __construct(private readonly Client $redis)
     {
-        if (str_starts_with($this->path, './')) {
-            $this->path = realpath(sprintf('%s/%s', $this->rootDir, $this->path));
-        }
-
-        $this->filesystem = new Filesystem();
     }
 
     public function generate(Domain ...$domains): void
     {
-        $map = [];
+        $keysDict = [];
 
         foreach ($domains as $domain) {
             if ($domain->getDkimEnabled()
                 && !empty($domain->getDkimPrivateKey())
                 && !empty($domain->getDkimSelector())) {
-                $this->writePrivateKey($domain);
-                $map[] = \sprintf('%s %s', $domain->getName(), $domain->getDkimSelector());
+                $dkimDomain = $domain->getDkimSelector() . '.' . $domain->getName();
+                $keysDict[$dkimDomain] = $domain->getDkimPrivateKey();
+
+                $this->redis->hset(self::KEY_SELECTOR_MAP, $domain->getName(), $domain->getDkimSelector());
+            } else {
+                $this->redis->hdel(self::KEY_SELECTOR_MAP, [$domain->getName()]);
             }
         }
 
-        $map[] = '';
-        $this->writeFile(\sprintf('%s/%s', $this->path, static::MAP_FILENAME), \implode(\PHP_EOL, $map));
-    }
-
-    private function writePrivateKey(Domain $domain): void
-    {
-        $filename = \sprintf('%s/%s.%s.key', $this->path, $domain->getName(), $domain->getDkimSelector());
-
-        $this->writeFile($filename, $domain->getDkimPrivateKey());
-    }
-
-    private function writeFile(string $filename, string $content): void
-    {
-        if (false === \file_put_contents($filename, $content)) {
-            throw new \LogicException(\sprintf('Cannot write %s', $filename));
-        }
-
-        try {
-            $this->filesystem->chmod($filename, 0666);
-        } catch (IOException) {
-            // Ignore if different owner.
+        if ([] !== $keysDict) {
+            $this->redis->hmset(self::KEY_HASHMAP, $keysDict);
         }
     }
 }

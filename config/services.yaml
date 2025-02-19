@@ -1,5 +1,4 @@
 parameters:
-    rspamd_dkim: '%env(DKIM_PATH)%'
 
 services:
     _defaults:
@@ -14,31 +13,13 @@ services:
         resource: '../src/Controller'
         tags: [ 'controller.service_arguments' ]
 
-    App\Service\DKIM\Config\MapGenerator:
+    Predis\Client:
         arguments:
-            $path: '%rspamd_dkim%'
-            $rootDir: '%kernel.project_dir%'
-
-    App\Service\DKIM\Config\LeftoverFileCleaner:
-        arguments:
-            $path: '%rspamd_dkim%'
-            $rootDir: '%kernel.project_dir%'
-
-    App\Subscriber\DKIM\ConfigSyncSubscriber:
-        tags:
-            - { name: 'doctrine.event_subscriber' }
-
-    App\Subscriber\DKIM\CreatePrivateKeyOnActivationSubscriber:
-        tags:
-            - { name: 'doctrine.event_subscriber' }
-
-    App\Subscriber\DKIM\DomainInfoSubscriber:
-        tags:
-            - { name: 'doctrine.event_subscriber' }
-
-    App\Subscriber\ChangePasswordSubscriber:
-        tags:
-            - { name: 'doctrine.event_subscriber' }
+            $parameters:
+                scheme: 'tcp'
+                host: '%env(REDIS_HOST)%'
+                port: '%env(REDIS_PORT)%'
+                password: '%env(REDIS_PASSWORD)%'
 
 when@test:
     services:

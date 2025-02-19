@@ -19,6 +19,11 @@ jobs:
         ports:
           - 3306/tcp
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       fail-fast: false
       matrix:
@@ -34,9 +39,6 @@ jobs:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, xml, ctype, iconv, intl, mysql
           coverage: xdebug
-
-      - name: Start mysql service
-        run: sudo /etc/init.d/mysql start
 
       - name: Get composer cache directory
         id: composer-cache
@@ -63,11 +65,13 @@ jobs:
 
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          REDIS_HOST: localhost
           APP_ENV: test
 
       - name: Run Tests
         run: php bin/phpunit
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          REDIS_HOST: localhost
           APP_ENV: test
 
