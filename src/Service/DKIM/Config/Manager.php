@@ -15,7 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class Manager
 {
-    public function __construct(private readonly LeftoverFileCleaner $cleaner, private readonly MapGenerator $generator, private readonly EntityManagerInterface $manager)
+    public function __construct(private readonly MapGenerator $generator, private readonly EntityManagerInterface $manager)
     {
     }
 
@@ -24,7 +24,6 @@ class Manager
         /** @var Domain[] $domains */
         $domains = $this->manager->getRepository(Domain::class)->findAll();
 
-        $this->cleaner->clean(...$domains);
         $this->generator->generate(...$domains);
     }
 }
