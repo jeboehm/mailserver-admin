@@ -15,7 +15,6 @@ use Predis\Client;
 
 class MapGenerator
 {
-    private const string KEY_SELECTOR_MAP = 'dkim_selectors.map';
     private const string KEY_HASHMAP = 'dkim_keys';
 
     public function __construct(private readonly Client $redis)
@@ -32,10 +31,6 @@ class MapGenerator
                 && !empty($domain->getDkimSelector())) {
                 $dkimDomain = $domain->getDkimSelector() . '.' . $domain->getName();
                 $keysDict[$dkimDomain] = $domain->getDkimPrivateKey();
-
-                $this->redis->hset(self::KEY_SELECTOR_MAP, $domain->getName(), $domain->getDkimSelector());
-            } else {
-                $this->redis->hdel(self::KEY_SELECTOR_MAP, [$domain->getName()]);
             }
         }
 

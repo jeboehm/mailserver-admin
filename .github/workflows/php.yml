@@ -61,7 +61,7 @@ jobs:
           php bin/console cache:warm
           php bin/console domain:add example.com
           php bin/console user:add --password=changeme --admin --enable admin example.com
-          php bin/console dkim:setup --enable --selector 2022 example.com
+          php bin/console dkim:setup --enable --selector dkim example.com
 
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony

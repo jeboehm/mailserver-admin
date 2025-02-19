@@ -67,7 +67,6 @@ class DKIMCrudController extends AbstractCrudController
 
         return $crud
             ->setHelp(Crud::PAGE_EDIT, $helpMessage)
-            ->setHelp(Crud::PAGE_NEW, $helpMessage)
             ->setSearchFields(['name'])
             ->overrideTemplate('crud/edit', 'admin/dkim/edit.html.twig')
             ->setPageTitle(Crud::PAGE_INDEX, 'DKIM');
@@ -76,6 +75,8 @@ class DKIMCrudController extends AbstractCrudController
     #[\Override]
     public function configureActions(Actions $actions): Actions
     {
+        $actions->remove(Crud::PAGE_INDEX, Action::NEW);
+
         $recreateKey = Action::new(
             'recreateKey',
             'Recreate Key',
@@ -117,6 +118,7 @@ class DKIMCrudController extends AbstractCrudController
         $name = TextField::new('name')->setFormTypeOption('disabled', true);
         $dkimEnabled = BooleanField::new('dkimEnabled', 'Enabled');
         $dkimSelector = TextField::new('dkimSelector', 'Selector');
+        $dkimSelector->setDisabled(true);
         $id = IdField::new('id', 'ID');
         $dkimStatusDkimRecordFound = BooleanField::new(
             'dkimStatus.dkimRecordFound',

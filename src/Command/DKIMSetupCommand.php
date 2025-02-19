@@ -63,7 +63,14 @@ class DKIMSetupCommand extends Command
             $regenerateKey = true;
         }
 
-        $selector = $input->getOption('selector') ?: \date('Y');
+        // TODO: deprecate selector option
+        $selector = $input->getOption('selector') ?: 'dkim';
+
+        if ('dkim' !== $selector) {
+            $output->writeln('<error>Selector must be "dkim".</error>');
+
+            return 1;
+        }
 
         if ($regenerateKey) {
             $keyPair = $this->keyGenerationService->createKeyPair();
