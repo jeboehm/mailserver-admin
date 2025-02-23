@@ -25,7 +25,7 @@
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
-    "friendsofphp/php-cs-fixer": "v3.69.1",
+    "friendsofphp/php-cs-fixer": "v3.70.0",
     "phpunit/phpunit": "^9.5",
     "rector/rector": "2.0.9",
     "symfony/browser-kit": "v7.2.0",
