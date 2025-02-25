@@ -16,6 +16,7 @@
     "symfony/console": "v7.2.1",
     "symfony/flex": "v2.4.7",
     "symfony/framework-bundle": "v7.2.3",
+    "symfony/monolog-bundle": "^3.10",
     "symfony/proxy-manager-bridge": "v6.4.8",
     "symfony/runtime": "v7.2.3",
     "symfony/security-bundle": "v7.2.3",
