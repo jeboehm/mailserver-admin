@@ -32,13 +32,13 @@ class SecurityController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         return $this->render(
-            'admin/login.html.twig',
+            '@EasyAdmin/page/login.html.twig',
             [
+                'page_title' => '<h1>mailserver-admin</h1>',
                 'last_username' => $lastUsername,
                 'error' => $error,
                 'target_path' => $this->generateUrl('admin_index'),
                 'username_label' => 'Email address',
-                'page_title' => '',
                 'csrf_token_intention' => 'authenticate',
             ]
         );
