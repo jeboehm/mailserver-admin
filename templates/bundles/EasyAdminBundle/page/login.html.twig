@@ -1,12 +1,4 @@
-{# @var ea \EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext #}
-{# This template checks for 'ea' variable existence because it can
-   be used in a EasyAdmin Dashboard controller, where 'ea' is defined
-   or from any other Symfony controller, where 'ea' is not defined #}
-{% extends ea is defined ? ea.templatePath('layout') : '@EasyAdmin/page/login_minimal.html.twig' %}
-{% trans_default_domain ea is defined ? ea.i18n.translationDomain : (translation_domain is defined ? translation_domain ?? 'messages') %}
-
-{% block body_class 'page-login' %}
-{% block page_title %}{{ page_title is defined ? page_title|raw : (ea is defined ? ea.dashboardTitle|raw : '') }}{% endblock %}
+{% extends '@!EasyAdmin/page/login.html.twig' %}
 
 {% block wrapper_wrapper %}
     {% set page_title = block('page_title') %}
@@ -82,14 +74,11 @@
                     </div>
                 {% endif %}
 
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary btn-lg btn-block">{{ _sign_in_label }}</button>
-                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-block">{{ _sign_in_label }}</button>
             </form>
 
-            <script src="{{ asset('bundles/easyadmin/login.js') }}"></script>
-
             {% include 'admin/_includes/login_footer.html.twig' %}
+            <script src="{{ asset('login.js', constant('EasyCorp\\Bundle\\EasyAdminBundle\\Asset\\AssetPackage::PACKAGE_NAME')) }}"></script>
         </section>
     </div>
 {% endblock %}
