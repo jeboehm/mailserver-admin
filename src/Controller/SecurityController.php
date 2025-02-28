@@ -40,6 +40,8 @@ class SecurityController extends AbstractController
                 'target_path' => $this->generateUrl('admin_index'),
                 'username_label' => 'Email address',
                 'csrf_token_intention' => 'authenticate',
+                'enable_oauth' => (bool) $this->getParameter('app_oauth_enabled'),
+                'oauth_button_text' => $this->getParameter('app_oauth_button_text'),
             ]
         );
     }

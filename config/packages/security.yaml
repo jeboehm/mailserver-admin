@@ -1,26 +1,38 @@
 security:
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'bcrypt'
-    providers:
-        main:
-          entity:
-            class: App\Entity\User
-    firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        main:
-            lazy: true
-            provider: main
-            form_login:
-              login_path: app_login
-              check_path: app_login
-              enable_csrf: false
-            logout:
-              path: app_logout
-            access_denied_handler: App\Security\AccessDeniedHandler
+  password_hashers:
+    Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'bcrypt'
+  providers:
+    main:
+      entity:
+        class: App\Entity\User
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      lazy: true
+      provider: main
+      entry_point: form_login
 
-    access_control:
-      - { path: ^/login, roles: PUBLIC_ACCESS }
-      - { path: ^/logout, roles: PUBLIC_ACCESS }
-      - { path: ^/, roles: ROLE_ADMIN }
+      form_login:
+        login_path: app_login
+        check_path: app_login
+        enable_csrf: false
+
+      oauth:
+        resource_owners:
+          default: "/login/check-oauth"
+        login_path: /login_oauth
+        use_forward: false
+        failure_path: /login
+        oauth_user_provider:
+          service: hwi_oauth.user.provider
+      logout:
+        path: app_logout
+      access_denied_handler: App\Security\AccessDeniedHandler
+
+  access_control:
+    - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/logout, roles: PUBLIC_ACCESS }
+    - { path: ^/connect, roles: PUBLIC_ACCESS }
+    - { path: ^/, roles: ROLE_ADMIN }

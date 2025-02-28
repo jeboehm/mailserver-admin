@@ -75,6 +75,10 @@
                 {% endif %}
 
                 <button type="submit" class="btn btn-primary btn-lg btn-block">{{ _sign_in_label }}</button>
+
+                {% if enable_oauth %}
+                    <a role="button" href="{{ path('hwi_oauth_service_redirect', { service: "default" }) }}" class="btn btn-secondary btn-lg btn-block">{{ oauth_button_text }}</a>
+                {% endif %}
             </form>
 
             {% include 'admin/_includes/login_footer.html.twig' %}
