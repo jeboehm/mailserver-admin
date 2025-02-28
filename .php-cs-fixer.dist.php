@@ -40,4 +40,5 @@ return $config
             ->in(__DIR__ . '/tests')
             ->in(__DIR__ . '/src')
             ->in(__DIR__ . '/migrations')
-    );
+    )
+    ->setRiskyAllowed(true);

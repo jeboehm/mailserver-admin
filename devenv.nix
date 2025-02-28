@@ -3,7 +3,17 @@
 {
   languages.javascript.enable = true;
   languages.php.enable = true;
-  languages.php.version = "8.3";
+  languages.php.package = pkgs.php83.buildEnv {
+    extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql xdebug ];
+    extraConfig = ''
+      memory_limit = -1
+      xdebug.mode = debug
+      xdebug.start_with_request = yes
+      xdebug.idekey = phpstorm
+      xdebug.log_level = 7
+      max_execution_time = 0
+    '';
+  };
 
   languages.php.fpm.pools.web = {
     settings = {
@@ -15,20 +25,6 @@
       "pm.max_spare_servers" = 10;
     };
   };
-  languages.php.ini = ''
-      memory_limit = 1G
-      realpath_cache_ttl = 3600
-      session.gc_probability = 0
-      display_errors = On
-      error_reporting = E_ALL
-      opcache.memory_consumption = 256M
-      opcache.interned_strings_buffer = 20
-      zend.assertions = 0
-      short_open_tag = 0
-      zend.detect_unicode = 0
-      realpath_cache_ttl = 3600
-      upload_max_filesize = 20M
-    '';
 
   services.mysql.enable = true;
   services.mysql.initialDatabases = [
@@ -48,7 +44,7 @@
     '';
   };
 
-  env.DATABASE_URL = "mysql://root@localhost/app?version=mariadb-10.11.5";
+  env.DATABASE_URL = "mysql://root@127.0.0.1/app?version=mariadb-10.11.5";
   env.REDIS_DSN = "redis://localhost:6379/0";
   env.CORS_ALLOW_ORIGIN = "^https?://localhost:?[0-9]*$";
 
