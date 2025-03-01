@@ -12,7 +12,7 @@ namespace App\Service\DKIM;
 
 class KeyGenerationService
 {
-    public const DIGEST_ALGORITHM = 'sha256';
+    public const string DIGEST_ALGORITHM = 'sha256';
     private const int KEY_LENGTH = 2048;
 
     public function extractPublicKey(string $privateKey): string

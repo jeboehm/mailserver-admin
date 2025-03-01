@@ -1,0 +1,15 @@
+hwi_oauth:
+  # https://github.com/hwi/HWIOAuthBundle/blob/master/docs/2-configuring_resource_owners.md
+  resource_owners:
+    default:
+      type: oauth2
+      class: HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\OAuth2ResourceOwner
+      user_response_class: HWI\Bundle\OAuthBundle\OAuth\Response\PathUserResponse
+      client_id: '%env(OAUTH_CLIENT_ID)%'
+      client_secret: '%env(OAUTH_CLIENT_SECRET)%'
+      scope: '%env(OAUTH_CLIENT_SCOPES)%'
+      access_token_url: '%env(OAUTH_ACCESS_TOKEN_URL)%'
+      authorization_url: '%env(OAUTH_AUTHORIZATION_URL)%'
+      infos_url: '%env(OAUTH_INFOS_URL)%'
+      paths:
+        identifier: sub
