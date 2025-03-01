@@ -42,10 +42,8 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->join('user.domain', 'domain')
             ->andWhere($qb->expr()->eq('user.name', ':localPart'))
             ->andWhere($qb->expr()->eq('domain.name', ':domainPart'))
-            ->andWhere($qb->expr()->eq('user.admin', ':admin'))
             ->setParameter('localPart', $parts[0])
-            ->setParameter('domainPart', $parts[1])
-            ->setParameter('admin', true);
+            ->setParameter('domainPart', $parts[1]);
 
         return $qb->getQuery()->getOneOrNullResult();
     }
