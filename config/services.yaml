@@ -1,6 +1,7 @@
 parameters:
     app_oauth_enabled: '%env(bool:OAUTH_ENABLED)%'
-    app_oauth_button_text: '%env(OAUTH_BUTTON_TEXT)%'
+    app_oauth_button_text: '%env(string:OAUTH_BUTTON_TEXT)%'
+    app_oauth_admin_group: '%env(string:OAUTH_ADMIN_GROUP)%'
 
 services:
     _defaults:
