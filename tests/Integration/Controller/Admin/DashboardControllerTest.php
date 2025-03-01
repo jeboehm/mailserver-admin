@@ -26,6 +26,6 @@ class DashboardControllerTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.user-name', 'admin@example.com');
 
-        self::assertSelectorTextContains('[data-action-name="new"]', 'Add Domain');
+        self::assertSelectorTextContains('h2', 'Welcome to the admin dashboard!');
     }
 }

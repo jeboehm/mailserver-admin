@@ -1,0 +1,20 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Start{% endblock %}
+
+{% block main %}
+    <h2>
+        Welcome to the admin dashboard!
+    </h2>
+
+    <p>
+        Here you can manage the users and their email addresses of your
+        <a href="https://github.com/jeboehm/docker-mailserver" target="_blank">docker-mailserver</a>
+        instance.
+    </p>
+
+    <p>
+        If you would like to change your password, log in to
+        <a href="/webmail" target="_blank">Webmail</a> and go to the settings.
+    </p>
+{% endblock %}

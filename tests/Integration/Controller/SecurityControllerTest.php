@@ -26,6 +26,6 @@ class SecurityControllerTest extends WebTestCase
             '_password' => 'changeme',
         ]);
 
-        self::assertPageTitleSame('Domain');
+        self::assertResponseIsSuccessful();
     }
 }
