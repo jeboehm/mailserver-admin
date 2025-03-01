@@ -32,7 +32,7 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function index(): Response
     {
-        return $this->redirect($this->adminUrlGenerator->setController(DomainCrudController::class)->generateUrl());
+        return $this->render('admin/dashboard/index.html.twig');
     }
 
     #[\Override]
@@ -50,15 +50,22 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class);
-        yield MenuItem::linkToCrud('User', 'fas fa-user', User::class);
-        yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class);
+        yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class)
+            ->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('User', 'fas fa-user', User::class)
+            ->setPermission('ROLE_ADMIN');
+        yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class)
+            ->setPermission('ROLE_ADMIN');
 
         yield MenuItem::section('Other', 'fas fa-folder-open');
         yield MenuItem::linkToCrud('DKIM', 'fas fa-shield-alt', Domain::class)
-            ->setController(DKIMCrudController::class);
+            ->setController(DKIMCrudController::class)
+            ->setPermission('ROLE_ADMIN');
 
-        yield MenuItem::linkToUrl('Webmail', 'fas fa-folder-open', '/webmail')->setLinkRel('noreferrer');
-        yield MenuItem::linkToUrl('Rspamd', 'fas fa-folder-open', '/rspamd')->setLinkRel('noreferrer');
+        yield MenuItem::linkToUrl('Webmail', 'fas fa-folder-open', '/webmail')
+            ->setLinkRel('noreferrer');
+        yield MenuItem::linkToUrl('Rspamd', 'fas fa-folder-open', '/rspamd')
+            ->setLinkRel('noreferrer')
+            ->setPermission('ROLE_ADMIN');
     }
 }

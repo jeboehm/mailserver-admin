@@ -25,7 +25,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 class DKIMCrudController extends AbstractCrudController
 {
     public function __construct(private readonly FormatterService $formatterService, private readonly KeyGenerationService $keyGenerationService, private readonly AdminUrlGenerator $adminUrlGenerator, private readonly EntityManagerInterface $entityManager)
