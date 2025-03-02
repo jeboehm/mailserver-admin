@@ -15,6 +15,7 @@
     "hwi/oauth-bundle": "^2.3",
     "predis/predis": "^2.3",
     "symfony/console": "v7.2.1",
+    "symfony/dotenv": "v7.2.0",
     "symfony/flex": "v2.4.7",
     "symfony/framework-bundle": "v7.2.3",
     "symfony/monolog-bundle": "^3.10",
@@ -30,9 +31,9 @@
     "friendsofphp/php-cs-fixer": "v3.70.1",
     "phpunit/phpunit": "^9.5",
     "rector/rector": "2.0.9",
+    "roave/security-advisories": "dev-latest",
     "symfony/browser-kit": "v7.2.0",
     "symfony/css-selector": "v7.2.0",
-    "symfony/dotenv": "v7.2.0",
     "symfony/phpunit-bridge": "v7.2.0",
     "symfony/stopwatch": "v7.2.2",
     "symfony/web-profiler-bundle": "v7.2.3"
