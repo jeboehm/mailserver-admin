@@ -121,6 +121,19 @@
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.3"
     },
+    "hwi/oauth-bundle": {
+        "version": "2.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "2.0",
+            "ref": "20154480d558409ad3eb9de3644817c81fad2268"
+        },
+        "files": [
+            "config/packages/hwi_oauth.yaml",
+            "config/routes/hwi_oauth_routing.yaml"
+        ]
+    },
     "laminas/laminas-code": {
         "version": "4.0.0"
     },
