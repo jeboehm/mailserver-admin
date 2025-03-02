@@ -1,4 +1,6 @@
 parameters:
+    app_oauth_enabled: '%env(bool:OAUTH_ENABLED)%'
+    app_oauth_button_text: '%env(OAUTH_BUTTON_TEXT)%'
 
 services:
     _defaults:
