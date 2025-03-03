@@ -73,7 +73,7 @@ readonly class OAuthUserProvider implements UserProviderInterface, OAuthAwareUse
         if ('' === $this->adminGroupName) {
             $admin = true;
         } elseif (isset($response->getData()['groups'])) {
-            $groups = array_map('strtolower', (array) $response->getData()['groups']);
+            $groups = array_map('strtolower', (array)$response->getData()['groups']);
             $admin = in_array($this->adminGroupName, $groups, true);
         }
 
