@@ -12,7 +12,6 @@ namespace App\Service\Security;
 
 use HWI\Bundle\OAuthBundle\OAuth\Response\UserResponseInterface;
 use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthAwareUserProviderInterface;
-use HWI\Bundle\OAuthBundle\Security\Core\User\OAuthUser;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -38,7 +37,7 @@ readonly class OAuthUserProvider implements UserProviderInterface, OAuthAwareUse
     {
         $this->checkOAuthEnabled();
 
-        assert($user instanceof OAuthUser);
+        assert($user instanceof OAuthStaticUser);
 
         return $user;
     }
@@ -74,7 +73,7 @@ readonly class OAuthUserProvider implements UserProviderInterface, OAuthAwareUse
         if ('' === $this->adminGroupName) {
             $admin = true;
         } elseif (isset($response->getData()['groups'])) {
-            $groups = array_map('strtolower', (array) $response->getData()['groups']);
+            $groups = array_map('strtolower', (array)$response->getData()['groups']);
             $admin = in_array($this->adminGroupName, $groups, true);
         }
 
