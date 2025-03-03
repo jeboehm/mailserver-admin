@@ -14,6 +14,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 readonly class OAuthStaticUser implements UserInterface
 {
+    private const string ROLE_USER = 'ROLE_USER';
+    private const string ROLE_ADMIN = 'ROLE_ADMIN';
+
     public function __construct(
         private string $identifier,
         private bool $admin
@@ -22,7 +25,7 @@ readonly class OAuthStaticUser implements UserInterface
 
     public function getRoles(): array
     {
-        return $this->admin ? ['ROLE_ADMIN'] : ['ROLE_USER'];
+        return $this->admin ? [self::ROLE_ADMIN, self::ROLE_USER] : [self::ROLE_USER];
     }
 
     public function eraseCredentials(): void
