@@ -11,14 +11,17 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Service\DKIM\Config\Manager;
+use App\Service\FetchmailAccount\AccountWriter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class DKIMSyncCommand extends Command
 {
-    public function __construct(private readonly Manager $manager)
-    {
+    public function __construct(
+        private readonly Manager $manager,
+        private readonly AccountWriter $accountWriter,
+    ) {
         parent::__construct();
     }
 
@@ -34,6 +37,7 @@ class DKIMSyncCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->manager->refresh();
+        $this->accountWriter->write();
 
         return 0;
     }

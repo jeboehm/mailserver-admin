@@ -13,6 +13,7 @@ namespace App\Controller\Admin;
 use App\Entity\Domain;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
+use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -27,7 +28,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted(Roles::ROLE_ADMIN)]
 class DKIMCrudController extends AbstractCrudController
 {
     public function __construct(private readonly FormatterService $formatterService, private readonly KeyGenerationService $keyGenerationService, private readonly AdminUrlGenerator $adminUrlGenerator, private readonly EntityManagerInterface $entityManager)

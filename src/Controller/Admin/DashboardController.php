@@ -12,7 +12,9 @@ namespace App\Controller\Admin;
 
 use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Entity\FetchmailAccount;
 use App\Entity\User;
+use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -51,21 +53,25 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class)
-            ->setPermission('ROLE_ADMIN');
+            ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToCrud('User', 'fas fa-user', User::class)
-            ->setPermission('ROLE_ADMIN');
+            ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class)
-            ->setPermission('ROLE_ADMIN');
+            ->setPermission(Roles::ROLE_ADMIN);
+
+        yield MenuItem::section('Features', 'fas fa-folder-open');
+        yield MenuItem::linkToCrud('Fetchmail', 'far fa-envelope', FetchmailAccount::class)
+            ->setPermission(Roles::ROLE_USER);
 
         yield MenuItem::section('Other', 'fas fa-folder-open');
         yield MenuItem::linkToCrud('DKIM', 'fas fa-shield-alt', Domain::class)
             ->setController(DKIMCrudController::class)
-            ->setPermission('ROLE_ADMIN');
+            ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::linkToUrl('Webmail', 'fas fa-folder-open', '/webmail')
             ->setLinkRel('noreferrer');
         yield MenuItem::linkToUrl('Rspamd', 'fas fa-folder-open', '/rspamd')
             ->setLinkRel('noreferrer')
-            ->setPermission('ROLE_ADMIN');
+            ->setPermission(Roles::ROLE_ADMIN);
     }
 }

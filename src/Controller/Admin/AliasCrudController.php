@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Alias;
+use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -19,7 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted(Roles::ROLE_ADMIN)]
 class AliasCrudController extends AbstractCrudController
 {
     #[\Override]
