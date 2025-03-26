@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -22,17 +23,17 @@ class Alias implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
     #[Assert\NotNull]
-    #[ORM\ManyToOne(targetEntity: 'Domain', inversedBy: 'aliases')]
+    #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'aliases')]
     private ?Domain $domain = null;
     #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
-    #[ORM\Column(type: 'string', name: 'name', options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ORM\Column(type: 'string', name: 'destination', options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'destination', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
     private string $destination = '';
 
     #[\Override]

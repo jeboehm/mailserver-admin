@@ -13,6 +13,7 @@ namespace App\Entity;
 use App\Repository\DomainRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,22 +26,22 @@ class Domain implements \Stringable
     use DkimInfoTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(name: 'id', type: 'integer')]
+    #[ORM\Column(name: 'id', type: Types::INTEGER)]
     private ?int $id = null;
     #[Assert\NotBlank]
-    #[ORM\Column(name: 'name', type: 'string', unique: true, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING, unique: true, options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
-    #[ORM\Column(name: 'dkim_enabled', type: 'boolean')]
+    #[ORM\Column(name: 'dkim_enabled', type: Types::BOOLEAN)]
     private bool $dkimEnabled = false;
-    #[ORM\Column(name: 'dkim_selector', type: 'string')]
+    #[ORM\Column(name: 'dkim_selector', type: Types::STRING)]
     private string $dkimSelector = 'dkim';
-    #[ORM\Column(name: 'dkim_private_key', type: 'text')]
+    #[ORM\Column(name: 'dkim_private_key', type: Types::TEXT)]
     private string $dkimPrivateKey = '';
     #[Assert\Valid]
-    #[ORM\OneToMany(targetEntity: 'User', mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $users;
     #[Assert\Valid]
-    #[ORM\OneToMany(targetEntity: 'Alias', mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Alias::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $aliases;
 
     public function __construct()

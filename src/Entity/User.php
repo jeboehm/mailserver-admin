@@ -11,6 +11,10 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Service\Security\Roles;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -25,30 +29,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
     #[Assert\NotNull]
-    #[ORM\ManyToOne(targetEntity: 'Domain', inversedBy: 'users')]
+    #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'users')]
     private ?Domain $domain = null;
     #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
-    #[ORM\Column(type: 'string', name: 'name', options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
-    #[ORM\Column(type: 'string', name: 'password', options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'password', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
     private string $password = '';
     #[Assert\Length(min: 6, max: 5000)]
     private ?string $plainPassword = null;
-    #[ORM\Column(type: 'boolean', name: 'admin')]
+    #[ORM\Column(name: 'admin', type: Types::BOOLEAN)]
     private bool $admin = false;
-    #[ORM\Column(type: 'boolean', name: 'enabled')]
+    #[ORM\Column(name: 'enabled', type: Types::BOOLEAN)]
     private bool $enabled = true;
-    #[ORM\Column(type: 'boolean', name: 'send_only')]
+    #[ORM\Column(name: 'send_only', type: Types::BOOLEAN)]
     private bool $sendOnly = false;
     #[Assert\Range(min: 0)]
     #[Assert\NotBlank]
     #[ORM\Column(type: 'integer', name: 'quota')]
     private int $quota = 0;
     private ?string $domainName = null;
+
+    #[Assert\Valid]
+    #[ORM\OneToMany(targetEntity: FetchmailAccount::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $fetchmailAccounts;
+
+    public function __construct()
+    {
+        $this->fetchmailAccounts = new ArrayCollection();
+    }
 
     #[\Override]
     public function __toString(): string
@@ -114,10 +127,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function getRoles(): array
     {
         if ($this->admin) {
-            return ['ROLE_ADMIN', 'ROLE_USER'];
+            return [Roles::ROLE_ADMIN, Roles::ROLE_USER];
         }
 
-        return ['ROLE_USER'];
+        return [Roles::ROLE_USER];
     }
 
     public function isAdmin(): bool
@@ -187,5 +200,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function getUserIdentifier(): string
     {
         return (string) $this;
+    }
+
+    /**
+     * @return Collection<FetchmailAccount>
+     */
+    public function getFetchmailAccounts(): Collection
+    {
+        return $this->fetchmailAccounts;
     }
 }

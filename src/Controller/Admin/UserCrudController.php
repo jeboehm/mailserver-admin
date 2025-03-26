@@ -12,6 +12,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\User;
 use App\Service\PasswordService;
+use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
@@ -23,7 +24,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ADMIN')]
+#[IsGranted(Roles::ROLE_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {
     public function __construct(private readonly PasswordService $passwordService)
@@ -46,7 +47,8 @@ class UserCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         $domain = AssociationField::new('domain');
-        $name = TextField::new('name');
+        $name = TextField::new('name')
+            ->hideWhenUpdating();
         $admin = BooleanField::new('admin');
         $enabled = BooleanField::new('enabled');
         $sendOnly = BooleanField::new('sendOnly')->setHelp('Send only accounts are not allowed to receive mails');
