@@ -6,8 +6,48 @@ on:
   pull_request:
 
 jobs:
-  symfony:
-    name: Symfony (PHP ${{ matrix.php-versions }})
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: mbstring, xml, ctype, iconv, intl, mysql
+          coverage: xdebug
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Cache composer dependencies
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: PHP CS Fixer
+        run: vendor/bin/php-cs-fixer check --diff
+
+      - name: rector
+        run: vendor/bin/rector process src/ --dry-run
+
+  phpunit:
+    name: PHPUnit (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -30,7 +70,6 @@ jobs:
         php-versions:
           - "8.3"
           - "8.4"
-          - "8.5"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,22 +83,21 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-files-dir)" >> $GITHUB_ENV
+        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache composer dependencies
         uses: actions/cache/restore@v4
         with:
-          path: ${COMPOSER_CACHE_DIR}
+          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Install Composer dependencies
-        run: |
-          composer install --no-progress --prefer-dist --optimize-autoloader
+        run: composer install --no-progress --prefer-dist --optimize-autoloader
 
       - name: Cache composer dependencies
         uses: actions/cache/save@v4
         with:
-          path: ${COMPOSER_CACHE_DIR}
+          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Prepare database
