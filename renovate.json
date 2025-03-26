@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "packageRules": [
     {
@@ -21,10 +21,10 @@
     },
     {
       "groupName": "app_platform",
-      "matchPackagePrefixes": [
-        "doctrine/",
-        "symfony/",
-        "easycorp/"
+      "matchPackageNames": [
+        "doctrine/{/,}**",
+        "symfony/{/,}**",
+        "easycorp/{/,}**"
       ]
     }
   ],
