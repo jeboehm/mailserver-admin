@@ -16,7 +16,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class DKIMSyncCommand extends Command
+class RedisSyncCommand extends Command
 {
     public function __construct(
         private readonly Manager $manager,
@@ -29,8 +29,9 @@ class DKIMSyncCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('dkim:refresh')
-            ->setDescription('Updates the DKIM configuration folder.');
+            ->setName('redis:sync')
+            ->setAliases(['dkim:refresh'])
+            ->setDescription('Persist DKIM data and fetchmail accounts to redis.');
     }
 
     #[\Override]

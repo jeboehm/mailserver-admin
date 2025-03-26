@@ -17,14 +17,16 @@ use Doctrine\ORM\Events;
 use Predis\Client;
 use Symfony\Component\Serializer\SerializerInterface;
 
-#[AsEntityListener(event: Events::postFlush, method: 'postFlush', entity: FetchmailAccount::class)]
-#[AsEntityListener(event: Events::postUpdate, method: 'postFlush', entity: FetchmailAccount::class)]
-readonly class AccountWriter
+#[AsEntityListener(event: Events::postFlush, method: 'write', entity: FetchmailAccount::class)]
+#[AsEntityListener(event: Events::postUpdate, method: 'write', entity: FetchmailAccount::class)]
+class AccountWriter
 {
+    private const string KEY_ACCOUNTS = 'fetchmail_accounts';
+
     public function __construct(
-        private Client $redis,
-        private FetchmailAccountRepository $repository,
-        private SerializerInterface $serializer,
+        private readonly Client $redis,
+        private readonly FetchmailAccountRepository $repository,
+        private readonly SerializerInterface $serializer,
     ) {
     }
 
@@ -38,11 +40,6 @@ readonly class AccountWriter
             $data[] = AccountData::fromFetchmailAccount($fetchmailAccount);
         }
 
-        $this->redis->set('fetchmail_accounts', $this->serializer->serialize($data, 'json'));
-    }
-
-    public function postFlush(): void
-    {
-        $this->write();
+        $this->redis->set(self::KEY_ACCOUNTS, $this->serializer->serialize($data, 'json'));
     }
 }
