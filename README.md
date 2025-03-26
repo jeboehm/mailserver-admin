@@ -1,7 +1,6 @@
 mailserver-admin
 ================
-![Testing Symfony with MySQL](https://github.com/jeboehm/mailserver-admin/workflows/Testing%20Symfony%20with%20MySQL/badge.svg)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/jeboehm/mailserver-admin/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/jeboehm/mailserver-admin/?branch=master)
+[![Testing Symfony with MySQL](https://github.com/jeboehm/mailserver-admin/actions/workflows/php.yml/badge.svg)](https://github.com/jeboehm/mailserver-admin/actions/workflows/php.yml)
 
 Description
 -----------
@@ -27,6 +26,10 @@ Screenshots
 
 ![Login screen](/.github/screenshots/login.png?raw=true)
 
+### Start page
+
+![Start page](/.github/screenshots/start.png?raw=true)
+
 ### Domain overview
 
 ![Domain overview](/.github/screenshots/domain.png?raw=true)
@@ -46,3 +49,7 @@ Screenshots
 ### DKIM setup
 
 ![DKIM setup](/.github/screenshots/dkim_edit.png?raw=true)
+
+### Fetchmail overview
+
+![Fetchmail overview](/.github/screenshots/fetchmail.png?raw=true)
