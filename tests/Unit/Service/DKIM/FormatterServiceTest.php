@@ -8,9 +8,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Unit\Service\DKIM;
+namespace Tests\Unit\Service\DKIM;
 
 use App\Service\DKIM\FormatterService;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class FormatterServiceTest extends TestCase
@@ -22,15 +23,13 @@ class FormatterServiceTest extends TestCase
         $this->instance = new FormatterService();
     }
 
-    /**
-     * @dataProvider dataProviderForTestGetTXTRecord
-     */
+    #[DataProvider('dataProviderForTestGetTXTRecord')]
     public function testGetTXTRecord(string $expect, string $publicKey, string $algorithm): void
     {
         $this->assertEquals($expect, $this->instance->getTXTRecord($publicKey, $algorithm));
     }
 
-    public function dataProviderForTestGetTXTRecord(): array
+    public static function dataProviderForTestGetTXTRecord(): array
     {
         return [
             [

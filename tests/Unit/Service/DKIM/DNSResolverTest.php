@@ -8,25 +8,23 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Service\DKIM;
+namespace Tests\Unit\Service\DKIM;
 
 use App\Exception\DKIM\DomainKeyNotFoundException;
+use App\Service\DKIM\DNSResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\DnsMock;
 
-/**
- * @group dns-sensitive
- */
 class DNSResolverTest extends TestCase
 {
     private DNSResolver $instance;
 
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
-        $this->instance = new DNSResolver();
+        DnsMock::register(DNSResolver::class);
     }
 
-    public function testResolve(): void
+    protected function setUp(): void
     {
         DnsMock::withMockedHosts(
             [
@@ -39,6 +37,11 @@ class DNSResolverTest extends TestCase
             ]
         );
 
+        $this->instance = new DNSResolver();
+    }
+
+    public function testResolve(): void
+    {
         $result = $this->instance->resolve('04042017._domainkey.icloud.com');
         $expectedResult = [
             [

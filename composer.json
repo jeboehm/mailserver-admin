@@ -56,7 +56,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "App\\Tests\\": "tests/"
+      "Tests\\": "tests/"
     }
   },
   "replace": {
@@ -78,7 +78,7 @@
     "post-update-cmd": [
       "@auto-scripts"
     ],
-    "csfix": "php-cs-fixer fix --allow-risky=yes",
+    "csfix": "php-cs-fixer fix",
     "test": "phpunit"
   },
   "extra": {

@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Unit\Service\DKIM;
+namespace Tests\Unit\Service\DKIM;
 
 use App\Service\DKIM\KeyGenerationService;
 use PHPUnit\Framework\TestCase;

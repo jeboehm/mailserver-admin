@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Unit\Entity;
+namespace Tests\Unit\Entity;
 
 use App\Entity\Domain;
 use App\Entity\User;

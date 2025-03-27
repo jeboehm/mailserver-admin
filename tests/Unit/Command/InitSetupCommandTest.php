@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Unit\Command;
+namespace Tests\Unit\Command;
 
 use App\Command\InitSetupCommand;
 use App\Entity\Domain;
@@ -54,27 +54,29 @@ class InitSetupCommandTest extends TestCase
             ->willReturn($violationList);
 
         $this->managerMock->expects($this->once())->method('flush');
+        $matcher = $this->exactly(2);
         $this->managerMock
-            ->expects($this->exactly(2))
-            ->method('persist')
-            ->withConsecutive(
-                [$this->callback(
-                    function (Domain $domain) {
+            ->expects($matcher)
+            ->method('persist')->willReturnCallback(function (...$parameters) use ($matcher) {
+                if (1 === $matcher->numberOfInvocations()) {
+                    $callback = function (Domain $domain) {
                         $this->assertEquals('example.com', $domain->getName());
 
                         return true;
-                    }
-                )],
-                [$this->callback(
-                    function (User $user) {
+                    };
+                    $this->assertTrue($callback($parameters[0]));
+                }
+                if (2 === $matcher->numberOfInvocations()) {
+                    $callback = function (User $user) {
                         $this->assertEquals('jeff', $user->getName());
                         $this->assertEquals('123456789', $user->getPlainPassword());
                         $this->assertEquals('example.com', $user->getDomain()->getName());
 
                         return true;
-                    }
-                )]
-            );
+                    };
+                    $this->assertTrue($callback($parameters[0]));
+                }
+            });
 
         $this->commandTester->setInputs([
             'jeff@example.com',

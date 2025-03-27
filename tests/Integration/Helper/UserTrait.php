@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Integration\Helper;
+namespace Tests\Integration\Helper;
 
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
