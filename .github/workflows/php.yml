@@ -1,13 +1,13 @@
 ---
 
-name: Testing Symfony with MySQL
+name: Application tests
 
 on:
   pull_request:
 
 jobs:
-  lint:
-    name: Lint
+  static-analysis:
+    name: Static code analysis
     runs-on: ubuntu-latest
 
     steps:
@@ -45,6 +45,9 @@ jobs:
 
       - name: rector
         run: vendor/bin/rector process src/ --dry-run
+
+      - name: PHPStan
+        run: vendor/bin/phpstan analyse --level 3
 
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php-versions }})
