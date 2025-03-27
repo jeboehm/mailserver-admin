@@ -8,11 +8,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Integration\Controller\Admin;
+namespace Tests\Integration\Controller\Admin;
 
 use App\Controller\Admin\DomainCrudController;
-use App\Tests\Integration\Helper\UserTrait;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Tests\Integration\Helper\UserTrait;
 
 class DomainCrudControllerTest extends WebTestCase
 {

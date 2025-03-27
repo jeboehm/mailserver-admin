@@ -105,21 +105,26 @@ jobs:
 
       - name: Prepare database
         run: |
-          php bin/console doctrine:schema:create
-          php bin/console cache:warm
-          php bin/console domain:add example.com
-          php bin/console user:add --password=changeme --admin --enable admin example.com
-          php bin/console dkim:setup --enable --selector dkim example.com
+          bin/console doctrine:schema:create
+          bin/console domain:add example.com
+          bin/console user:add --password=changeme --admin --enable admin example.com
+          bin/console dkim:setup --enable --selector dkim example.com
 
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
           REDIS_HOST: localhost
           APP_ENV: test
 
-      - name: Run Tests
-        run: php bin/phpunit
+      - name: Unit Tests
+        run: bin/phpunit tests/Unit/
         env:
           DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
           REDIS_HOST: localhost
           APP_ENV: test
 
+      - name: Integration Tests
+        run: bin/phpunit tests/Integration/
+        env:
+          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
+          REDIS_HOST: localhost
+          APP_ENV: test

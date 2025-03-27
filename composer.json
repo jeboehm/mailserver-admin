@@ -30,7 +30,7 @@
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
     "friendsofphp/php-cs-fixer": "v3.73.1",
-    "phpunit/phpunit": "^9.5",
+    "phpunit/phpunit": "^12.0",
     "rector/rector": "2.0.10",
     "roave/security-advisories": "dev-latest",
     "symfony/browser-kit": "v7.2.0",
@@ -56,7 +56,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "App\\Tests\\": "tests/"
+      "Tests\\": "tests/"
     }
   },
   "replace": {
@@ -78,7 +78,7 @@
     "post-update-cmd": [
       "@auto-scripts"
     ],
-    "csfix": "php-cs-fixer fix --allow-risky=yes",
+    "csfix": "php-cs-fixer fix",
     "test": "phpunit"
   },
   "extra": {

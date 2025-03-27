@@ -17,6 +17,7 @@ file that was distributed with this source code.
 EOF;
 
 return $config
+    ->setRiskyAllowed(true)
     ->setRules([
                    '@PSR2' => true,
                    '@Symfony' => true,

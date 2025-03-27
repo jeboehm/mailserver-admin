@@ -8,17 +8,17 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Tests\Integration\Controller\Admin;
+namespace Tests\Integration\Controller\Admin;
 
 use App\Controller\Admin\DKIMCrudController;
 use App\Entity\Domain;
 use App\Repository\DomainRepository;
 use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
-use App\Tests\Integration\Helper\UserTrait;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use Tests\Integration\Helper\UserTrait;
 
 class DKIMCrudControllerTest extends WebTestCase
 {
