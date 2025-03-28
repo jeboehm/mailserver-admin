@@ -46,12 +46,12 @@
         "version": "v0.5.3"
     },
     "doctrine/doctrine-bundle": {
-        "version": "2.12",
+        "version": "2.14",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "2.10",
-            "ref": "c170ded8fc587d6bd670550c43dafcf093762245"
+            "version": "2.13",
+            "ref": "8d96c0b51591ffc26794d865ba3ee7d193438a83"
         },
         "files": [
             "config/packages/doctrine.yaml",
@@ -331,27 +331,28 @@
         "version": "v4.0.6"
     },
     "symfony/flex": {
-        "version": "2.4",
+        "version": "2.5",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "1.0",
-            "ref": "146251ae39e06a95be0fe3d13c807bcf3938b172"
+            "version": "2.4",
+            "ref": "52e9754527a15e2b79d9a610f98185a1fe46622a"
         },
         "files": [
-            ".env"
+            ".env",
+            ".env.dev"
         ]
     },
     "symfony/form": {
         "version": "v4.0.6"
     },
     "symfony/framework-bundle": {
-        "version": "6.4",
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "6.4",
-            "ref": "a91c965766ad3ff2ae15981801643330eb42b6a5"
+            "version": "7.2",
+            "ref": "87bcf6f7c55201f345d8895deda46d2adbdbaa89"
         },
         "files": [
             "config/packages/cache.yaml",
@@ -522,16 +523,14 @@
         ]
     },
     "symfony/uid": {
-        "version": "6.4",
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "6.2",
-            "ref": "d294ad4add3e15d7eb1bae0221588ca89b38e558"
+            "version": "7.0",
+            "ref": "0df5844274d871b37fc3816c57a768ffc60a43a5"
         },
-        "files": [
-            "config/packages/uid.yaml"
-        ]
+        "files": []
     },
     "symfony/ux-twig-component": {
         "version": "2.23",
@@ -564,12 +563,12 @@
         "version": "v4.3.1"
     },
     "symfony/web-profiler-bundle": {
-        "version": "6.4",
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
             "version": "6.1",
-            "ref": "e42b3f0177df239add25373083a564e5ead4e13a"
+            "ref": "8b51135b84f4266e3b4c8a6dc23c9d1e32e543b7"
         },
         "files": [
             "config/packages/web_profiler.yaml",
