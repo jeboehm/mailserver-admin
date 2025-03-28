@@ -2,7 +2,6 @@ hwi_oauth:
   # https://github.com/hwi/HWIOAuthBundle/blob/master/docs/2-configuring_resource_owners.md
   resource_owners:
     default:
-      type: oauth2
       class: HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\OAuth2ResourceOwner
       user_response_class: HWI\Bundle\OAuthBundle\OAuth\Response\PathUserResponse
       client_id: '%env(OAUTH_CLIENT_ID)%'
