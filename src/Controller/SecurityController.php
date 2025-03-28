@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
-    private const string DEFAULT_ROUTE = 'admin_dashboard';
+    private const string DEFAULT_ROUTE = 'admin_index';
 
     public function __construct(private readonly Security $security)
     {

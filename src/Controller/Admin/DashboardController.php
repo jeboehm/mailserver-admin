@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminDashboard(routePath: '/', routeName: 'admin_dashboard')]
+#[AdminDashboard(routePath: '/', routeName: 'admin_index')]
 #[IsGranted(Roles::ROLE_USER)]
 class DashboardController extends AbstractDashboardController
 {
