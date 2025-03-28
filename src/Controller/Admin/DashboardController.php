@@ -22,8 +22,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminDashboard(routePath: '/', routeName: 'admin')]
+#[AdminDashboard(routePath: '/', routeName: 'admin_dashboard')]
+#[IsGranted(Roles::ROLE_USER)]
 class DashboardController extends AbstractDashboardController
 {
     #[\Override]
