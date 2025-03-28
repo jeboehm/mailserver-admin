@@ -15,22 +15,19 @@ use App\Entity\Domain;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Service\Security\Roles;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminDashboard(routePath: '/', routeName: 'admin_index')]
+#[IsGranted(Roles::ROLE_USER)]
 class DashboardController extends AbstractDashboardController
 {
-    public function __construct(private readonly AdminUrlGenerator $adminUrlGenerator)
-    {
-    }
-
-    #[Route(path: '/', name: 'admin_index')]
     #[\Override]
     public function index(): Response
     {
@@ -46,7 +43,8 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        return parent::configureUserMenu($user)->displayUserAvatar(false);
+        return parent::configureUserMenu($user)
+            ->displayUserName(false);
     }
 
     #[\Override]

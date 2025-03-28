@@ -50,10 +50,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private bool $sendOnly = false;
     #[Assert\Range(min: 0)]
     #[Assert\NotBlank]
-    #[ORM\Column(type: 'integer', name: 'quota')]
+    #[ORM\Column(name: 'quota', type: Types::INTEGER)]
     private int $quota = 0;
     private ?string $domainName = null;
 
+    /**
+     * @var Collection<int, FetchmailAccount>
+     */
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: FetchmailAccount::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $fetchmailAccounts;

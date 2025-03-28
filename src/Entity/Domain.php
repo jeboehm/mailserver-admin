@@ -37,9 +37,17 @@ class Domain implements \Stringable
     private string $dkimSelector = 'dkim';
     #[ORM\Column(name: 'dkim_private_key', type: Types::TEXT)]
     private string $dkimPrivateKey = '';
+
+    /**
+     * @var Collection<int, User>
+     */
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $users;
+
+    /**
+     * @var Collection<int, Alias>
+     */
     #[Assert\Valid]
     #[ORM\OneToMany(targetEntity: Alias::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $aliases;

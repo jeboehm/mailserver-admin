@@ -14,6 +14,7 @@ use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\FetchmailAccountVoter;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -27,6 +28,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminCrud(routePath: '/fetchmail-account', routeName: 'fetchmail')]
 #[IsGranted(Roles::ROLE_USER)]
 class FetchmailAccountController extends AbstractCrudController
 {

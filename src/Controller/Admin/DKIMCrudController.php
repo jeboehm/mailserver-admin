@@ -15,6 +15,8 @@ use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -22,17 +24,21 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminCrud(routePath: '/dkim', routeName: 'dkim')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DKIMCrudController extends AbstractCrudController
 {
-    public function __construct(private readonly FormatterService $formatterService, private readonly KeyGenerationService $keyGenerationService, private readonly AdminUrlGenerator $adminUrlGenerator, private readonly EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        private readonly FormatterService $formatterService,
+        private readonly KeyGenerationService $keyGenerationService,
+        private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly EntityManagerInterface $entityManager
+    ) {
     }
 
     #[\Override]
@@ -78,19 +84,22 @@ class DKIMCrudController extends AbstractCrudController
     #[\Override]
     public function configureActions(Actions $actions): Actions
     {
-        $actions->remove(Crud::PAGE_INDEX, Action::NEW);
-
-        $recreateKey = Action::new(
+        $recreateKeyAction = Action::new(
             'recreateKey',
             'Recreate Key',
             'fas fa-certificate'
-        )
+        );
+
+        $recreateKeyAction
             ->linkToCrudAction('recreateKey')
             ->setCssClass('btn btn-danger');
 
-        return $actions->add(Crud::PAGE_EDIT, $recreateKey);
+        return $actions
+            ->add(Crud::PAGE_EDIT, $recreateKeyAction)
+            ->remove(Crud::PAGE_INDEX, Action::NEW);
     }
 
+    #[AdminAction('/recreate/{entityId}', routeName: 'dkim_recreate_key')]
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
@@ -118,29 +127,26 @@ class DKIMCrudController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $name = TextField::new('name')->setFormTypeOption('disabled', true);
+        $name = TextField::new('name')
+            ->setDisabled();
         $dkimEnabled = BooleanField::new('dkimEnabled', 'Enabled');
-        $dkimSelector = TextField::new('dkimSelector', 'Selector');
-        $dkimSelector->setDisabled(true);
-        $id = IdField::new('id', 'ID');
+        $dkimSelector = TextField::new('dkimSelector', 'Selector')
+            ->setDisabled();
         $dkimStatusDkimRecordFound = BooleanField::new(
             'dkimStatus.dkimRecordFound',
             'Domain Key found'
-        )->renderAsSwitch(false);
-        $dkimStatusDkimRecordValid = BooleanField::new('dkimStatus.dkimRecordValid', 'Record valid')->renderAsSwitch(
-            false
-        );
+        )
+            ->renderAsSwitch(false);
+
+        $dkimStatusDkimRecordValid = BooleanField::new('dkimStatus.dkimRecordValid', 'Record valid')
+            ->renderAsSwitch(false);
 
         if (Crud::PAGE_DETAIL === $pageName) {
-            return [$id, $name, $dkimEnabled, $dkimSelector];
-        }
-
-        if (Crud::PAGE_NEW === $pageName) {
-            return [$name, $dkimEnabled, $dkimSelector];
+            return [$name, $dkimSelector, $dkimEnabled];
         }
 
         if (Crud::PAGE_EDIT === $pageName) {
-            return [$name, $dkimEnabled, $dkimSelector];
+            return [$name, $dkimSelector, $dkimEnabled];
         }
 
         return [$name, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];

@@ -14,6 +14,7 @@ use App\Entity\User;
 use App\Service\PasswordService;
 use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -24,6 +25,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminCrud(routePath: '/user', routeName: 'user')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {

@@ -8,9 +8,8 @@
     extraConfig = ''
       memory_limit = -1
       xdebug.mode = debug
+      xdebug.client_port = 9003
       xdebug.start_with_request = yes
-      xdebug.idekey = phpstorm
-      xdebug.log_level = 7
       max_execution_time = 0
     '';
   };

@@ -12,6 +12,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Domain;
 use App\Service\Security\Roles;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -21,6 +22,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[AdminCrud(routePath: '/domain', routeName: 'domain')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DomainCrudController extends AbstractCrudController
 {

@@ -18,15 +18,17 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
+    private const string DEFAULT_ROUTE = 'admin_index';
+
     public function __construct(private readonly Security $security)
     {
     }
 
     #[Route(path: '/login', name: 'app_login')]
-    public function loginAction(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if (null !== $this->security->getUser()) {
-            return $this->redirectToRoute('admin_index');
+            return $this->redirectToRoute(self::DEFAULT_ROUTE);
         }
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
@@ -35,11 +37,10 @@ class SecurityController extends AbstractController
             '@EasyAdmin/page/login.html.twig',
             [
                 'page_title' => '<h1>mailserver-admin</h1>',
+                'target_path' => self::DEFAULT_ROUTE,
                 'last_username' => $lastUsername,
                 'error' => $error,
-                'target_path' => $this->generateUrl('admin_index'),
                 'username_label' => 'Email address',
-                'csrf_token_intention' => 'authenticate',
                 'enable_oauth' => (bool) $this->getParameter('app_oauth_enabled'),
                 'oauth_button_text' => $this->getParameter('app_oauth_button_text'),
             ]
@@ -47,8 +48,8 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/logout', name: 'app_logout')]
-    public function logoutAction(): Response
+    public function logout(): Response
     {
-        return $this->redirectToRoute('admin_index');
+        return $this->redirectToRoute(self::DEFAULT_ROUTE);
     }
 }
