@@ -27,7 +27,7 @@ class FetchmailAccount
     public ?string $lastLog = null;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[Assert\NotNull]

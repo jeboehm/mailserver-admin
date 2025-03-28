@@ -23,7 +23,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/login', name: 'app_login')]
-    public function loginAction(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         if (null !== $this->security->getUser()) {
             return $this->redirectToRoute('admin_index');
@@ -37,7 +37,7 @@ class SecurityController extends AbstractController
                 'page_title' => '<h1>mailserver-admin</h1>',
                 'last_username' => $lastUsername,
                 'error' => $error,
-                'target_path' => $this->generateUrl('admin_index'),
+                'target_path' => $this->generateUrl('admin'),
                 'username_label' => 'Email address',
                 'csrf_token_intention' => 'authenticate',
                 'enable_oauth' => (bool) $this->getParameter('app_oauth_enabled'),
@@ -47,7 +47,7 @@ class SecurityController extends AbstractController
     }
 
     #[Route(path: '/logout', name: 'app_logout')]
-    public function logoutAction(): Response
+    public function logout(): Response
     {
         return $this->redirectToRoute('admin_index');
     }
