@@ -14,18 +14,18 @@
     "easycorp/easyadmin-bundle": "v4.24.5",
     "hwi/oauth-bundle": "^2.3",
     "predis/predis": "^2.3",
-    "symfony/console": "v7.2.1",
+    "symfony/console": "v7.2.5",
     "symfony/dotenv": "v7.2.0",
     "symfony/flex": "v2.5.0",
-    "symfony/framework-bundle": "v7.2.4",
+    "symfony/framework-bundle": "v7.2.5",
     "symfony/monolog-bundle": "^3.10",
     "symfony/proxy-manager-bridge": "v6.4.13",
     "symfony/runtime": "v7.2.3",
     "symfony/security-bundle": "v7.2.3",
-    "symfony/serializer": "v7.2.4",
+    "symfony/serializer": "v7.2.5",
     "symfony/twig-bundle": "v7.2.0",
-    "symfony/validator": "v7.2.4",
-    "symfony/yaml": "v7.2.3"
+    "symfony/validator": "v7.2.5",
+    "symfony/yaml": "v7.2.5"
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
