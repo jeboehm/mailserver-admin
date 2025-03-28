@@ -97,14 +97,16 @@
         "version": "1.1.1"
     },
     "easycorp/easyadmin-bundle": {
-        "version": "4.1",
+        "version": "4.24",
         "recipe": {
             "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "3.0",
-            "ref": "b131e6cbfe1b898a508987851963fff485986285"
+            "branch": "main",
+            "version": "4.14",
+            "ref": "13b3e524d1038a6861ad6c7fc64e31b644ba0c54"
         },
-        "files": []
+        "files": [
+            "config/routes/easyadmin.yaml"
+        ]
     },
     "friendsofphp/php-cs-fixer": {
         "version": "3.8",
