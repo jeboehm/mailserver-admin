@@ -17,17 +17,22 @@ use Doctrine\ORM\Events;
 use Predis\Client;
 use Symfony\Component\Serializer\SerializerInterface;
 
-#[AsEntityListener(event: Events::postFlush, method: 'write', entity: FetchmailAccount::class)]
 #[AsEntityListener(event: Events::postUpdate, method: 'write', entity: FetchmailAccount::class)]
+#[AsEntityListener(event: Events::postPersist, method: 'write', entity: FetchmailAccount::class)]
+#[AsEntityListener(event: Events::postRemove, method: 'postRemove', entity: FetchmailAccount::class)]
 class AccountWriter
 {
-    private const string KEY_ACCOUNTS = 'fetchmail_accounts';
-
     public function __construct(
         private readonly Client $redis,
         private readonly FetchmailAccountRepository $repository,
         private readonly SerializerInterface $serializer,
     ) {
+    }
+
+    public function postRemove(FetchmailAccount $account): void
+    {
+        $this->redis->del(RedisKeys::createRuntimeKey((int) $account->getId()));
+        $this->write();
     }
 
     public function write(): void
@@ -40,6 +45,6 @@ class AccountWriter
             $data[] = AccountData::fromFetchmailAccount($fetchmailAccount);
         }
 
-        $this->redis->set(self::KEY_ACCOUNTS, $this->serializer->serialize($data, 'json'));
+        $this->redis->set(RedisKeys::createAccountsKey(), $this->serializer->serialize($data, 'json'));
     }
 }

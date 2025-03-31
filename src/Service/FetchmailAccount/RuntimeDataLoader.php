@@ -27,8 +27,7 @@ readonly class RuntimeDataLoader
 
     public function postLoad(FetchmailAccount $fetchmailAccount): void
     {
-        $key = 'fetchmail_accounts_runtime_' . $fetchmailAccount->getId();
-        $data = $this->redis->get($key);
+        $data = $this->redis->get(RedisKeys::createRuntimeKey($fetchmailAccount->getId()));
 
         if (null === $data) {
             return;
