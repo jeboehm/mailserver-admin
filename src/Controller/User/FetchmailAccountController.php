@@ -14,9 +14,14 @@ use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\FetchmailAccountVoter;
+use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
@@ -45,14 +50,40 @@ class FetchmailAccountController extends AbstractCrudController
             ->setEntityLabelInSingular('Fetchmail Account')
             ->setEntityLabelInPlural('Fetchmail Accounts')
             ->setEntityPermission(FetchmailAccountVoter::VIEW)
-            ->setHelp(Crud::PAGE_INDEX, 'Fetchmail accounts are used to fetch mails from other mail servers.');
+            ->setHelp(Crud::PAGE_INDEX, 'Fetchmail accounts are used to fetch mails from other mail servers.')
+            ->hideNullValues();
     }
 
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $user = AssociationField::new('user')
-            ->setPermission(Roles::ROLE_ADMIN);
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN)
+            ->setQueryBuilder(function (QueryBuilder $qb) {
+                if ($this->isGranted(Roles::ROLE_ADMIN)) {
+                    return $qb;
+                }
+
+                $user = $this->getUser();
+
+                if ($user instanceof User) {
+                    if (null === $user->getDomain()) {
+                        throw new \RuntimeException('Domain admin user has no domain');
+                    }
+
+                    if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN)) {
+                        return $qb
+                            ->andWhere('entity.domain = :domain')
+                            ->setParameter('domain', $user->getDomain());
+                    }
+
+                    return $qb
+                        ->andWhere('entity.id = :id')
+                        ->setParameter('id', $user->getId());
+                }
+
+                throw new \RuntimeException('User is not an instance of User');
+            });
 
         $host = TextField::new('host');
         $port = NumberField::new('port')
@@ -69,8 +100,7 @@ class FetchmailAccountController extends AbstractCrudController
 
         $password = TextField::new('password')
             ->setFormType(PasswordType::class)
-            ->hideOnIndex()
-            ->hideOnDetail();
+            ->onlyOnForms();
 
         if (Crud::PAGE_EDIT === $pageName) {
             $password
@@ -124,7 +154,7 @@ class FetchmailAccountController extends AbstractCrudController
     }
 
     #[\Override]
-    public function createEntity(string $entityFqcn)
+    public function createEntity(string $entityFqcn): FetchmailAccount
     {
         $entity = parent::createEntity($entityFqcn);
         $user = $this->getUser();
@@ -135,5 +165,44 @@ class FetchmailAccountController extends AbstractCrudController
         }
 
         return $entity;
+    }
+
+    #[\Override]
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        if ($this->isGranted(Roles::ROLE_ADMIN)) {
+            return $qb;
+        }
+
+        $user = $this->getUser();
+
+        if ($user instanceof User) {
+            if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN)) {
+                if (null === $user->getDomain()) {
+                    throw new \RuntimeException('Domain admin user has no domain');
+                }
+
+                $qb
+                    ->andWhere('user.domain = :domain')
+                    ->join('entity.user', 'user')
+                    ->setParameter('domain', $user->getDomain());
+
+                return $qb;
+            }
+
+            $qb
+                ->andWhere('entity.user = :user')
+                ->setParameter('user', $this->getUser());
+
+            return $qb;
+        }
+
+        throw new \RuntimeException('User is not an instance of User');
     }
 }

@@ -11,18 +11,24 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Alias;
+use App\Entity\User;
 use App\Service\Security\Roles;
+use App\Service\Security\Voter\DomainAdminVoter;
+use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminCrud(routePath: '/alias', routeName: 'alias')]
-#[IsGranted(Roles::ROLE_ADMIN)]
+#[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class AliasCrudController extends AbstractCrudController
 {
     #[\Override]
@@ -37,34 +43,64 @@ class AliasCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Alias')
             ->setEntityLabelInPlural('Aliases')
-            ->setSearchFields(['id', 'name', 'destination']);
+            ->setSearchFields(['name', 'destination'])
+            ->setPageTitle(Crud::PAGE_EDIT, fn (Alias $alias) => sprintf('Edit Alias %s', $alias))
+            ->setEntityPermission(DomainAdminVoter::VIEW);
     }
 
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $domain = AssociationField::new('domain');
-        $name = TextField::new('name');
+        $domain = AssociationField::new('domain')
+            ->setRequired(true)
+            ->hideWhenUpdating()
+            ->setPermission(Roles::ROLE_ADMIN);
+        $name = TextField::new('name')
+            ->setRequired(false)
+            ->setHelp('Leave empty to create a catch all address.');
         $destination = EmailField::new('destination');
-        $id = IdField::new('id', 'ID');
-
-        $name->setRequired(false);
-        $name->setHelp('Leave empty to create a catch all address.');
-
-        $domain->setRequired(true);
-
-        if (Crud::PAGE_DETAIL === $pageName) {
-            return [$id, $name, $destination, $domain];
-        }
-
-        if (Crud::PAGE_NEW === $pageName) {
-            return [$domain, $name, $destination];
-        }
-
-        if (Crud::PAGE_EDIT === $pageName) {
-            return [$domain, $name, $destination];
-        }
 
         return [$domain, $name, $destination];
+    }
+
+    #[\Override]
+    public function createEntity(string $entityFqcn): Alias
+    {
+        $entity = parent::createEntity($entityFqcn);
+        assert($entity instanceof Alias);
+
+        $user = $this->getUser();
+
+        if ($user instanceof User && null !== $user->getDomain()) {
+            $entity->setDomain($user->getDomain());
+        }
+
+        return $entity;
+    }
+
+    #[\Override]
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN) && !$this->isGranted(Roles::ROLE_ADMIN)) {
+            $user = $this->getUser();
+
+            if ($user instanceof User) {
+                if (null === $user->getDomain()) {
+                    throw new \RuntimeException('Domain admin user has no domain');
+                }
+
+                $qb
+                    ->andWhere('entity.domain = :domain')
+                    ->setParameter('domain', $user->getDomain());
+            }
+        }
+
+        return $qb;
     }
 }

@@ -22,7 +22,7 @@ readonly class OAuthStaticUser implements UserInterface
 
     public function getRoles(): array
     {
-        return $this->admin ? [Roles::ROLE_ADMIN, Roles::ROLE_USER] : [];
+        return $this->admin ? [Roles::ROLE_ADMIN] : [];
     }
 
     public function eraseCredentials(): void

@@ -10,20 +10,20 @@ declare(strict_types=1);
 
 namespace App\Service\Security\Voter;
 
-use App\Entity\FetchmailAccount;
+use App\Entity\Alias;
 use App\Entity\User;
 use App\Service\Security\Roles;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
-final class FetchmailAccountVoter extends Voter
+final class DomainAdminVoter extends Voter
 {
-    public const string VIEW = 'fetchmail_account_view';
+    public const string VIEW = 'domain_related_entity_view';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
         return self::VIEW === $attribute
-            && ($subject instanceof FetchmailAccount || null === $subject);
+            && ($subject instanceof User || $subject instanceof Alias || null === $subject);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -32,22 +32,22 @@ final class FetchmailAccountVoter extends Voter
             return true;
         }
 
-        assert($subject instanceof FetchmailAccount);
+        assert($subject instanceof User || $subject instanceof Alias);
 
         if (in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
             return true;
         }
 
-        $user = $token->getUser();
-
         if (in_array(Roles::ROLE_DOMAIN_ADMIN, $token->getRoleNames(), true)) {
+            $user = $token->getUser();
+
             if (!($user instanceof User)) {
                 throw new \LogicException('User is not an instance of User');
             }
 
-            return $subject->getUser()?->getDomain() === $user->getDomain();
+            return $subject->getDomain() === $user->getDomain();
         }
 
-        return $subject->getUser() === $token->getUser();
+        return false;
     }
 }

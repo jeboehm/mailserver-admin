@@ -53,9 +53,9 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class)
             ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToCrud('User', 'fas fa-user', User::class)
-            ->setPermission(Roles::ROLE_ADMIN);
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
         yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class)
-            ->setPermission(Roles::ROLE_ADMIN);
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
 
         yield MenuItem::section('Features', 'fas fa-folder-open');
         yield MenuItem::linkToCrud('Fetchmail', 'far fa-envelope', FetchmailAccount::class)
