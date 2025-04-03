@@ -13,20 +13,27 @@ namespace App\Controller\Admin;
 use App\Entity\User;
 use App\Service\PasswordService;
 use App\Service\Security\Roles;
+use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
+use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminCrud(routePath: '/user', routeName: 'user')]
-#[IsGranted(Roles::ROLE_ADMIN)]
+#[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {
     public function __construct(private readonly PasswordService $passwordService)
@@ -42,42 +49,53 @@ class UserCrudController extends AbstractCrudController
     #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setSearchFields(['name']);
+        return $crud
+            ->setSearchFields(['name'])
+            ->setPageTitle(Crud::PAGE_EDIT, fn (User $user) => sprintf('Edit User %s', $user))
+            ->hideNullValues()
+            ->setEntityPermission(DomainAdminVoter::VIEW);
     }
 
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $domain = AssociationField::new('domain');
+        $domain = AssociationField::new('domain')
+            ->setRequired(true)
+            ->hideWhenUpdating()
+            ->setPermission(Roles::ROLE_ADMIN);
         $name = TextField::new('name')
             ->hideWhenUpdating();
-        $admin = BooleanField::new('admin');
+        $admin = BooleanField::new('admin')
+            ->setPermission(Roles::ROLE_ADMIN);
+        $domainAdmin = BooleanField::new('domainAdmin')
+            ->setHelp('Domain admins can manage all users in their domain')
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
         $enabled = BooleanField::new('enabled');
-        $sendOnly = BooleanField::new('sendOnly')->setHelp('Send only accounts are not allowed to receive mails');
-        $quota = IntegerField::new('quota')->setHelp('How much space the account can use (in megabytes)');
-        $plainPassword = Field::new('plainPassword')->setLabel('Change password');
-        $id = IdField::new('id', 'ID');
-
-        $domain->setRequired(true);
-
-        if (Crud::PAGE_DETAIL === $pageName) {
-            return [$id, $name, $plainPassword, $admin, $enabled, $sendOnly, $quota, $domain];
-        }
-
-        if (Crud::PAGE_NEW === $pageName) {
-            return [$domain, $name, $admin, $enabled, $sendOnly, $quota, $plainPassword];
-        }
+        $sendOnly = BooleanField::new('sendOnly')
+            ->setHelp('Send only accounts are not allowed to receive mails');
+        $quota = IntegerField::new('quota')
+            ->setHelp('How much space the account can use (in megabytes)')
+            ->formatValue(fn (?int $value) => $value ? sprintf('%d MB', $value) : 'Unlimited');
+        $plainPassword = Field::new('plainPassword')
+            ->setFormType(PasswordType::class)
+            ->setLabel('Password')
+            ->setRequired(true)
+            ->onlyOnForms();
 
         if (Crud::PAGE_EDIT === $pageName) {
-            return [$domain, $name, $admin, $enabled, $sendOnly, $quota, $plainPassword];
+            $plainPassword
+                ->setHelp('Leave empty to keep the current password.')
+                ->setRequired(false)
+                ->setFormTypeOption('empty_data', fn (FormInterface $form) => $form->getData());
         }
 
-        return [$domain, $name, $enabled, $sendOnly, $admin];
+        return [$domain, $name, $plainPassword, $admin, $domainAdmin, $enabled, $sendOnly, $quota];
     }
 
     #[\Override]
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
+        assert($entityInstance instanceof User);
         $this->passwordService->processUserPassword($entityInstance);
 
         $user = $this->getUser();
@@ -98,10 +116,43 @@ class UserCrudController extends AbstractCrudController
     }
 
     #[\Override]
-    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    public function createEntity(string $entityFqcn): User
     {
-        $this->passwordService->processUserPassword($entityInstance);
+        $entity = parent::createEntity($entityFqcn);
+        assert($entity instanceof User);
 
-        parent::persistEntity($entityManager, $entityInstance);
+        $user = $this->getUser();
+
+        if ($user instanceof User && null !== $user->getDomain()) {
+            $entity->setDomain($user->getDomain());
+        }
+
+        return $entity;
+    }
+
+    #[\Override]
+    public function createIndexQueryBuilder(
+        SearchDto $searchDto,
+        EntityDto $entityDto,
+        FieldCollection $fields,
+        FilterCollection $filters
+    ): QueryBuilder {
+        $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+
+        if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN) && !$this->isGranted(Roles::ROLE_ADMIN)) {
+            $user = $this->getUser();
+
+            if ($user instanceof User) {
+                if (null === $user->getDomain()) {
+                    throw new \RuntimeException('Domain admin user has no domain');
+                }
+
+                $qb
+                    ->andWhere('entity.domain = :domain')
+                    ->setParameter('domain', $user->getDomain());
+            }
+        }
+
+        return $qb;
     }
 }

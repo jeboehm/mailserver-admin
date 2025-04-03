@@ -11,11 +11,15 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Events;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-class PasswordService
+#[AsEntityListener(event: Events::prePersist, method: 'processUserPassword', entity: User::class)]
+#[AsEntityListener(event: Events::preUpdate, method: 'processUserPassword', entity: User::class)]
+readonly class PasswordService
 {
-    public function __construct(private readonly PasswordHasherFactoryInterface $passwordHasherFactory)
+    public function __construct(private PasswordHasherFactoryInterface $passwordHasherFactory)
     {
     }
 

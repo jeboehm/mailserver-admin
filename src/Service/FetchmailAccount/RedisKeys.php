@@ -10,8 +10,12 @@ declare(strict_types=1);
 
 namespace App\Service\FetchmailAccount;
 
-class RedisKeys
+final readonly class RedisKeys
 {
+    private function __construct(
+    ) {
+    }
+
     public static function createRuntimeKey(int $accountId): string
     {
         return 'fetchmail_accounts_runtime_' . $accountId;

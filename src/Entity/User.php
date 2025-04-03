@@ -44,6 +44,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private ?string $plainPassword = null;
     #[ORM\Column(name: 'admin', type: Types::BOOLEAN)]
     private bool $admin = false;
+    #[ORM\Column(name: 'domain_admin', type: Types::BOOLEAN)]
+    private bool $domainAdmin = false;
     #[ORM\Column(name: 'enabled', type: Types::BOOLEAN)]
     private bool $enabled = true;
     #[ORM\Column(name: 'send_only', type: Types::BOOLEAN)]
@@ -82,12 +84,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
 
     public function __serialize(): array
     {
-        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->name];
+        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->domainAdmin, $this->name];
     }
 
     public function __unserialize(array $data): void
     {
-        [$this->id, $this->password, $this->domainName, $this->admin, $this->name] = $data;
+        [$this->id, $this->password, $this->domainName, $this->admin, $this->domainAdmin, $this->name] = $data;
     }
 
     public function getDomain(): ?Domain
@@ -130,7 +132,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function getRoles(): array
     {
         if ($this->admin) {
-            return [Roles::ROLE_ADMIN, Roles::ROLE_USER];
+            return [Roles::ROLE_ADMIN];
+        }
+
+        if ($this->domainAdmin) {
+            return [Roles::ROLE_DOMAIN_ADMIN];
         }
 
         return [Roles::ROLE_USER];
@@ -144,6 +150,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setAdmin(bool $admin): void
     {
         $this->admin = $admin;
+    }
+
+    public function isDomainAdmin(): bool
+    {
+        return $this->domainAdmin;
+    }
+
+    public function setDomainAdmin(bool $domainAdmin): void
+    {
+        $this->domainAdmin = $domainAdmin;
     }
 
     public function getSalt(): string
