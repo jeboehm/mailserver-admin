@@ -1,54 +1,42 @@
----
-
 name: Application tests
-
 on:
   pull_request:
-
 jobs:
   static-analysis:
     name: Static code analysis
     runs-on: ubuntu-latest
-
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions:
+          - "8.3"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: ${{ matrix.php-versions }}
           extensions: mbstring, xml, ctype, iconv, intl, mysql
           coverage: xdebug
-
-      - name: Get composer cache directory
+      - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache composer dependencies
-        uses: actions/cache/restore@v4
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
         with:
-          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-
+          restore-keys: |
+            ${{ runner.os }}-composer-
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
-
-      - name: Cache composer dependencies
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-
       - name: PHP CS Fixer
         run: vendor/bin/php-cs-fixer check --diff
-
       - name: rector
         run: vendor/bin/rector process src/ --dry-run
-
       - name: PHPStan
         run: vendor/bin/phpstan analyse --level 3
-
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
@@ -60,7 +48,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: symfony
           MYSQL_DATABASE: symfony
         ports:
-          - 3306/tcp
+          - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       redis:
         image: redis
@@ -73,58 +61,38 @@ jobs:
         php-versions:
           - "8.3"
           - "8.4"
+    env:
+      DATABASE_URL: mysql://root:symfony@127.0.0.1:3306/symfony
+      REDIS_HOST: localhost
+      APP_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, xml, ctype, iconv, intl, mysql
           coverage: xdebug
-
-      - name: Get composer cache directory
+      - name: Get Composer Cache Directory
         id: composer-cache
-        run: echo "COMPOSER_CACHE_DIR=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache composer dependencies
-        uses: actions/cache/restore@v4
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@v4
         with:
-          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-
+          restore-keys: |
+            ${{ runner.os }}-composer-
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
-
-      - name: Cache composer dependencies
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.COMPOSER_CACHE_DIR }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-
       - name: Prepare database
         run: |
           bin/console doctrine:schema:create
           bin/console domain:add example.com
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
-
-        env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
-          REDIS_HOST: localhost
-          APP_ENV: test
-
       - name: Unit Tests
         run: bin/phpunit tests/Unit/
-        env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
-          REDIS_HOST: localhost
-          APP_ENV: test
-
       - name: Integration Tests
         run: bin/phpunit tests/Integration/
-        env:
-          DATABASE_URL: mysql://root:symfony@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/symfony
-          REDIS_HOST: localhost
-          APP_ENV: test

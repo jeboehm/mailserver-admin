@@ -39,10 +39,9 @@ class DKIMDisableCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $name = $input->getArgument('domain');
-        /** @var Domain $domain */
         $domain = $this->manager->getRepository(Domain::class)->findOneBy(['name' => $name]);
 
-        if (!$domain) {
+        if (null === $domain) {
             $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));
 
             return 1;
