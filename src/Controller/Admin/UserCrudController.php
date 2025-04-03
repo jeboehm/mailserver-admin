@@ -80,6 +80,20 @@ class UserCrudController extends AbstractCrudController
     {
         $this->passwordService->processUserPassword($entityInstance);
 
+        $user = $this->getUser();
+
+        /*
+         * If user is trying to update themself, we need to keep the permissions and enabled state.
+         */
+        if ($user instanceof User && $user === $entityInstance) {
+            $entityInstance->setEnabled(true);
+            $entityInstance->setAdmin($this->isGranted(Roles::ROLE_ADMIN));
+            $entityInstance->setDomainAdmin(
+                $this->isGranted(Roles::ROLE_DOMAIN_ADMIN)
+                && !$this->isGranted(Roles::ROLE_ADMIN)
+            );
+        }
+
         parent::updateEntity($entityManager, $entityInstance);
     }
 
