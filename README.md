@@ -1,6 +1,6 @@
 mailserver-admin
 ================
-[![Testing Symfony with MySQL](https://github.com/jeboehm/mailserver-admin/actions/workflows/php.yml/badge.svg)](https://github.com/jeboehm/mailserver-admin/actions/workflows/php.yml)
+[![Application Tests](https://github.com/jeboehm/mailserver-admin/actions/workflows/test.yml/badge.svg)](https://github.com/jeboehm/mailserver-admin/actions/workflows/php.yml)
 
 Description
 -----------

@@ -103,10 +103,9 @@ class DKIMSetupCommand extends Command
     private function getDomain(InputInterface $input, OutputInterface $output): ?Domain
     {
         $name = $input->getArgument('domain');
-        /** @var Domain $domain */
         $domain = $this->manager->getRepository(Domain::class)->findOneBy(['name' => $name]);
 
-        if (!$domain) {
+        if (null === $domain) {
             $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));
 
             return null;
