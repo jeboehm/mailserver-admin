@@ -44,7 +44,8 @@ class DashboardController extends AbstractDashboardController
     public function configureUserMenu(UserInterface $user): UserMenu
     {
         return parent::configureUserMenu($user)
-            ->displayUserName(false);
+            ->displayUserName(false)
+            ->displayUserAvatar(false);
     }
 
     #[\Override]
