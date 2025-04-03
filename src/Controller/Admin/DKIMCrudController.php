@@ -96,7 +96,8 @@ class DKIMCrudController extends AbstractCrudController
 
         return $actions
             ->add(Crud::PAGE_EDIT, $recreateKeyAction)
-            ->remove(Crud::PAGE_INDEX, Action::NEW);
+            ->remove(Crud::PAGE_INDEX, Action::NEW)
+            ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
     #[AdminAction('/recreate/{entityId}', routeName: 'dkim_recreate_key')]
