@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -76,6 +77,73 @@ class FetchmailAccountAddCommandTest extends TestCase
             'password' => 'changeme',
             '--ssl' => true,
             '--verify-ssl' => true,
+        ];
+
+        $this->commandTester->execute($data);
+
+        self::assertEquals(Command::SUCCESS, $this->commandTester->getStatusCode());
+    }
+
+    public function testCreateAccountWithValidationError(): void
+    {
+        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createMock(User::class));
+        $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList(
+            [
+                new ConstraintViolation('test', 'test', [], '', '', ''),
+            ]
+        ));
+        $this->entityManager->expects($this->never())->method('persist');
+        $this->entityManager->expects($this->never())->method('flush');
+
+        $data = [
+            'user' => 'admin@example.com',
+            'host' => 'example.com',
+            'protocol' => 'imap',
+            'port' => 993,
+            'username' => 'test@example.com',
+            'password' => 'changeme',
+            '--ssl' => true,
+            '--verify-ssl' => true,
+        ];
+
+        $this->commandTester->execute($data);
+
+        self::assertEquals(Command::FAILURE, $this->commandTester->getStatusCode());
+    }
+
+    public function testCreateAccountWithForce(): void
+    {
+        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createMock(User::class));
+        $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList(
+            [
+                new ConstraintViolation('test', 'test', [], '', '', ''),
+            ]
+        ));
+        $this->entityManager->expects($this->once())->method('persist')->with(
+            $this->callback(function (FetchmailAccount $fetchmailAccount) {
+                self::assertEquals('example.com', $fetchmailAccount->getHost());
+                self::assertEquals('imap', $fetchmailAccount->getProtocol());
+                self::assertEquals(993, $fetchmailAccount->getPort());
+                self::assertEquals('test@example.com', $fetchmailAccount->getUsername());
+                self::assertEquals('changeme', $fetchmailAccount->getPassword());
+                self::assertTrue($fetchmailAccount->isSsl());
+                self::assertTrue($fetchmailAccount->isVerifySsl());
+
+                return true;
+            })
+        );
+        $this->entityManager->expects($this->once())->method('flush');
+
+        $data = [
+            'user' => 'admin@example.com',
+            'host' => 'example.com',
+            'protocol' => 'imap',
+            'port' => 993,
+            'username' => 'test@example.com',
+            'password' => 'changeme',
+            '--ssl' => true,
+            '--verify-ssl' => true,
+            '--force' => true,
         ];
 
         $this->commandTester->execute($data);

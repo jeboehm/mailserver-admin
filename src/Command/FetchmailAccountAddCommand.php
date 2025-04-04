@@ -44,7 +44,8 @@ class FetchmailAccountAddCommand extends Command
             ->addArgument('username', InputArgument::REQUIRED, 'Username to log in to the remote host')
             ->addArgument('password', InputArgument::REQUIRED, 'Password to log in to the remote host')
             ->addOption('ssl', null, InputOption::VALUE_NONE, 'Use SSL to connect to the remote host')
-            ->addOption('verify-ssl', null, InputOption::VALUE_NONE, 'Verify the SSL certificate of the remote host');
+            ->addOption('verify-ssl', null, InputOption::VALUE_NONE, 'Verify the SSL certificate of the remote host')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Force the command to run despite any validation issues');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -78,7 +79,13 @@ class FetchmailAccountAddCommand extends Command
                 }
             }
 
-            return self::FAILURE;
+            if ($input->getOption('force')) {
+                $output->writeln('<info>Forcing command to run despite validation issues.</info>');
+            } else {
+                $output->writeln('<error>Validation failed. Aborting.</error>');
+
+                return self::FAILURE;
+            }
         }
 
         $this->entityManager->persist($fetchmailAccount);
