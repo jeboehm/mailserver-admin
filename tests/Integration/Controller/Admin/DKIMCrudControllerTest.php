@@ -45,7 +45,7 @@ class DKIMCrudControllerTest extends WebTestCase
 
         $this->navigateToDomain($client, $domain);
 
-        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.');
+        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
     }
 
     public function testDkimEditDnsWrong(): void
@@ -65,7 +65,7 @@ class DKIMCrudControllerTest extends WebTestCase
         $this->loginClient($client);
         $this->navigateToDomain($client, $domain);
 
-        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.');
+        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
     }
 
     private function navigateToDomain(KernelBrowser $client, Domain $domain): Crawler

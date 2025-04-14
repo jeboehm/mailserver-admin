@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Domain;
-use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,7 +19,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
@@ -34,7 +32,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DKIMCrudController extends AbstractCrudController
 {
     public function __construct(
-        private readonly FormatterService $formatterService,
         private readonly KeyGenerationService $keyGenerationService,
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly EntityManagerInterface $entityManager
@@ -45,28 +42,6 @@ class DKIMCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Domain::class;
-    }
-
-    #[\Override]
-    public function edit(AdminContext $context): KeyValueStore|Response
-    {
-        $parameters = parent::edit($context);
-
-        if ($parameters instanceof KeyValueStore && null !== ($entityDto = $parameters->get('entity'))) {
-            /** @var Domain $entity */
-            $entity = $entityDto->getInstance();
-
-            if ('' !== $entity->getDkimPrivateKey()) {
-                $expectedRecord = $this->formatterService->getTXTRecord(
-                    $this->keyGenerationService->extractPublicKey($entity->getDkimPrivateKey()),
-                    KeyGenerationService::DIGEST_ALGORITHM
-                );
-                $entity->setExpectedDnsRecord(wordwrap($expectedRecord, 40, "\n", true));
-                $entity->setCurrentDnsRecord(wordwrap($entity->getDkimStatus()->getCurrentRecord(), 40, "\n", true));
-            }
-        }
-
-        return $parameters;
     }
 
     #[\Override]
@@ -132,24 +107,15 @@ class DKIMCrudController extends AbstractCrudController
             ->setDisabled();
         $dkimEnabled = BooleanField::new('dkimEnabled', 'Enabled');
         $dkimSelector = TextField::new('dkimSelector', 'Selector')
-            ->setDisabled();
-        $dkimStatusDkimRecordFound = BooleanField::new(
-            'dkimStatus.dkimRecordFound',
-            'Domain Key found'
-        )
-            ->renderAsSwitch(false);
-
+            ->setDisabled()
+            ->hideOnIndex();
+        $dkimStatusDkimRecordFound = BooleanField::new('dkimStatus.dkimRecordFound', 'Domain Key found')
+            ->renderAsSwitch(false)
+            ->hideOnForm();
         $dkimStatusDkimRecordValid = BooleanField::new('dkimStatus.dkimRecordValid', 'Record valid')
-            ->renderAsSwitch(false);
+            ->renderAsSwitch(false)
+            ->hideOnForm();
 
-        if (Crud::PAGE_DETAIL === $pageName) {
-            return [$name, $dkimSelector, $dkimEnabled];
-        }
-
-        if (Crud::PAGE_EDIT === $pageName) {
-            return [$name, $dkimSelector, $dkimEnabled];
-        }
-
-        return [$name, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];
+        return [$name, $dkimSelector, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];
     }
 }
