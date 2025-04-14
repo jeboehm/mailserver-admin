@@ -6,7 +6,7 @@
     {% if entity.instance.dkimStatus.dkimEnabled and (not entity.instance.dkimStatus.dkimRecordFound or not entity.instance.dkimStatus.dkimRecordValid) %}
         {% set alert_context = 'danger' %}
         {% set alert_text %}
-            DKIM is enabled but not properly set up. Your mails may be rejected on the receivers side. Check your DNS settings.
+            DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.
         {% endset %}
     {% endif %}
 
@@ -14,7 +14,7 @@
         {% set alert_context = 'info' %}
         {% set alert_text %}
             {% if entity.instance.dkimStatus.dkimRecordFound and entity.instance.dkimStatus.dkimRecordValid %}
-                DKIM is set up properly and can now be enabled.
+                DKIM is correctly configured and ready to be enabled.
             {% else %}
                 DKIM is disabled.
             {% endif %}
@@ -24,7 +24,7 @@
     {% if entity.instance.dkimStatus.dkimEnabled and entity.instance.dkimStatus.dkimRecordFound and entity.instance.dkimStatus.dkimRecordValid %}
         {% set alert_context = 'success' %}
         {% set alert_text %}
-            Well done! DKIM is set up properly.
+            DKIM is configured correctly and functioning as expected.
         {% endset %}
     {% endif %}
 
@@ -55,14 +55,18 @@
                     Expected value:
                 </div>
                 <div class="col-10">
-                    <pre class="pre-scrollable"><code>{{ entity.instance.expectedDnsRecord }}</code></pre>
+                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace">
+                        {{- entity.instance.expectedDnsRecord }}
+                    </div>
                 </div>
 
                 <div class="col-2">
                     Current value:
                 </div>
                 <div class="col-10">
-                    <pre class="pre-scrollable"><code>{{ entity.instance.currentDnsRecord }}</code></pre>
+                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace">
+                        {{- entity.instance.currentDnsRecord }}
+                    </div>
                 </div>
             </div>
         </section>
