@@ -14,7 +14,7 @@
     "easycorp/easyadmin-bundle": "v4.24.6",
     "hwi/oauth-bundle": "^2.3",
     "predis/predis": "^2.3",
-    "symfony/console": "v7.2.5",
+    "symfony/console": "v7.2.6",
     "symfony/dotenv": "v7.2.0",
     "symfony/flex": "v2.5.0",
     "symfony/framework-bundle": "v7.2.5",
@@ -22,10 +22,10 @@
     "symfony/proxy-manager-bridge": "v6.4.13",
     "symfony/runtime": "v7.2.3",
     "symfony/security-bundle": "v7.2.3",
-    "symfony/serializer": "v7.2.5",
+    "symfony/serializer": "v7.2.6",
     "symfony/twig-bundle": "v7.2.0",
-    "symfony/validator": "v7.2.5",
-    "symfony/yaml": "v7.2.5"
+    "symfony/validator": "v7.2.6",
+    "symfony/yaml": "v7.2.6"
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
@@ -35,7 +35,7 @@
     "roave/security-advisories": "dev-latest",
     "symfony/browser-kit": "v7.2.4",
     "symfony/css-selector": "v7.2.0",
-    "symfony/phpunit-bridge": "v7.2.0",
+    "symfony/phpunit-bridge": "v7.2.6",
     "symfony/stopwatch": "v7.2.4",
     "symfony/web-profiler-bundle": "v7.2.4"
   },
