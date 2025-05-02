@@ -10,7 +10,7 @@
     "doctrine/dbal": "4.2.3",
     "doctrine/doctrine-bundle": "2.14.0",
     "doctrine/doctrine-migrations-bundle": "3.4.1",
-    "doctrine/orm": "3.3.2",
+    "doctrine/orm": "3.3.3",
     "easycorp/easyadmin-bundle": "v4.24.6",
     "hwi/oauth-bundle": "^2.3",
     "predis/predis": "^2.3",
