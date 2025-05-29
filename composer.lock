@@ -1309,16 +1309,16 @@
         },
         {
             "name": "hwi/oauth-bundle",
-            "version": "2.3.0",
+            "version": "2.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/hwi/HWIOAuthBundle.git",
-                "reference": "3d42abc963485988789816c8585a10ad02b4fbc3"
+                "reference": "e0f730c195ba3bf94c464fbba7d8b52570df1caf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/hwi/HWIOAuthBundle/zipball/3d42abc963485988789816c8585a10ad02b4fbc3",
-                "reference": "3d42abc963485988789816c8585a10ad02b4fbc3",
+                "url": "https://api.github.com/repos/hwi/HWIOAuthBundle/zipball/e0f730c195ba3bf94c464fbba7d8b52570df1caf",
+                "reference": "e0f730c195ba3bf94c464fbba7d8b52570df1caf",
                 "shasum": ""
             },
             "require": {
@@ -1334,7 +1334,6 @@
                 "symfony/twig-bundle": "^5.4 || ^6.4 || ^7.1"
             },
             "conflict": {
-                "symfony/security-bundle": ">=6.0,<6.3.4",
                 "twig/twig": "<1.43|>=2.0,<2.13"
             },
             "require-dev": {
@@ -1466,7 +1465,7 @@
             ],
             "support": {
                 "issues": "https://github.com/hwi/HWIOAuthBundle/issues",
-                "source": "https://github.com/hwi/HWIOAuthBundle/tree/2.3.0"
+                "source": "https://github.com/hwi/HWIOAuthBundle/tree/2.4.0"
             },
             "funding": [
                 {
@@ -1474,7 +1473,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-01T18:31:13+00:00"
+            "time": "2025-05-29T20:23:24+00:00"
         },
         {
             "name": "laminas/laminas-code",
