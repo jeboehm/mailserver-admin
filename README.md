@@ -80,6 +80,7 @@ The following environment variables can be set in the `.env` file or in the envi
 - `OAUTH_CLIENT_ID`: The client ID for the OAuth2 provider.
 - `OAUTH_CLIENT_SECRET`: The client secret for the OAuth2 provider.
 - `OAUTH_CLIENT_SCOPES`: The scopes requested from the OAuth2 provider. Default: `"email profile groups"`.
+- `OAUTH_MAPPING_IDENTIFIER`: The identifier used to map the OAuth2 user to the application user. Default: `"sub"`.
 - `OAUTH_AUTHORIZATION_URL`: The authorization URL for the OAuth2 provider.
 - `OAUTH_ACCESS_TOKEN_URL`: The access token URL for the OAuth2 provider.
 - `OAUTH_INFOS_URL`: The user information URL for the OAuth2 provider.
