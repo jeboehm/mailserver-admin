@@ -1,24 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:best-practices",
+    "schedule:automergeEarlyMondays",
+    "schedule:weekends",
+    ":automergeMinor",
+    ":automergeDigest",
+    ":automergePr"
   ],
   "packageRules": [
-    {
-      "matchUpdateTypes": [
-        "minor",
-        "patch",
-        "pin",
-        "digest"
-      ],
-      "automerge": true
-    },
-    {
-      "matchDepTypes": [
-        "devDependencies"
-      ],
-      "automerge": true
-    },
     {
       "groupName": "app_platform",
       "matchPackageNames": [
@@ -27,7 +17,5 @@
         "easycorp/{/,}**"
       ]
     }
-  ],
-  "platformAutomerge": true,
-  "automergeType": "pr"
+  ]
 }
