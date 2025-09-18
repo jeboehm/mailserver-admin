@@ -222,7 +222,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     }
 
     /**
-     * @return Collection<FetchmailAccount>
+     * @return Collection<int, FetchmailAccount>
      */
     public function getFetchmailAccounts(): Collection
     {

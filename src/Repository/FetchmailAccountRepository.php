@@ -19,6 +19,8 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method FetchmailAccount|null findOneBy(array $criteria, array $orderBy = null)
  * @method FetchmailAccount[]    findAll()
  * @method FetchmailAccount[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\FetchmailAccount>
  */
 class FetchmailAccountRepository extends ServiceEntityRepository
 {
