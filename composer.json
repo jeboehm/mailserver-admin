@@ -11,7 +11,7 @@
     "doctrine/doctrine-bundle": "2.18.0",
     "doctrine/doctrine-migrations-bundle": "3.5.0",
     "doctrine/orm": "3.5.2",
-    "easycorp/easyadmin-bundle": "v4.26.3",
+    "easycorp/easyadmin-bundle": "v4.26.5",
     "hwi/oauth-bundle": "^2.3",
     "predis/predis": "^2.3",
     "symfony/console": "v7.3.4",
