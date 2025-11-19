@@ -10,6 +10,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - name: Run renovate-config-validator
         run: npx --yes --package renovate -- renovate-config-validator
