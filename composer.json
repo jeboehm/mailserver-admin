@@ -29,7 +29,7 @@
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
-    "friendsofphp/php-cs-fixer": "v3.88.2",
+    "friendsofphp/php-cs-fixer": "v3.90.0",
     "phpunit/phpunit": "^12.0",
     "rector/rector": "2.1.7",
     "roave/security-advisories": "dev-latest",
