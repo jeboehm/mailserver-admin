@@ -6,7 +6,8 @@
     "schedule:weekends",
     ":automergeMinor",
     ":automergeDigest",
-    ":automergePr"
+    ":automergePr",
+    "group:recommended"
   ],
   "packageRules": [
     {
