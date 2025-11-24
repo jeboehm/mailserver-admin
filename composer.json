@@ -13,7 +13,7 @@
     "doctrine/orm": "3.5.2",
     "easycorp/easyadmin-bundle": "v4.26.5",
     "hwi/oauth-bundle": "^2.3",
-    "predis/predis": "^2.3",
+    "predis/predis": "^3.0",
     "symfony/console": "v7.3.4",
     "symfony/dotenv": "v7.3.2",
     "symfony/flex": "v2.8.2",
