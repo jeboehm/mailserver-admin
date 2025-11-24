@@ -3,7 +3,7 @@
 {
   languages.javascript.enable = true;
   languages.php.enable = true;
-  languages.php.package = pkgs.php83.buildEnv {
+  languages.php.package = pkgs.php84.buildEnv {
     extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql xdebug ];
     extraConfig = ''
       memory_limit = -1
