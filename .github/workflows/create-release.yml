@@ -20,13 +20,14 @@ jobs:
         uses: TriPSs/conventional-changelog-action@84dadaf2c367cb52af02737cd9c7e888807219e7 # v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-on-empty: true
           git-push: false
+          output-file: "false"
+          skip-on-empty: true
           skip-git-pull: true
           skip-version-file: true
           skip-commit: true
           skip-tag: true
-          output-file: "false"
+          tag-prefix: ""
       - name: Create GitHub Release
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
