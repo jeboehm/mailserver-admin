@@ -1,7 +1,11 @@
 name: Validate renovate.json
 on:
   pull_request:
-    paths: ['**/renovate.json']
+    paths:
+      - "**/renovate.json"
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
