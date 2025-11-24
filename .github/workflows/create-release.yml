@@ -3,22 +3,35 @@ on:
   push:
     branches:
       - main
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 jobs:
-  publish_release:
+  create_release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: ''
-      - name: Create a GitHub release
-        uses: ncipollo/release-action@v1
+          fetch-depth: 0
+      - name: Generate changelog and determine version
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@84dadaf2c367cb52af02737cd9c7e888807219e7 # v6
         with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-on-empty: true
+          git-push: false
+          skip-git-pull: true
+          skip-version-file: true
+          skip-commit: true
+          skip-tag: true
+          output-file: "false"
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        with:
+          tag: ${{ steps.changelog.outputs.tag }}
+          name: Release ${{ steps.changelog.outputs.version }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
