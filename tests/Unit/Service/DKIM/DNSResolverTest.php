@@ -65,7 +65,7 @@ class DNSResolverTest extends TestCase
         $txtValue = '';
         if (isset($record['entries']) && \is_array($record['entries']) && \count($record['entries']) > 0) {
             // entries is an array of strings, implode them
-            $txtValue = \implode('', \array_map('strval', $record['entries']));
+            $txtValue = \implode('', \array_map(strval(...), $record['entries']));
         } elseif (isset($record['txt'])) {
             $txtValue = (string) $record['txt'];
         }
@@ -74,7 +74,7 @@ class DNSResolverTest extends TestCase
 
         // If mock didn't work (real DNS call), at least verify it starts with the expected prefix
         // This handles the case where DnsMock fails when running all tests together
-        if ($record['ttl'] !== 1) {
+        if (1 !== $record['ttl']) {
             // Real DNS call was made, just verify the structure and that it contains DKIM data
             $this->assertStringStartsWith('v=DKIM1;', $txtValue);
             $this->assertStringContainsString('k=rsa', $txtValue);

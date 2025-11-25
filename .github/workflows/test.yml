@@ -4,6 +4,9 @@ on:
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   static-analysis:
     name: Static code analysis
@@ -95,7 +98,22 @@ jobs:
           bin/console domain:add example.com
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
-      - name: Unit Tests
-        run: bin/phpunit tests/Unit/
-      - name: Integration Tests
-        run: bin/phpunit tests/Integration/
+      - name: Run tests
+        run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml
+      - name: Create code coverage report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          badge: true
+          fail_below_min: true
+          format: markdown
+          hide_branch_rate: false
+          indicators: true
+          output: both
+          thresholds: '60 80'
+      - name: Add Coverage PR Comment
+        if: ${{ matrix.php-versions == '8.4' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
