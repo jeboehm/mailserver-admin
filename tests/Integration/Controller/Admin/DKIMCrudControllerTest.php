@@ -10,75 +10,149 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Controller\Admin;
 
+use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DKIMCrudController;
 use App\Entity\Domain;
 use App\Repository\DomainRepository;
 use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\Integration\Helper\UserTrait;
 
-class DKIMCrudControllerTest extends WebTestCase
+class DKIMCrudControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
 
+    #[\Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+    }
+
     public function testIndex(): void
     {
-        $client = static::createClient();
-        $this->loginClient($client);
+        $this->loginClient($this->client);
 
-        $client->request('GET', $this->getUrlGenerator($client)->setController(DKIMCrudController::class)->generateUrl());
-        self::assertResponseIsSuccessful();
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+        $domainId = $domain->getId();
 
-        self::assertSelectorTextContains('span[title="example.com"]', 'example.com');
+        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        static::assertResponseIsSuccessful();
+
+        static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
+
+        $this->assertIndexEntityActionExists('edit', $domainId);
+        $this->assertIndexEntityActionNotExists('delete', $domainId);
+        $this->assertGlobalActionNotExists('new');
     }
 
     public function testDkimEditDnsMissing(): void
     {
-        $client = static::createClient();
-        $this->loginClient($client);
+        $this->loginClient($this->client);
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
 
-        $domain = $client->getContainer()->get(DomainRepository::class)->findOneBy(['name' => 'example.com']);
-        self::assertInstanceOf(Domain::class, $domain);
+        $this->navigateToDomain($domain);
 
-        $this->navigateToDomain($client, $domain);
-
-        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
+        static::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
     }
 
     public function testDkimEditDnsWrong(): void
     {
-        $client = static::createClient();
-
+        $this->client->disableReboot();
         $dkimStatusService = $this->createMock(DKIMStatusService::class);
-        $client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+        $this->loginClient($this->client);
 
         $dkimStatusService->method('getStatus')->willReturn(
-            new DKIMStatus(true, true, false, 'hi')
+            new DKIMStatus(true, true, false, 'v=DKIM1; k=rsa; p=...')
         );
 
-        $domain = $client->getContainer()->get(DomainRepository::class)->findOneBy(['name' => 'example.com']);
-        self::assertInstanceOf(Domain::class, $domain);
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
 
-        $this->loginClient($client);
-        $this->navigateToDomain($client, $domain);
+        // Ensure DKIM is enabled
+        $domain->setDkimEnabled(true);
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
 
-        self::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
+        $crawler = $this->navigateToDomain($domain);
+
+        static::assertSelectorTextContains('.alert', 'DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.');
     }
 
-    private function navigateToDomain(KernelBrowser $client, Domain $domain): Crawler
+    public function testDkimEditDnsCorrect(): void
     {
-        $crawler = $client->request(
-            'GET',
-            $this->getUrlGenerator($client)
-            ->setController(DKIMCrudController::class)
-            ->setAction('edit')
-            ->setEntityId($domain->getId())
-            ->generateUrl()
+        $this->client->disableReboot();
+        $dkimStatusService = $this->createMock(DKIMStatusService::class);
+        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+        $this->loginClient($this->client);
+
+        $dkimStatusService->method('getStatus')->willReturn(
+            new DKIMStatus(true, true, true, 'v=DKIM1; k=rsa; p=...')
         );
-        self::assertResponseIsSuccessful();
+
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        // Ensure DKIM is enabled
+        $domain->setDkimEnabled(true);
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $crawler = $this->navigateToDomain($domain);
+
+        // When DKIM is correctly configured, there should be a success alert, not a danger alert
+        static::assertSelectorTextContains('.alert', 'DKIM is configured correctly and functioning as expected.');
+    }
+
+    public function testDkimEditDisabled(): void
+    {
+        $this->loginClient($this->client);
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        // Ensure DKIM is disabled
+        $domain->setDkimEnabled(false);
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $crawler = $this->navigateToDomain($domain);
+
+        // When DKIM is disabled, there should be an info alert, not a danger alert about DNS configuration
+        static::assertSelectorExists('.alert.alert-info');
+        static::assertSelectorTextContains('.alert', 'DKIM is disabled.');
+    }
+
+    protected function getControllerFqcn(): string
+    {
+        return DKIMCrudController::class;
+    }
+
+    protected function getDashboardFqcn(): string
+    {
+        return DashboardController::class;
+    }
+
+    private function navigateToDomain(Domain $domain): Crawler
+    {
+        $crawler = $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        static::assertResponseIsSuccessful();
 
         return $crawler;
     }

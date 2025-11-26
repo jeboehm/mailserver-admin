@@ -13,13 +13,13 @@ namespace App\DependencyInjection\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-class AppSecretGeneratorCompilerPass implements CompilerPassInterface
+readonly class AppSecretGeneratorCompilerPass implements CompilerPassInterface
 {
     #[\Override]
     public function process(ContainerBuilder $container): void
     {
-        $projectDir = $container->getParameter('kernel.project_dir');
-        $secretPath = sprintf('%s/var/app.secret', $projectDir);
+        $cacheDir = $container->getParameter('kernel.cache_dir');
+        $secretPath = sprintf('%s/app.secret', $cacheDir);
         $secret = null;
 
         if (is_readable($secretPath)) {
@@ -39,11 +39,9 @@ class AppSecretGeneratorCompilerPass implements CompilerPassInterface
 
     private function createSecret(string $secretPath): string
     {
-        $secret = random_bytes(128);
-        $secret = sha1($secret);
-        $secret = substr($secret, 0, 9);
+        $secret = substr(bin2hex(random_bytes(32)), 0, 12);
 
-        if (!file_put_contents($secretPath, $secret)) {
+        if (!@file_put_contents($secretPath, $secret)) {
             throw new \RuntimeException(sprintf('Cannot write APP_SECRET file: %s', $secretPath));
         }
 

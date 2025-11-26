@@ -1,15 +1,19 @@
 name: Validate renovate.json
 on:
   pull_request:
-    paths: ['**/renovate.json']
+    paths:
+      - "**/renovate.json"
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6
         with:
-          node-version: 22
-      - uses: actions/checkout@v4
+          node-version: 24
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
       - name: Run renovate-config-validator
         run: npx --yes --package renovate -- renovate-config-validator

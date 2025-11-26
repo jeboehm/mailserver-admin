@@ -68,6 +68,7 @@ The following environment variables can be set in the `.env` file or in the envi
 
 - `APP_ENV`: The environment the application is running in. Default: `prod`
 - `APP_SECRET`: A secret key used by Symfony for various purposes (e.g., CSRF tokens).
+- `CSRF_ENABLED`: Whether CSRF protection is enabled. Default: `true`.
 - `MYSQL_USER`: The MySQL database user.
 - `MYSQL_PASSWORD`: The MySQL database password.
 - `MYSQL_HOST`: The MySQL database host.

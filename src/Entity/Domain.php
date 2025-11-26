@@ -109,11 +109,17 @@ class Domain implements \Stringable
         $this->dkimPrivateKey = $dkimPrivateKey;
     }
 
+    /**
+     * @return Collection<int, User>
+     */
     public function getUsers(): iterable
     {
         return $this->users;
     }
 
+    /**
+     * @return Collection<int, Alias>
+     */
     public function getAliases(): iterable
     {
         return $this->aliases;
