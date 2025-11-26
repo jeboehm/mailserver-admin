@@ -47,7 +47,11 @@ jobs:
             ${{ runner.os }}-composer-
       - name: Install Composer dependencies
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
-        run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev --no-scripts
+        env:
+          APP_ENV: prod
+        run: |
+          composer install --no-progress --prefer-dist --optimize-autoloader --no-dev --no-scripts
+          bin/console assets:install
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
@@ -68,9 +72,12 @@ jobs:
             rector.php \
             renovate.json \
             symfony.lock \
-            tests/
+            tests/ \
+            var/
           mkdir -p var/cache/prod var/log
           chmod 777 var/cache/prod var/log
+          touch var/cache/prod/.keep var/log/.keep
+          echo "${{ steps.changelog.outputs.version }}" > VERSION
           tar --exclude='.git' -czf \
             /tmp/release-${{ steps.changelog.outputs.version }}.tar.gz .
       - name: Create GitHub Release
