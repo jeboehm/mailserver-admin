@@ -82,7 +82,9 @@
       "@auto-scripts"
     ],
     "csfix": "php-cs-fixer fix",
-    "test": "phpunit"
+    "rector": "vendor/bin/rector process src/ tests/",
+    "test": "phpunit",
+    "coverage": "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-text"
   },
   "conflict": {
       "symfony/symfony": "*"

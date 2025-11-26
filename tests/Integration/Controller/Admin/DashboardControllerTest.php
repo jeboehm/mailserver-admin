@@ -22,7 +22,7 @@ class DashboardControllerTest extends WebTestCase
         $client = static::createClient();
         $this->loginClient($client);
 
-        $client->request('GET', '/');
+        $client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, '/');
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.user-name', 'admin@example.com');
 
