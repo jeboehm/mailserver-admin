@@ -28,6 +28,26 @@ jobs:
           skip-commit: true
           skip-tag: true
           tag-prefix: ""
+      - name: Setup PHP, with composer and extensions
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # v2
+        with:
+          php-version: 8.5
+      - name: Get Composer Cache Directory
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install Composer dependencies
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev --no-scripts
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
@@ -48,7 +68,7 @@ jobs:
             renovate.json \
             symfony.lock \
             tests/
-          tar -czf --exclude='.git' \
+          tar --exclude='.git' -czf \
             /tmp/release-${{ steps.changelog.outputs.version }}.tar.gz .
       - name: Create GitHub Release
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
