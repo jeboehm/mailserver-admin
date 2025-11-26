@@ -46,9 +46,10 @@ class FetchmailAccountController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setSearchFields(['host', 'username'])
+            ->setSearchFields(['host', 'username', 'user.domain.name'])
             ->setEntityLabelInSingular('Fetchmail Account')
             ->setEntityLabelInPlural('Fetchmail Accounts')
+            ->setDefaultSort(['host' => 'ASC'])
             ->setEntityPermission(FetchmailAccountVoter::VIEW)
             ->setHelp(Crud::PAGE_INDEX, 'Fetchmail accounts are used to fetch mails from other mail servers.')
             ->hideNullValues();

@@ -35,7 +35,9 @@ class DomainCrudController extends AbstractCrudController
     #[\Override]
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setSearchFields(['name']);
+        return $crud
+            ->setSearchFields(['name'])
+            ->setDefaultSort(['name' => 'ASC']);
     }
 
     #[\Override]
@@ -46,8 +48,10 @@ class DomainCrudController extends AbstractCrudController
         $dkimEnabled = BooleanField::new('dkimEnabled');
         $dkimSelector = TextField::new('dkimSelector');
         $dkimPrivateKey = TextareaField::new('dkimPrivateKey');
-        $users = AssociationField::new('users');
-        $aliases = AssociationField::new('aliases');
+        $users = AssociationField::new('users')
+            ->setSortable(false);
+        $aliases = AssociationField::new('aliases')
+            ->setSortable(false);
 
         if (Crud::PAGE_DETAIL === $pageName) {
             return [$id, $name, $dkimEnabled, $dkimSelector, $dkimPrivateKey, $users, $aliases];

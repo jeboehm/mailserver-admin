@@ -51,8 +51,8 @@ class UserCrudController extends AbstractCrudController
     {
         return $crud
             ->setSearchFields(['name'])
-            ->setPageTitle(Crud::PAGE_EDIT, fn (User $user) => sprintf('Edit User %s', $user))
-            ->hideNullValues()
+            ->setDefaultSort(['domain' => 'ASC', 'name' => 'ASC'])
+            ->setSearchFields(['name', 'domain.name'])
             ->setEntityPermission(DomainAdminVoter::VIEW);
     }
 
@@ -62,7 +62,8 @@ class UserCrudController extends AbstractCrudController
         $domain = AssociationField::new('domain')
             ->setRequired(true)
             ->hideWhenUpdating()
-            ->setPermission(Roles::ROLE_ADMIN);
+            ->setPermission(Roles::ROLE_ADMIN)
+            ->setSortProperty('name');
         $name = TextField::new('name')
             ->hideWhenUpdating();
         $admin = BooleanField::new('admin')
