@@ -52,7 +52,6 @@ jobs:
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
           rm -rf \
-            .composer.lock \
             .cursor/ \
             .dockerignore \
             .env.dev \
@@ -61,6 +60,8 @@ jobs:
             .github \
             .gitignore \
             .php-cs-fixer.dist.php \
+            bin/phpunit \
+            composer.lock \
             devenv.* \
             phpstan.dist.neon \
             phpunit.dist.xml \
@@ -68,6 +69,8 @@ jobs:
             renovate.json \
             symfony.lock \
             tests/
+          mkdir -p var/cache/prod var/log
+          chmod 777 var/cache/prod var/log
           tar --exclude='.git' -czf \
             /tmp/release-${{ steps.changelog.outputs.version }}.tar.gz .
       - name: Create GitHub Release
