@@ -28,6 +28,28 @@ jobs:
           skip-commit: true
           skip-tag: true
           tag-prefix: ""
+      - name: Create release archive
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        run: |
+          rm -rf \
+            .composer.lock \
+            .cursor/ \
+            .dockerignore \
+            .env.dev \
+            .env.test \
+            .envrc \
+            .github \
+            .gitignore \
+            .php-cs-fixer.dist.php \
+            devenv.* \
+            phpstan.dist.neon \
+            phpunit.dist.xml \
+            rector.php \
+            renovate.json \
+            symfony.lock \
+            tests/
+          tar -czf --exclude='.git' \
+            /tmp/release-${{ steps.changelog.outputs.version }}.tar.gz .
       - name: Create GitHub Release
         uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
@@ -36,3 +58,4 @@ jobs:
           name: Release ${{ steps.changelog.outputs.version }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "/tmp/release-${{ steps.changelog.outputs.tag }}.tar.gz"
