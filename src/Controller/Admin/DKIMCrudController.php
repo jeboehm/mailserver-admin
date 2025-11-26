@@ -52,6 +52,7 @@ class DKIMCrudController extends AbstractCrudController
         return $crud
             ->setHelp(Crud::PAGE_EDIT, $helpMessage)
             ->setSearchFields(['name'])
+            ->setDefaultSort(['name' => 'ASC'])
             ->overrideTemplate('crud/edit', 'admin/dkim/edit.html.twig')
             ->setPageTitle(Crud::PAGE_INDEX, 'DKIM');
     }

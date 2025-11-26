@@ -43,7 +43,8 @@ class AliasCrudController extends AbstractCrudController
         return $crud
             ->setEntityLabelInSingular('Alias')
             ->setEntityLabelInPlural('Aliases')
-            ->setSearchFields(['name', 'destination'])
+            ->setSearchFields(['name', 'destination', 'domain.name'])
+            ->setDefaultSort(['domain' => 'ASC', 'name' => 'ASC'])
             ->setPageTitle(Crud::PAGE_EDIT, fn (Alias $alias) => sprintf('Edit Alias %s', $alias))
             ->setEntityPermission(DomainAdminVoter::VIEW);
     }
@@ -54,7 +55,8 @@ class AliasCrudController extends AbstractCrudController
         $domain = AssociationField::new('domain')
             ->setRequired(true)
             ->hideWhenUpdating()
-            ->setPermission(Roles::ROLE_ADMIN);
+            ->setPermission(Roles::ROLE_ADMIN)
+            ->setSortProperty('name');
         $name = TextField::new('name')
             ->setRequired(false)
             ->setHelp('Leave empty to create a catch all address.');
