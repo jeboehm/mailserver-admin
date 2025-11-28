@@ -27,6 +27,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->loginClient($this->client);
     }
 

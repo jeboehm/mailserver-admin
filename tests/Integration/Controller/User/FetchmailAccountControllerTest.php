@@ -17,6 +17,7 @@ use App\Entity\User;
 use App\Repository\FetchmailAccountRepository;
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class FetchmailAccountControllerTest extends AbstractCrudTestCase
@@ -49,7 +50,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $accountId = $account->getId();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->assertIndexEntityActionExists('edit', $accountId);
@@ -64,7 +65,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');
@@ -100,7 +101,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');
@@ -147,7 +148,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
         static::assertResponseIsSuccessful();
 
         $this->client->submitForm('Save changes', [
@@ -187,7 +188,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
         static::assertResponseIsSuccessful();
 
         // Submit form without password field (leave empty)
@@ -225,7 +226,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');

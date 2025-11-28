@@ -14,6 +14,7 @@ use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DomainCrudController;
 use App\Repository\DomainRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class DomainCrudControllerTest extends AbstractCrudTestCase
@@ -29,7 +30,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
 
     public function testAddSameDomainAgain(): void
     {
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Domain');
@@ -44,7 +45,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
 
     public function testNewDomain(): void
     {
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Domain');
@@ -55,7 +56,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         ]);
         static::assertResponseIsSuccessful();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
         static::assertSelectorTextContains('span[title="example-new.com"]', 'example-new.com');
     }
@@ -68,7 +69,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         static::assertInstanceOf(\App\Entity\Domain::class, $domain);
         $domainId = $domain->getId();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
@@ -85,7 +86,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(\App\Entity\Domain::class, $domain);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
         static::assertResponseIsSuccessful();
 
         // Domain name should not be editable (it's the primary key)

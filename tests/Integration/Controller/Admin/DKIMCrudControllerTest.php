@@ -18,17 +18,12 @@ use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class DKIMCrudControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
-
-    #[\Override]
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
 
     public function testIndex(): void
     {
@@ -40,7 +35,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertInstanceOf(Domain::class, $domain);
         $domainId = $domain->getId();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
@@ -151,7 +146,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
 
     private function navigateToDomain(Domain $domain): Crawler
     {
-        $crawler = $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $crawler = $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
         static::assertResponseIsSuccessful();
 
         return $crawler;
