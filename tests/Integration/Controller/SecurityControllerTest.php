@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Controller;
 
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -61,7 +62,7 @@ class SecurityControllerTest extends WebTestCase
         // Don't follow redirects so we can check them
 
         // Login first
-        $userRepository = $client->getContainer()->get(\App\Repository\UserRepository::class);
+        $userRepository = $client->getContainer()->get(UserRepository::class);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         $client->loginUser($user);
 

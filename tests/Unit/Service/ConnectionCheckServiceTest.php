@@ -12,6 +12,7 @@ namespace Tests\Unit\Service;
 
 use App\Service\ConnectionCheckService;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Result;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Predis\ClientInterface;
@@ -35,7 +36,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $result = $this->service->checkMySQL();
 
@@ -237,7 +238,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(\Doctrine\DBAL\Result::class));
+            ->willReturn($this->createMock(Result::class));
 
         $this->redis
             ->expects($this->once())

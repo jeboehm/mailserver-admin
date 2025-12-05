@@ -17,6 +17,7 @@ use App\Entity\User;
 use App\Repository\DomainRepository;
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class UserCrudControllerTest extends AbstractCrudTestCase
@@ -38,7 +39,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertInstanceOf(User::class, $user);
         $userId = $user->getId();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
         // Check that the page contains the admin user - the exact selector may vary
         static::assertSelectorTextContains('body', 'admin@example.com');
@@ -55,7 +56,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add User');
@@ -94,7 +95,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
         static::assertResponseIsSuccessful();
 
         $this->client->submitForm('Save changes', [
@@ -130,7 +131,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $originalPassword = $user->getPassword();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
         static::assertResponseIsSuccessful();
 
         // Submit form without password field (leave empty)
@@ -172,7 +173,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add User');

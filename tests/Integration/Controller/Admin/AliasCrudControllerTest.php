@@ -17,6 +17,7 @@ use App\Entity\Domain;
 use App\Repository\AliasRepository;
 use App\Repository\DomainRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class AliasCrudControllerTest extends AbstractCrudTestCase
@@ -46,7 +47,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         $aliasId = $alias->getId();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->assertIndexEntityActionExists('edit', $aliasId);
@@ -61,7 +62,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Alias');
@@ -87,7 +88,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Alias');
@@ -121,7 +122,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($alias->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($alias->getId()));
         static::assertResponseIsSuccessful();
 
         $this->client->submitForm('Save changes', [
@@ -153,7 +154,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Alias');
