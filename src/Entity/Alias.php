@@ -10,12 +10,13 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Repository\AliasRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: \App\Repository\AliasRepository::class)]
+#[ORM\Entity(repositoryClass: AliasRepository::class)]
 #[ORM\Table(name: 'mail_aliases')]
 #[ORM\UniqueConstraint(name: 'alias_idx', columns: ['domain_id', 'name', 'destination'])]
 #[UniqueEntity(fields: ['destination', 'name', 'domain'])]
