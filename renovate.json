@@ -11,11 +11,15 @@
   ],
   "packageRules": [
     {
-      "groupName": "app_platform",
+      "groupName": "symfony packages",
+      "groupSlug": "symfony",
+      "matchDatasources": [
+        "packagist"
+      ],
       "matchPackageNames": [
-        "doctrine/{/,}**",
-        "symfony/{/,}**",
-        "easycorp/{/,}**"
+        "doctrine/*",
+        "symfony/*",
+        "easycorp/*"
       ]
     }
   ]
