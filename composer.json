@@ -14,18 +14,18 @@
     "easycorp/easyadmin-bundle": "v4.27.4",
     "hwi/oauth-bundle": "v2.4.0",
     "predis/predis": "v3.3.0",
-    "symfony/console": "v7.3.6",
-    "symfony/dotenv": "v7.3.2",
+    "symfony/console": "v8.0.0",
+    "symfony/dotenv": "v8.0.0",
     "symfony/flex": "v2.10.0",
-    "symfony/framework-bundle": "v7.3.6",
-    "symfony/monolog-bundle": "v3.10.0",
+    "symfony/framework-bundle": "v8.0.0",
+    "symfony/monolog-bundle": "v4.0.0",
     "symfony/proxy-manager-bridge": "v6.4.28",
-    "symfony/runtime": "v7.3.4",
-    "symfony/security-bundle": "v7.3.4",
-    "symfony/serializer": "v7.3.5",
-    "symfony/twig-bundle": "v7.3.4",
-    "symfony/validator": "v7.3.7",
-    "symfony/yaml": "v7.3.5"
+    "symfony/runtime": "v8.0.0",
+    "symfony/security-bundle": "v8.0.0",
+    "symfony/serializer": "v8.0.0",
+    "symfony/twig-bundle": "v8.0.0",
+    "symfony/validator": "v8.0.0",
+    "symfony/yaml": "v8.0.0"
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
@@ -33,11 +33,11 @@
     "phpunit/phpunit": "^12.0",
     "rector/rector": "2.2.8",
     "roave/security-advisories": "dev-latest",
-    "symfony/browser-kit": "v7.3.6",
-    "symfony/css-selector": "v7.3.6",
-    "symfony/phpunit-bridge": "v7.3.4",
-    "symfony/stopwatch": "v7.3.0",
-    "symfony/web-profiler-bundle": "v7.3.5"
+    "symfony/browser-kit": "v8.0.0",
+    "symfony/css-selector": "v8.0.0",
+    "symfony/phpunit-bridge": "v8.0.0",
+    "symfony/stopwatch": "v8.0.0",
+    "symfony/web-profiler-bundle": "v8.0.0"
   },
   "config": {
     "preferred-install": {
