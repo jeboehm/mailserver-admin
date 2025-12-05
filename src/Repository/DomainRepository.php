@@ -20,7 +20,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Domain[]    findAll()
  * @method Domain[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  *
- * @extends \Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository<\App\Entity\Domain>
+ * @extends ServiceEntityRepository<Domain>
  */
 class DomainRepository extends ServiceEntityRepository
 {
