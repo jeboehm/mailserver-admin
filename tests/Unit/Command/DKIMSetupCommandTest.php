@@ -12,6 +12,7 @@ namespace Tests\Unit\Command;
 
 use App\Command\DKIMSetupCommand;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
@@ -33,16 +34,23 @@ class DKIMSetupCommandTest extends TestCase
 
     private MockObject $dkimManagerMock;
 
+    private MockObject $connectionCheckServiceMock;
+
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->dkimManagerMock = $this->createMock(Manager::class);
+        $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+
+        $this->connectionCheckServiceMock
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
         $application->add(
-            new DKIMSetupCommand($this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock)
+            new DKIMSetupCommand($this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock, $this->connectionCheckServiceMock)
         );
 
         $this->commandTester = new CommandTester($application->find('dkim:setup'));

@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Command;
 
 use App\Command\RedisSyncCommand;
+use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\FetchmailAccount\AccountWriter;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -24,20 +25,27 @@ class RedisSyncCommandTest extends TestCase
 
     private MockObject $managerMock;
     private MockObject $accountWriterMock;
+    private MockObject $connectionCheckServiceMock;
 
     protected function setUp(): void
     {
         $this->managerMock = $this->createMock(Manager::class);
         $this->accountWriterMock = $this->createMock(AccountWriter::class);
+        $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
 
         $application = new Application();
-        $application->add(new RedisSyncCommand($this->managerMock, $this->accountWriterMock));
+        $application->add(new RedisSyncCommand($this->managerMock, $this->accountWriterMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('redis:sync'));
     }
 
     public function testExecute(): void
     {
+        $this->connectionCheckServiceMock
+            ->expects($this->once())
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
+
         $this->managerMock->expects($this->once())->method('refresh');
         $this->accountWriterMock->expects($this->once())->method('write');
 

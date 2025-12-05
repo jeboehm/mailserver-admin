@@ -17,6 +17,7 @@ use App\Entity\User;
 use App\Repository\FetchmailAccountRepository;
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class FetchmailAccountControllerTest extends AbstractCrudTestCase
@@ -49,7 +50,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $accountId = $account->getId();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->assertIndexEntityActionExists('edit', $accountId);
@@ -64,7 +65,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');
@@ -100,7 +101,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');
@@ -147,7 +148,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
         static::assertResponseIsSuccessful();
 
         $this->client->submitForm('Save changes', [
@@ -187,7 +188,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
         static::assertResponseIsSuccessful();
 
         // Submit form without password field (leave empty)
@@ -225,7 +226,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         $this->client->clickLink('Add Fetchmail Account');
@@ -240,6 +241,112 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         ]);
 
         static::assertSelectorTextContains('.invalid-feedback', 'This value is already used.');
+    }
+
+    public function testPasswordFieldOnEditForm(): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        assert($userRepository instanceof UserRepository);
+        $user = $userRepository->findOneByEmailAddress('admin@example.com');
+        static::assertInstanceOf(User::class, $user);
+
+        $account = new FetchmailAccount();
+        $account->setUser($user);
+        $account->setHost('password-field.example.com');
+        $account->setPort(143);
+        $account->setProtocol('imap');
+        $account->setUsername('passworduser');
+        $account->setPassword('originalpassword');
+
+        $this->entityManager->persist($account);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        static::assertResponseIsSuccessful();
+
+        $passwordField = $this->client->getCrawler()->filter('input[name="FetchmailAccount[password]"]');
+        static::assertCount(1, $passwordField);
+        static::assertSame('password', $passwordField->attr('type'));
+    }
+
+    public function testPasswordFieldOnNewForm(): void
+    {
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
+        static::assertResponseIsSuccessful();
+
+        $this->client->clickLink('Add Fetchmail Account');
+        static::assertResponseIsSuccessful();
+
+        $passwordField = $this->client->getCrawler()->filter('input[name="FetchmailAccount[password]"]');
+        static::assertCount(1, $passwordField);
+        static::assertSame('password', $passwordField->attr('type'));
+    }
+
+    public function testEditWithNewPassword(): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        assert($userRepository instanceof UserRepository);
+        $user = $userRepository->findOneByEmailAddress('admin@example.com');
+        static::assertInstanceOf(User::class, $user);
+
+        $account = new FetchmailAccount();
+        $account->setUser($user);
+        $account->setHost('newpass.example.com');
+        $account->setPort(143);
+        $account->setProtocol('imap');
+        $account->setUsername('newpassuser');
+        $account->setPassword('originalpassword');
+
+        $this->entityManager->persist($account);
+        $this->entityManager->flush();
+        $this->entityManager->clear();
+
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($account->getId()));
+        static::assertResponseIsSuccessful();
+
+        $this->client->submitForm('Save changes', [
+            'FetchmailAccount[host]' => 'newpass.example.com',
+            'FetchmailAccount[password]' => 'newpassword123',
+        ]);
+        static::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
+        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        $updatedAccount = $fetchmailRepository->find($account->getId());
+        static::assertInstanceOf(FetchmailAccount::class, $updatedAccount);
+        static::assertNotEquals('originalpassword', $updatedAccount->getPassword());
+    }
+
+    public function testCreateEntitySetsCurrentUser(): void
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        assert($userRepository instanceof UserRepository);
+        $user = $userRepository->findOneByEmailAddress('admin@example.com');
+        static::assertInstanceOf(User::class, $user);
+
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
+        static::assertResponseIsSuccessful();
+
+        $this->client->clickLink('Add Fetchmail Account');
+        static::assertResponseIsSuccessful();
+
+        $form = $this->client->getCrawler()->selectButton('Create')->form();
+        $form['FetchmailAccount[host]'] = 'autouser.example.com';
+        $form['FetchmailAccount[port]'] = '143';
+        $form['FetchmailAccount[protocol]'] = 'imap';
+        $form['FetchmailAccount[username]'] = 'autouser';
+        $form['FetchmailAccount[password]'] = 'password';
+
+        $this->client->submit($form);
+        static::assertResponseIsSuccessful();
+
+        $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
+        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        $account = $fetchmailRepository->findOneBy(['user' => $user, 'host' => 'autouser.example.com']);
+        static::assertInstanceOf(FetchmailAccount::class, $account);
+        static::assertEquals($user->getId(), $account->getUser()->getId());
     }
 
     protected function getControllerFqcn(): string

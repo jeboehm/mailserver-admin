@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\FetchmailAccount;
 use App\Repository\UserRepository;
+use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,10 +25,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class FetchmailAccountAddCommand extends Command
 {
+    use ConnectionCheckTrait;
+
     public function __construct(
         private readonly UserRepository $userRepository,
         private readonly ValidatorInterface $validator,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ConnectionCheckService $connectionCheckService,
     ) {
         parent::__construct();
     }
@@ -50,6 +55,10 @@ class FetchmailAccountAddCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $user = $this->userRepository->findOneByEmailAddress(
             $input->getArgument('user'),
         );

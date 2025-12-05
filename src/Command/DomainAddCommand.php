@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,8 +23,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class DomainAddCommand extends Command
 {
-    public function __construct(private readonly ManagerRegistry $manager, private readonly ValidatorInterface $validator)
-    {
+    use ConnectionCheckTrait;
+
+    public function __construct(
+        private readonly ManagerRegistry $manager,
+        private readonly ValidatorInterface $validator,
+        private readonly ConnectionCheckService $connectionCheckService,
+    ) {
         parent::__construct();
     }
 
@@ -38,6 +45,10 @@ class DomainAddCommand extends Command
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $domain = new Domain();
         $domain->setName(\mb_strtolower((string) $input->getArgument('domain')));
 
