@@ -36,7 +36,6 @@ return $config
         PhpCsFixer\Finder::create()
             ->exclude('vendor')
             ->in(__DIR__ . '/bin')
-            ->in(__DIR__ . '/config')
             ->in(__DIR__ . '/public')
             ->in(__DIR__ . '/tests')
             ->in(__DIR__ . '/src')
