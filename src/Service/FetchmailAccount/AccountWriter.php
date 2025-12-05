@@ -14,18 +14,18 @@ use App\Entity\FetchmailAccount;
 use App\Repository\FetchmailAccountRepository;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
-use Predis\Client;
+use Predis\ClientInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[AsEntityListener(event: Events::postUpdate, method: 'write', entity: FetchmailAccount::class)]
 #[AsEntityListener(event: Events::postPersist, method: 'write', entity: FetchmailAccount::class)]
 #[AsEntityListener(event: Events::postRemove, method: 'postRemove', entity: FetchmailAccount::class)]
-class AccountWriter
+readonly class AccountWriter
 {
     public function __construct(
-        private readonly Client $redis,
-        private readonly FetchmailAccountRepository $repository,
-        private readonly SerializerInterface $serializer,
+        private ClientInterface $redis,
+        private FetchmailAccountRepository $repository,
+        private SerializerInterface $serializer,
     ) {
     }
 

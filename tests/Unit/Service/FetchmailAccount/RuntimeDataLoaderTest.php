@@ -16,18 +16,18 @@ use App\Service\FetchmailAccount\RuntimeData;
 use App\Service\FetchmailAccount\RuntimeDataLoader;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Predis\Client;
+use Predis\ClientInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class RuntimeDataLoaderTest extends TestCase
 {
-    private MockObject&Client $redis;
+    private MockObject&ClientInterface $redis;
     private MockObject&SerializerInterface $serializer;
     private RuntimeDataLoader $loader;
 
     protected function setUp(): void
     {
-        $this->redis = $this->createMock(Client::class);
+        $this->redis = $this->createMock(ClientInterface::class);
         $this->serializer = $this->createMock(SerializerInterface::class);
         $this->loader = new RuntimeDataLoader($this->redis, $this->serializer);
     }
@@ -71,14 +71,14 @@ class RuntimeDataLoaderTest extends TestCase
         $this->loader->postLoad($fetchmailAccount);
     }
 
-    public function testPostLoadWithValidData(): void
+    public function testPostLoadWithValidDataSuccess(): void
     {
-        $fetchmailAccount = $this->createPartialMock(FetchmailAccount::class, ['getId']);
-        $fetchmailAccount->expects($this->once())
-            ->method('getId')
-            ->willReturn(123);
+        $fetchmailAccount = new FetchmailAccount();
+        $reflection = new \ReflectionClass($fetchmailAccount);
+        $idProperty = $reflection->getProperty('id');
+        $idProperty->setValue($fetchmailAccount, 123);
 
-        $json = '{"isSuccess": true}';
+        $json = '{"isSuccess": true, "lastRun": "2023-01-01T10:00:00+00:00", "lastLog": "Log message"}';
         $this->redis->expects($this->once())
             ->method('__call')
             ->with('get', [RedisKeys::createRuntimeKey(123)])
@@ -99,5 +99,94 @@ class RuntimeDataLoaderTest extends TestCase
         $this->assertTrue($fetchmailAccount->isSuccess);
         $this->assertSame($runtimeData->lastRun, $fetchmailAccount->lastRun);
         $this->assertSame('Log message', $fetchmailAccount->lastLog);
+    }
+
+    public function testPostLoadWithValidDataFailure(): void
+    {
+        $fetchmailAccount = new FetchmailAccount();
+        $reflection = new \ReflectionClass($fetchmailAccount);
+        $idProperty = $reflection->getProperty('id');
+        $idProperty->setValue($fetchmailAccount, 456);
+
+        $json = '{"isSuccess": false, "lastRun": "2023-02-01T15:30:00+00:00", "lastLog": "Error occurred"}';
+        $this->redis->expects($this->once())
+            ->method('__call')
+            ->with('get', [RedisKeys::createRuntimeKey(456)])
+            ->willReturn($json);
+
+        $runtimeData = new RuntimeData();
+        $runtimeData->isSuccess = false;
+        $runtimeData->lastRun = new \DateTimeImmutable('2023-02-01 15:30:00');
+        $runtimeData->lastLog = 'Error occurred';
+
+        $this->serializer->expects($this->once())
+            ->method('deserialize')
+            ->with($json, RuntimeData::class, 'json')
+            ->willReturn($runtimeData);
+
+        $this->loader->postLoad($fetchmailAccount);
+
+        $this->assertFalse($fetchmailAccount->isSuccess);
+        $this->assertSame($runtimeData->lastRun, $fetchmailAccount->lastRun);
+        $this->assertSame('Error occurred', $fetchmailAccount->lastLog);
+    }
+
+    public function testPostLoadDoesNotModifyPropertiesWhenDataIsNull(): void
+    {
+        $fetchmailAccount = new FetchmailAccount();
+        $reflection = new \ReflectionClass($fetchmailAccount);
+        $idProperty = $reflection->getProperty('id');
+        $idProperty->setValue($fetchmailAccount, 789);
+
+        // Set initial values
+        $fetchmailAccount->isSuccess = true;
+        $fetchmailAccount->lastRun = new \DateTimeImmutable('2020-01-01 00:00:00');
+        $fetchmailAccount->lastLog = 'Initial log';
+
+        $this->redis->expects($this->once())
+            ->method('__call')
+            ->with('get', [RedisKeys::createRuntimeKey(789)])
+            ->willReturn(null);
+
+        $this->serializer->expects($this->never())
+            ->method('deserialize');
+
+        $this->loader->postLoad($fetchmailAccount);
+
+        // Properties should remain unchanged
+        $this->assertTrue($fetchmailAccount->isSuccess);
+        $this->assertSame('2020-01-01 00:00:00', $fetchmailAccount->lastRun->format('Y-m-d H:i:s'));
+        $this->assertSame('Initial log', $fetchmailAccount->lastLog);
+    }
+
+    public function testPostLoadDoesNotModifyPropertiesWhenDataIsInvalid(): void
+    {
+        $fetchmailAccount = new FetchmailAccount();
+        $reflection = new \ReflectionClass($fetchmailAccount);
+        $idProperty = $reflection->getProperty('id');
+        $idProperty->setValue($fetchmailAccount, 999);
+
+        // Set initial values
+        $fetchmailAccount->isSuccess = false;
+        $fetchmailAccount->lastRun = new \DateTimeImmutable('2021-01-01 00:00:00');
+        $fetchmailAccount->lastLog = 'Previous log';
+
+        $json = '{"invalid": "data"}';
+        $this->redis->expects($this->once())
+            ->method('__call')
+            ->with('get', [RedisKeys::createRuntimeKey(999)])
+            ->willReturn($json);
+
+        $this->serializer->expects($this->once())
+            ->method('deserialize')
+            ->with($json, RuntimeData::class, 'json')
+            ->willReturn(new \stdClass());
+
+        $this->loader->postLoad($fetchmailAccount);
+
+        // Properties should remain unchanged
+        $this->assertFalse($fetchmailAccount->isSuccess);
+        $this->assertSame('2021-01-01 00:00:00', $fetchmailAccount->lastRun->format('Y-m-d H:i:s'));
+        $this->assertSame('Previous log', $fetchmailAccount->lastLog);
     }
 }

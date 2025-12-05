@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -21,8 +23,12 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMDisableCommand extends Command
 {
-    public function __construct(private readonly ManagerRegistry $manager)
-    {
+    use ConnectionCheckTrait;
+
+    public function __construct(
+        private readonly ManagerRegistry $manager,
+        private readonly ConnectionCheckService $connectionCheckService,
+    ) {
         parent::__construct();
     }
 
@@ -38,6 +44,10 @@ class DKIMDisableCommand extends Command
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $name = $input->getArgument('domain');
         $domain = $this->manager->getRepository(Domain::class)->findOneBy(['name' => $name]);
 

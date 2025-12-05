@@ -12,6 +12,7 @@ namespace Tests\Unit\Command;
 
 use App\Command\DomainAddCommand;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -33,15 +34,22 @@ class DomainAddCommandTest extends TestCase
 
     private MockObject $validatorMock;
 
+    private MockObject $connectionCheckServiceMock;
+
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
+        $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+
+        $this->connectionCheckServiceMock
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new DomainAddCommand($this->managerRegistryMock, $this->validatorMock));
+        $application->add(new DomainAddCommand($this->managerRegistryMock, $this->validatorMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('domain:add'));
     }

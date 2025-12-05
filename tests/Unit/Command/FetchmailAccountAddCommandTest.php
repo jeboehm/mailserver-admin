@@ -14,6 +14,7 @@ use App\Command\FetchmailAccountAddCommand;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,12 +31,18 @@ class FetchmailAccountAddCommandTest extends TestCase
     private MockObject&EntityManagerInterface $entityManager;
     private MockObject&UserRepository $userRepository;
     private MockObject&ValidatorInterface $validator;
+    private MockObject&ConnectionCheckService $connectionCheckService;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
+        $this->connectionCheckService = $this->createMock(ConnectionCheckService::class);
+
+        $this->connectionCheckService
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
         $application->add(
@@ -43,6 +50,7 @@ class FetchmailAccountAddCommandTest extends TestCase
                 $this->userRepository,
                 $this->validator,
                 $this->entityManager,
+                $this->connectionCheckService,
             )
         );
 

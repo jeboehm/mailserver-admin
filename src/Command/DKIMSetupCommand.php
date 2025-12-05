@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
@@ -24,11 +26,14 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 class DKIMSetupCommand extends Command
 {
+    use ConnectionCheckTrait;
+
     public function __construct(
         private readonly ManagerRegistry $manager,
         private readonly KeyGenerationService $keyGenerationService,
         private readonly FormatterService $formatterService,
-        private readonly Manager $dkimManager
+        private readonly Manager $dkimManager,
+        private readonly ConnectionCheckService $connectionCheckService,
     ) {
         parent::__construct();
     }
@@ -47,6 +52,10 @@ class DKIMSetupCommand extends Command
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $domain = $this->getDomain($input, $output);
 
         if (null === $domain) {
