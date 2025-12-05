@@ -24,6 +24,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -68,7 +69,8 @@ class DKIMCrudController extends AbstractCrudController
 
         $recreateKeyAction
             ->linkToCrudAction('recreateKey')
-            ->setCssClass('btn btn-danger');
+            ->asDangerAction()
+            ->renderAsForm();
 
         return $actions
             ->add(Crud::PAGE_EDIT, $recreateKeyAction)
@@ -76,14 +78,12 @@ class DKIMCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
-    #[AdminAction('/recreate/{entityId}', routeName: 'dkim_recreate_key')]
+    #[AdminAction('/recreate/{entityId}', routeName: 'dkim_recreate_key', methods: [Request::METHOD_POST])]
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
 
-        if (!$domain) {
-            throw new \DomainException('Domain not found.');
-        }
+        assert($domain instanceof Domain);
 
         $keyPair = $this->keyGenerationService->createKeyPair();
         $domain->setDkimPrivateKey($keyPair->getPrivate());

@@ -13,14 +13,14 @@ namespace App\Service\FetchmailAccount;
 use App\Entity\FetchmailAccount;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
-use Predis\Client;
+use Predis\ClientInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[AsEntityListener(event: Events::postLoad, method: 'postLoad', entity: FetchmailAccount::class)]
 readonly class RuntimeDataLoader
 {
     public function __construct(
-        private Client $redis,
+        private ClientInterface $redis,
         private SerializerInterface $serializer,
     ) {
     }

@@ -12,6 +12,7 @@ namespace Tests\Unit\Command;
 
 use App\Command\DKIMDisableCommand;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
@@ -28,14 +29,21 @@ class DKIMDisableCommandTest extends TestCase
 
     private MockObject $managerMock;
 
+    private MockObject $connectionCheckServiceMock;
+
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+
+        $this->connectionCheckServiceMock
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new DKIMDisableCommand($this->managerRegistryMock));
+        $application->add(new DKIMDisableCommand($this->managerRegistryMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:disable'));
     }

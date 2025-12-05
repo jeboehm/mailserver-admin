@@ -18,6 +18,7 @@ use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
 class DKIMCrudControllerTest extends AbstractCrudTestCase
@@ -40,7 +41,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertInstanceOf(Domain::class, $domain);
         $domainId = $domain->getId();
 
-        $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateIndexUrl());
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
 
         static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
@@ -139,6 +140,30 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertSelectorTextContains('.alert', 'DKIM is disabled.');
     }
 
+    public function testRecreateKey(): void
+    {
+        $this->loginClient($this->client);
+
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        $originalPrivateKey = $domain->getDkimPrivateKey();
+
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        static::assertResponseIsSuccessful();
+
+        $this->client->submitForm('Recreate Key');
+        static::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $updatedDomain = $domainRepository->find($domain->getId());
+        static::assertInstanceOf(Domain::class, $updatedDomain);
+        static::assertNotEquals($originalPrivateKey, $updatedDomain->getDkimPrivateKey());
+        static::assertNotEmpty($updatedDomain->getDkimPrivateKey());
+    }
+
     protected function getControllerFqcn(): string
     {
         return DKIMCrudController::class;
@@ -151,7 +176,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
 
     private function navigateToDomain(Domain $domain): Crawler
     {
-        $crawler = $this->client->request(\Symfony\Component\HttpFoundation\Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $crawler = $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
         static::assertResponseIsSuccessful();
 
         return $crawler;

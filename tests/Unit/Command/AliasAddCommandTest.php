@@ -13,6 +13,7 @@ namespace Tests\Unit\Command;
 use App\Command\AliasAddCommand;
 use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
@@ -35,15 +36,22 @@ class AliasAddCommandTest extends TestCase
 
     private MockObject $validatorMock;
 
+    private MockObject $connectionCheckServiceMock;
+
     protected function setUp(): void
     {
         $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
         $this->managerMock = $this->createMock(ObjectManager::class);
         $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
+        $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+
+        $this->connectionCheckServiceMock
+            ->method('checkAll')
+            ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new AliasAddCommand($this->managerRegistryMock, $this->validatorMock));
+        $application->add(new AliasAddCommand($this->managerRegistryMock, $this->validatorMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('alias:add'));
     }
