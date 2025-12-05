@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
+use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\FetchmailAccount\AccountWriter;
 use Symfony\Component\Console\Command\Command;
@@ -18,9 +20,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RedisSyncCommand extends Command
 {
+    use ConnectionCheckTrait;
+
     public function __construct(
         private readonly Manager $manager,
         private readonly AccountWriter $accountWriter,
+        private readonly ConnectionCheckService $connectionCheckService,
     ) {
         parent::__construct();
     }
@@ -37,6 +42,10 @@ class RedisSyncCommand extends Command
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $this->manager->refresh();
         $this->accountWriter->write();
 

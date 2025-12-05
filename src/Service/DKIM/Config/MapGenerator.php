@@ -11,13 +11,13 @@ declare(strict_types=1);
 namespace App\Service\DKIM\Config;
 
 use App\Entity\Domain;
-use Predis\Client;
+use Predis\ClientInterface;
 
-class MapGenerator
+readonly class MapGenerator
 {
     private const string KEY_HASHMAP = 'dkim_keys';
 
-    public function __construct(private readonly Client $redis)
+    public function __construct(private ClientInterface $redis)
     {
     }
 

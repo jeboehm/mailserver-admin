@@ -10,8 +10,10 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Service\ConnectionCheckService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -25,8 +27,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserAddCommand extends Command
 {
-    public function __construct(private readonly ManagerRegistry $manager, private readonly ValidatorInterface $validator)
-    {
+    use ConnectionCheckTrait;
+
+    public function __construct(
+        private readonly ManagerRegistry $manager,
+        private readonly ValidatorInterface $validator,
+        private readonly ConnectionCheckService $connectionCheckService,
+    ) {
         parent::__construct();
     }
 
@@ -48,6 +55,10 @@ class UserAddCommand extends Command
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!$this->checkConnections($this->connectionCheckService, $output)) {
+            return 1;
+        }
+
         $user = new User();
         $domain = $this->getDomain($input->getArgument('domain'));
 

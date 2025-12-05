@@ -17,7 +17,8 @@ services:
         resource: '../src/Controller'
         tags: [ 'controller.service_arguments' ]
 
-    Predis\Client:
+    Predis\ClientInterface:
+        class: Predis\Client
         arguments:
             $parameters:
                 scheme: 'tcp'
