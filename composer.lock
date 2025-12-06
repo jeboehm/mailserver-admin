@@ -8855,16 +8855,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.5.0",
+            "version": "12.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "fef037fe50d20ce826cdbd741b7a2afcdec5f45b"
+                "reference": "e33a5132ea24119400f6ce5bce6665922e968bad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/fef037fe50d20ce826cdbd741b7a2afcdec5f45b",
-                "reference": "fef037fe50d20ce826cdbd741b7a2afcdec5f45b",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/e33a5132ea24119400f6ce5bce6665922e968bad",
+                "reference": "e33a5132ea24119400f6ce5bce6665922e968bad",
                 "shasum": ""
             },
             "require": {
@@ -8932,7 +8932,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.0"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.1"
             },
             "funding": [
                 {
@@ -8956,7 +8956,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-05T04:59:40+00:00"
+            "time": "2025-12-06T12:19:17+00:00"
         },
         {
             "name": "react/cache",
@@ -12010,5 +12010,5 @@
         "ext-openssl": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
