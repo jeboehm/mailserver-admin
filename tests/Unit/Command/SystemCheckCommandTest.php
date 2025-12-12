@@ -27,7 +27,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService = $this->createMock(ConnectionCheckService::class);
 
         $application = new Application();
-        $application->add(new SystemCheckCommand($this->connectionCheckService));
+        $application->addCommand(new SystemCheckCommand($this->connectionCheckService, '1s'));
 
         $this->commandTester = new CommandTester($application->find('system:check'));
     }
@@ -106,5 +106,51 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringContainsString('Database not found', $output);
         $this->assertStringContainsString('[ERROR] Your Redis connection failed because of:', $output);
         $this->assertStringContainsString('Connection refused', $output);
+    }
+
+    public function testWaitOptionWithImmediateSuccess(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->willReturn([
+                'mysql' => null,
+                'redis' => null,
+            ]);
+
+        $this->commandTester->execute(['--wait' => true]);
+
+        $this->assertEquals(0, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('Waiting for dependencies to become available', $output);
+        $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
+        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+    }
+
+    public function testWaitOptionWithTimeout(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->atLeast(1))
+            ->method('checkAll')
+            ->willReturn([
+                'mysql' => 'Connection refused',
+                'redis' => 'Connection refused',
+            ]);
+
+        $startTime = time();
+        $this->commandTester->execute(['--wait' => true]);
+        $endTime = time();
+
+        $this->assertEquals(1, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('Waiting for dependencies to become available', $output);
+        $this->assertStringContainsString('Timeout reached after 1s', $output);
+        $this->assertStringContainsString('[ERROR] Your MySQL connection failed because of:', $output);
+        $this->assertStringContainsString('[ERROR] Your Redis connection failed because of:', $output);
+
+        // Verify it waited approximately 1 second (allow some margin for test execution)
+        $this->assertGreaterThanOrEqual(1, $endTime - $startTime);
+        $this->assertLessThan(3, $endTime - $startTime);
     }
 }
