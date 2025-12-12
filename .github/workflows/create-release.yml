@@ -50,7 +50,7 @@ jobs:
         env:
           APP_ENV: prod
         run: |
-          composer install --no-progress --prefer-dist --optimize-autoloader --no-dev --no-scripts
+          composer install --no-progress --prefer-dist -a --no-dev --no-scripts
           bin/console assets:install
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
