@@ -35,7 +35,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willReturn($this->createMock(Result::class));
 
         $result = $this->service->checkMySQL();
@@ -50,7 +50,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -66,7 +66,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -82,7 +82,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -98,7 +98,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -114,7 +114,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -130,7 +130,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
         $result = $this->service->checkMySQL();
@@ -237,7 +237,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willReturn($this->createMock(Result::class));
 
         $this->redis
@@ -259,7 +259,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT 1')
+            ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($mysqlException);
 
         $redisException = new \RuntimeException('Connection refused');
