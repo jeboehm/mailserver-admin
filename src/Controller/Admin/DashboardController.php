@@ -51,26 +51,36 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToCrud('Domain', 'fas fa-globe', Domain::class)
+        yield MenuItem::section('Manage');
+        yield MenuItem::linkToCrud('Domain', 'fa fa-globe', Domain::class)
             ->setPermission(Roles::ROLE_ADMIN);
-        yield MenuItem::linkToCrud('User', 'fas fa-user', User::class)
+        yield MenuItem::linkToCrud('User', 'fa fa-user', User::class)
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
         yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class)
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
 
-        yield MenuItem::section('Features', 'fas fa-folder-open');
+        yield MenuItem::section('External');
         yield MenuItem::linkToCrud('Fetchmail', 'far fa-envelope', FetchmailAccount::class)
             ->setPermission(Roles::ROLE_USER);
 
-        yield MenuItem::section('Other', 'fas fa-folder-open');
-        yield MenuItem::linkToCrud('DKIM', 'fas fa-shield-alt', Domain::class)
+        yield MenuItem::section('Security');
+        yield MenuItem::linkToCrud('DKIM', 'fa fa-shield-alt', Domain::class)
             ->setController(DKIMCrudController::class)
             ->setPermission(Roles::ROLE_ADMIN);
 
-        yield MenuItem::linkToUrl('Webmail', 'fas fa-envelope', '/webmail')
+        yield MenuItem::section('Tools');
+        yield MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');
-        yield MenuItem::linkToUrl('Rspamd', 'fas fa-filter', '/rspamd')
+        yield MenuItem::linkToUrl('Rspamd', 'fa fa-filter', '/rspamd')
             ->setLinkRel('noreferrer')
             ->setPermission(Roles::ROLE_ADMIN);
+
+        yield MenuItem::section('Help');
+        yield MenuItem::linkToUrl('Help', 'fa fa-book', 'https://jeboehm.github.io/docker-mailserver/')
+            ->setLinkRel('noreferrer')
+            ->setLinkTarget('_blank');
+        yield MenuItem::linkToUrl('Report a bug', 'fa fa-bug', 'https://github.com/jeboehm/docker-mailserver/issues')
+            ->setLinkRel('noreferrer')
+            ->setLinkTarget('_blank');
     }
 }
