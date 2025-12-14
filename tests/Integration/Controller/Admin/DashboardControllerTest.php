@@ -25,8 +25,8 @@ class DashboardControllerTest extends WebTestCase
 
         $client->request(Request::METHOD_GET, '/');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.user-name', 'admin@example.com');
 
-        self::assertSelectorTextContains('h2', 'Welcome to the admin dashboard!');
+        self::assertSelectorTextContains('body', 'admin@example.com');
+        self::assertSelectorTextContains('body', 'Welcome to mailserver-admin');
     }
 }
