@@ -67,9 +67,9 @@ class DashboardController extends AbstractDashboardController
             ->setController(DKIMCrudController::class)
             ->setPermission(Roles::ROLE_ADMIN);
 
-        yield MenuItem::linkToUrl('Webmail', 'fas fa-folder-open', '/webmail')
+        yield MenuItem::linkToUrl('Webmail', 'fas fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');
-        yield MenuItem::linkToUrl('Rspamd', 'fas fa-folder-open', '/rspamd')
+        yield MenuItem::linkToUrl('Rspamd', 'fas fa-filter', '/rspamd')
             ->setLinkRel('noreferrer')
             ->setPermission(Roles::ROLE_ADMIN);
     }

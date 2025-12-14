@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -19,10 +21,11 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 readonly class GitHubTagService
 {
-    private const GITHUB_API_BASE_URL = 'https://api.github.com';
+    private const string GITHUB_API_BASE_URL = 'https://api.github.com';
 
     public function __construct(
         private HttpClientInterface $httpClient,
+        private CacheInterface $cacheApp,
     ) {
     }
 
@@ -31,12 +34,6 @@ readonly class GitHubTagService
      *
      * @param string $owner The repository owner (e.g., 'jeboehm')
      * @param string $repo  The repository name (e.g., 'mailserver-admin')
-     *
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws RedirectionExceptionInterface
-     * @throws DecodingExceptionInterface
-     * @throws ClientExceptionInterface
      *
      * @return string|null The latest tag version (without 'v' prefix if present) or null if not found
      */
@@ -50,18 +47,25 @@ readonly class GitHubTagService
         );
 
         try {
-            $response = $this->httpClient->request('GET', $url, [
-                'headers' => [
-                    'Accept' => 'application/vnd.github.v3+json',
-                ],
-            ]);
+            $tags = $this->cacheApp->get(
+                \md5(__CLASS__ . $owner . $repo),
+                function (ItemInterface $item) use ($url): ?array {
+                    $item->expiresAfter(new \DateInterval('PT8H'));
+                    $response = $this->httpClient->request('GET', $url, [
+                        'headers' => [
+                            'Accept' => 'application/vnd.github.v3+json',
+                        ],
+                    ]);
 
-            $statusCode = $response->getStatusCode();
-            if (200 !== $statusCode) {
-                return null;
-            }
+                    $statusCode = $response->getStatusCode();
 
-            $tags = $response->toArray();
+                    if (200 !== $statusCode) {
+                        return null;
+                    }
+
+                    return $response->toArray();
+                }
+            );
 
             if (empty($tags)) {
                 return null;
@@ -77,13 +81,14 @@ readonly class GitHubTagService
 
             // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
             return ltrim($latestTag, 'v');
-        } catch (ClientExceptionInterface $e) {
-            // 404 or other client errors - repository not found or no tags
-            if (404 === $e->getCode()) {
-                return null;
-            }
+        } catch (\Exception) {
+            $this->cacheApp->get(\md5(__CLASS__ . $owner . $repo), function (ItemInterface $item): null {
+                $item->expiresAfter(new \DateInterval('PT2H'));
 
-            throw $e;
+                return null;
+            });
+
+            return null;
         }
     }
 
@@ -92,11 +97,11 @@ readonly class GitHubTagService
      *
      * @param string $repositoryPath The full repository path (e.g., 'jeboehm/mailserver-admin')
      *
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws ClientExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws ServerExceptionInterface
      *
      * @return string|null The latest tag version (without 'v' prefix if present) or null if not found
      */

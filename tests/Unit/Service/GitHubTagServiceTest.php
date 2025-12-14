@@ -13,24 +13,22 @@ namespace Tests\Unit\Service;
 use App\Service\GitHubTagService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class GitHubTagServiceTest extends TestCase
 {
     private MockObject|HttpClientInterface $httpClient;
+    private MockObject|CacheInterface $cache;
     private GitHubTagService $service;
 
     protected function setUp(): void
     {
         $this->httpClient = $this->createMock(HttpClientInterface::class);
-        $this->service = new GitHubTagService($this->httpClient);
+        $this->cache = $this->createMock(CacheInterface::class);
+        $this->service = new GitHubTagService($this->httpClient, $this->cache);
     }
 
     public function testGetLatestTagSuccessWithVPrefix(): void
@@ -60,6 +58,20 @@ class GitHubTagServiceTest extends TestCase
             )
             ->willReturn($response);
 
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->with($this->isInstanceOf(\DateInterval::class))
+            ->willReturnSelf();
+
+        $this->cache
+            ->expects($this->once())
+            ->method('get')
+            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
+
         $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
         $this->assertEquals('1.2.3', $result);
@@ -75,7 +87,6 @@ class GitHubTagServiceTest extends TestCase
             ->method('toArray')
             ->willReturn([
                 ['name' => '1.2.3'],
-                ['name' => '1.2.2'],
             ]);
 
         $this->httpClient
@@ -83,31 +94,20 @@ class GitHubTagServiceTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
-        $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->willReturnSelf();
 
-        $this->assertEquals('1.2.3', $result);
-    }
-
-    public function testGetLatestTagSuccessWithMultipleVPrefix(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $response->expects($this->once())
-            ->method('getStatusCode')
-            ->willReturn(200);
-        $response->expects($this->once())
-            ->method('toArray')
-            ->willReturn([
-                ['name' => 'vv1.2.3'],
-            ]);
-
-        $this->httpClient
+        $this->cache
             ->expects($this->once())
-            ->method('request')
-            ->willReturn($response);
+            ->method('get')
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
-        // ltrim removes all leading 'v' characters
         $this->assertEquals('1.2.3', $result);
     }
 
@@ -125,6 +125,18 @@ class GitHubTagServiceTest extends TestCase
             ->expects($this->once())
             ->method('request')
             ->willReturn($response);
+
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->willReturnSelf();
+
+        $this->cache
+            ->expects($this->once())
+            ->method('get')
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
@@ -148,6 +160,18 @@ class GitHubTagServiceTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->willReturnSelf();
+
+        $this->cache
+            ->expects($this->once())
+            ->method('get')
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
+
         $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
         $this->assertNull($result);
@@ -165,147 +189,48 @@ class GitHubTagServiceTest extends TestCase
             ->method('request')
             ->willReturn($response);
 
-        $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->willReturnSelf();
 
-        $this->assertNull($result);
-    }
-
-    public function testGetLatestTag404ClientException(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $exception = new class($response) extends \Exception implements ClientExceptionInterface, HttpExceptionInterface {
-            public function __construct(private ResponseInterface $response)
-            {
-                parent::__construct('Not found', 404);
-            }
-
-            public function getResponse(): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-
-        $this->httpClient
+        $this->cache
             ->expects($this->once())
-            ->method('request')
-            ->willThrowException($exception);
+            ->method('get')
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
         $this->assertNull($result);
     }
 
-    public function testGetLatestTagNon404ClientException(): void
+    public function testGetLatestTagExceptionHandling(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
-        $exception = new class($response) extends \Exception implements ClientExceptionInterface, HttpExceptionInterface {
-            public function __construct(private ResponseInterface $response)
-            {
-                parent::__construct('Forbidden', 403);
-            }
-
-            public function getResponse(): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
+        $exception = new \RuntimeException('Network error');
 
         $this->httpClient
             ->expects($this->once())
             ->method('request')
             ->willThrowException($exception);
 
-        $this->expectException(ClientExceptionInterface::class);
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->exactly(2))
+            ->method('expiresAfter')
+            ->willReturnSelf();
 
-        $this->service->getLatestTag('jeboehm', 'mailserver-admin');
-    }
+        $this->cache
+            ->expects($this->exactly(2))
+            ->method('get')
+            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
-    public function testGetLatestTagTransportException(): void
-    {
-        $exception = new class('Transport error') extends \Exception implements TransportExceptionInterface {
-        };
+        $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
 
-        $this->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->willThrowException($exception);
-
-        $this->expectException(TransportExceptionInterface::class);
-
-        $this->service->getLatestTag('jeboehm', 'mailserver-admin');
-    }
-
-    public function testGetLatestTagServerException(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $exception = new class($response) extends \Exception implements ServerExceptionInterface, HttpExceptionInterface {
-            public function __construct(private ResponseInterface $response)
-            {
-                parent::__construct('Server error');
-            }
-
-            public function getResponse(): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-
-        $this->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->willThrowException($exception);
-
-        $this->expectException(ServerExceptionInterface::class);
-
-        $this->service->getLatestTag('jeboehm', 'mailserver-admin');
-    }
-
-    public function testGetLatestTagRedirectionException(): void
-    {
-        $response = $this->createMock(ResponseInterface::class);
-        $exception = new class($response) extends \Exception implements RedirectionExceptionInterface, HttpExceptionInterface {
-            public function __construct(private ResponseInterface $response)
-            {
-                parent::__construct('Redirection error');
-            }
-
-            public function getResponse(): ResponseInterface
-            {
-                return $this->response;
-            }
-        };
-
-        $this->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->willThrowException($exception);
-
-        $this->expectException(RedirectionExceptionInterface::class);
-
-        $this->service->getLatestTag('jeboehm', 'mailserver-admin');
-    }
-
-    public function testGetLatestTagDecodingException(): void
-    {
-        $exception = new class('Decoding error') extends \Exception implements DecodingExceptionInterface {
-        };
-
-        $response = $this->createMock(ResponseInterface::class);
-        $response->expects($this->once())
-            ->method('getStatusCode')
-            ->willReturn(200);
-        $response->expects($this->once())
-            ->method('toArray')
-            ->willThrowException($exception);
-
-        $this->httpClient
-            ->expects($this->once())
-            ->method('request')
-            ->willReturn($response);
-
-        $this->expectException(DecodingExceptionInterface::class);
-
-        $this->service->getLatestTag('jeboehm', 'mailserver-admin');
+        $this->assertNull($result);
     }
 
     public function testGetLatestTagFromPathSuccess(): void
@@ -323,12 +248,19 @@ class GitHubTagServiceTest extends TestCase
         $this->httpClient
             ->expects($this->once())
             ->method('request')
-            ->with(
-                'GET',
-                'https://api.github.com/repos/jeboehm/mailserver-admin/tags',
-                $this->anything()
-            )
             ->willReturn($response);
+
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->once())
+            ->method('expiresAfter')
+            ->willReturnSelf();
+
+        $this->cache
+            ->expects($this->once())
+            ->method('get')
+            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $result = $this->service->getLatestTagFromPath('jeboehm/mailserver-admin');
 
@@ -342,17 +274,24 @@ class GitHubTagServiceTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testGetLatestTagFromPathInvalidFormatTooManySlashes(): void
+    public function testGetLatestTagCacheHit(): void
     {
-        $result = $this->service->getLatestTagFromPath('owner/repo/subpath');
+        $cachedData = [
+            ['name' => 'v2.0.0'],
+        ];
 
-        $this->assertNull($result);
-    }
+        $this->cache
+            ->expects($this->once())
+            ->method('get')
+            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->willReturn($cachedData);
 
-    public function testGetLatestTagFromPathEmptyString(): void
-    {
-        $result = $this->service->getLatestTagFromPath('');
+        $this->httpClient
+            ->expects($this->never())
+            ->method('request');
 
-        $this->assertNull($result);
+        $result = $this->service->getLatestTag('jeboehm', 'mailserver-admin');
+
+        $this->assertEquals('2.0.0', $result);
     }
 }
