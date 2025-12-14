@@ -16,11 +16,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class VersionCheckCommand extends Command
 {
@@ -48,35 +43,10 @@ class VersionCheckCommand extends Command
         // Get current versions
         $currentAdminVersion = $this->applicationVersionService->getAdminVersion();
         $currentMailserverVersion = $this->applicationVersionService->getMailserverVersion();
-
-        // Get latest GitHub versions
-        $latestAdminVersion = null;
-        $latestMailserverVersion = null;
         $errors = [];
 
-        try {
-            $latestAdminVersion = $this->gitHubTagService->getLatestTag('jeboehm', 'mailserver-admin');
-        } catch (
-            TransportExceptionInterface|
-            ServerExceptionInterface|
-            RedirectionExceptionInterface|
-            DecodingExceptionInterface|
-            ClientExceptionInterface $e
-        ) {
-            $errors[] = 'Failed to fetch latest admin version: ' . $e->getMessage();
-        }
-
-        try {
-            $latestMailserverVersion = $this->gitHubTagService->getLatestTag('jeboehm', 'docker-mailserver');
-        } catch (
-            TransportExceptionInterface|
-            ServerExceptionInterface|
-            RedirectionExceptionInterface|
-            DecodingExceptionInterface|
-            ClientExceptionInterface $e
-        ) {
-            $errors[] = 'Failed to fetch latest mailserver version: ' . $e->getMessage();
-        }
+        $latestAdminVersion = $this->gitHubTagService->getLatestTag('jeboehm', 'mailserver-admin');
+        $latestMailserverVersion = $this->gitHubTagService->getLatestTag('jeboehm', 'docker-mailserver');
 
         // Create and display table
         $table = new Table($output);
@@ -101,14 +71,6 @@ class VersionCheckCommand extends Command
         ]);
 
         $table->render();
-
-        // Display errors if any
-        if (!empty($errors)) {
-            $output->writeln('');
-            foreach ($errors as $error) {
-                $output->writeln('<error>' . $error . '</error>');
-            }
-        }
 
         // Return exit code based on status
         $hasOutdated = (null !== $currentAdminVersion && null !== $latestAdminVersion && $currentAdminVersion !== $latestAdminVersion)
