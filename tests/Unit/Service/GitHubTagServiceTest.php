@@ -50,18 +50,21 @@ class GitHubTagServiceTest extends TestCase
             ->with(
                 'GET',
                 'https://api.github.com/repos/jeboehm/mailserver-admin/tags',
-                [
-                    'headers' => [
-                        'Accept' => 'application/vnd.github.v3+json',
-                    ],
-                ]
+                $this->callback(function ($options) {
+                    return isset($options['headers']['Accept'])
+                        && 'application/vnd.github.v3+json' === $options['headers']['Accept']
+                        && isset($options['timeout'])
+                        && 5 === $options['timeout'];
+                })
             )
             ->willReturn($response);
 
         $cacheItem = $this->createMock(ItemInterface::class);
         $cacheItem->expects($this->once())
             ->method('expiresAfter')
-            ->with($this->isInstanceOf(\DateInterval::class))
+            ->with($this->callback(function ($interval) {
+                return $interval instanceof \DateInterval && 8 === $interval->h;
+            }))
             ->willReturnSelf();
 
         $this->cache
@@ -216,12 +219,24 @@ class GitHubTagServiceTest extends TestCase
             ->willThrowException($exception);
 
         $cacheItem = $this->createMock(ItemInterface::class);
+        $callCount = 0;
         $cacheItem->expects($this->exactly(2))
             ->method('expiresAfter')
-            ->willReturnSelf();
+            ->willReturnCallback(function ($interval) use (&$callCount, $cacheItem) {
+                ++$callCount;
+                if (1 === $callCount) {
+                    $this->assertInstanceOf(\DateInterval::class, $interval);
+                    $this->assertEquals(8, $interval->h);
+                } else {
+                    $this->assertInstanceOf(\DateInterval::class, $interval);
+                    $this->assertEquals(2, $interval->h);
+                }
+
+                return $cacheItem;
+            });
 
         $this->cache
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('get')
             ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
             ->willReturnCallback(function ($key, $callback) use ($cacheItem) {

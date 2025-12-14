@@ -46,15 +46,16 @@ readonly class GitHubTagService
             $repo
         );
 
-        try {
-            $tags = $this->cacheApp->get(
-                \md5(__CLASS__ . $owner . $repo),
-                function (ItemInterface $item) use ($url): ?array {
-                    $item->expiresAfter(new \DateInterval('PT8H'));
+        $tags = $this->cacheApp->get(
+            \md5(__CLASS__ . $owner . $repo),
+            function (ItemInterface $item) use ($url): ?array {
+                $item->expiresAfter(new \DateInterval('PT8H'));
+                try {
                     $response = $this->httpClient->request('GET', $url, [
                         'headers' => [
                             'Accept' => 'application/vnd.github.v3+json',
                         ],
+                        'timeout' => 5, // accept higher timeout since response is cached
                     ]);
 
                     $statusCode = $response->getStatusCode();
@@ -64,32 +65,28 @@ readonly class GitHubTagService
                     }
 
                     return $response->toArray();
+                } catch (\Exception) {
+                    $item->expiresAfter(new \DateInterval('PT2H'));
+
+                    return null;
                 }
-            );
-
-            if (empty($tags)) {
-                return null;
             }
+        );
 
-            // GitHub API returns tags sorted by creation date (newest first)
-            // Get the first tag and extract the version
-            $latestTag = $tags[0]['name'] ?? null;
-
-            if (null === $latestTag) {
-                return null;
-            }
-
-            // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
-            return ltrim($latestTag, 'v');
-        } catch (\Exception) {
-            $this->cacheApp->get(\md5(__CLASS__ . $owner . $repo), function (ItemInterface $item): null {
-                $item->expiresAfter(new \DateInterval('PT2H'));
-
-                return null;
-            });
-
+        if (empty($tags)) {
             return null;
         }
+
+        // GitHub API returns tags sorted by creation date (newest first)
+        // Get the first tag and extract the version
+        $latestTag = $tags[0]['name'] ?? null;
+
+        if (null === $latestTag) {
+            return null;
+        }
+
+        // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
+        return ltrim($latestTag, 'v');
     }
 
     /**
@@ -97,11 +94,11 @@ readonly class GitHubTagService
      *
      * @param string $repositoryPath The full repository path (e.g., 'jeboehm/mailserver-admin')
      *
-     * @throws RedirectionExceptionInterface
      * @throws DecodingExceptionInterface
      * @throws ClientExceptionInterface
      * @throws TransportExceptionInterface
      * @throws ServerExceptionInterface
+     * @throws RedirectionExceptionInterface
      *
      * @return string|null The latest tag version (without 'v' prefix if present) or null if not found
      */
