@@ -27,6 +27,10 @@ services:
                 port: '%env(REDIS_PORT)%'
                 password: '%env(REDIS_PASSWORD)%'
 
+    App\Service\ApplicationVersionService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
 when@test:
     services:
         App\Service\DKIM\DKIMStatusService:
