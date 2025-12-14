@@ -57,7 +57,7 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
       redis:
-        image: redis@sha256:43355efd22490e31ca14b9d569367d05121e2be61fd8e47937563ae2a80952ae
+        image: redis@sha256:3906b477e4b60250660573105110c28bfce93b01243eab37610a484daebceb04
         ports:
           - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
