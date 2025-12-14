@@ -29,7 +29,7 @@ readonly class ConnectionCheckService
     public function checkMySQL(): ?string
     {
         try {
-            $this->connection->executeQuery('SELECT 1');
+            $this->connection->executeQuery('SELECT id FROM mail_domains LIMIT 1');
         } catch (\Throwable $e) {
             return $this->formatMySQLError($e);
         }
