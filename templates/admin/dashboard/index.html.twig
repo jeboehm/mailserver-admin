@@ -1,20 +1,225 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
-{% block content_title %}Start{% endblock %}
+{% block content_title %}{% endblock %}
 
 {% block main %}
-    <h2>
-        Welcome to the admin dashboard!
-    </h2>
+    <div class="welcome-dashboard">
+        {# Hero Section #}
+        <div class="text-center mb-5 py-4">
+            <div class="mb-4">
+                <img src="{{ asset('logo.png') }}" alt="mailserver-admin Logo" class="logo-hero" style="max-width: 200px; height: auto; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));">
+            </div>
+            <h1 class="display-4 fw-bold mb-3">Welcome to mailserver-admin</h1>
+            <p class="lead text-muted mb-4">
+                Manage your docker-mailserver instance with ease
+            </p>
+        </div>
 
-    <p>
-        Here you can manage the users and their email addresses of your
-        <a href="https://github.com/jeboehm/docker-mailserver" target="_blank">docker-mailserver</a>
-        instance.
-    </p>
+        {# Quick Start Guide #}
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">
+                            <i class="fa fa-rocket me-2"></i>Getting Started
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <span class="fw-bold">1</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="mb-2">Configure Domains</h5>
+                                        <p class="text-muted mb-0">
+                                            {% if is_granted('ROLE_ADMIN') %}
+                                                Start by adding your email domains. Navigate to <strong>Domain</strong> in the menu to get started.
+                                            {% else %}
+                                                Contact your administrator to configure domains for your mailserver.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <span class="fw-bold">2</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="mb-2">Create Users</h5>
+                                        <p class="text-muted mb-0">
+                                            {% if is_granted('ROLE_DOMAIN_ADMIN') %}
+                                                Add email users for your domains. Go to <strong>User</strong> in the menu to create accounts.
+                                            {% else %}
+                                                Users can be created by domain administrators once domains are configured.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="flex-shrink-0">
+                                        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                            <span class="fw-bold">3</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h5 class="mb-2">Set Up Aliases</h5>
+                                        <p class="text-muted mb-0">
+                                            {% if is_granted('ROLE_DOMAIN_ADMIN') %}
+                                                Configure email aliases to forward messages. Visit <strong>Alias</strong> to manage forwarding rules.
+                                            {% else %}
+                                                Email aliases can be configured by domain administrators.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <p>
-        If you would like to change your password, log in to
-        <a href="/webmail" target="_blank">Webmail</a> and go to the settings.
-    </p>
+        {# Feature Cards #}
+        <div class="row g-4 mb-5">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fa fa-globe fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Domain Management</h5>
+                        <p class="card-text text-muted small">
+                            Configure and manage email domains for your mailserver instance.
+                        </p>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ ea_url().setController('App\\Controller\\Admin\\DomainCrudController') }}" class="btn btn-sm btn-outline-primary">
+                                Manage Domains
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fa fa-user fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">User Management</h5>
+                        <p class="card-text text-muted small">
+                            Create and manage email user accounts across your domains.
+                        </p>
+                        {% if is_granted('ROLE_DOMAIN_ADMIN') %}
+                            <a href="{{ ea_url().setController('App\\Controller\\Admin\\UserCrudController') }}" class="btn btn-sm btn-outline-success">
+                                Manage Users
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fa fa-shield-alt fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">DKIM Signing</h5>
+                        <p class="card-text text-muted small">
+                            Configure DomainKeys Identified Mail for email authentication.
+                        </p>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ ea_url().setController('App\\Controller\\Admin\\DKIMCrudController') }}" class="btn btn-sm btn-outline-warning">
+                                Manage DKIM
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm border-0 text-center">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fa fa-envelope fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title">Webmail Access</h5>
+                        <p class="card-text text-muted small">
+                            Access your email through the webmail interface and change your password.
+                        </p>
+                        <a href="/webmail" target="_blank" rel="noreferrer" class="btn btn-sm btn-outline-info">
+                            Open Webmail
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Documentation & Help Section #}
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="mb-2">
+                                    <i class="fa fa-book me-2 text-primary"></i>Need Help?
+                                </h4>
+                                <p class="text-muted mb-0">
+                                    Check out the comprehensive documentation for docker-mailserver to learn more about domain management, user configuration, and advanced features.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                <a href="https://jeboehm.github.io/docker-mailserver/manage-domains/" target="_blank" rel="noreferrer" class="btn btn-primary">
+                                    <i class="fa fa-external-link-alt me-2"></i>View Documentation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .welcome-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-hero {
+            transition: transform 0.3s ease;
+        }
+
+        .logo-hero:hover {
+            transform: scale(1.05);
+        }
+
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        @media (max-width: 768px) {
+            .display-4 {
+                font-size: 2rem;
+            }
+
+            .lead {
+                font-size: 1rem;
+            }
+        }
+    </style>
 {% endblock %}

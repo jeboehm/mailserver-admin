@@ -76,7 +76,7 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Help');
-        yield MenuItem::linkToUrl('Help', 'fa fa-book', 'https://jeboehm.github.io/docker-mailserver/')
+        yield MenuItem::linkToUrl('Docs', 'fa fa-book', 'https://jeboehm.github.io/docker-mailserver/')
             ->setLinkRel('noreferrer')
             ->setLinkTarget('_blank');
         yield MenuItem::linkToUrl('Report a bug', 'fa fa-bug', 'https://github.com/jeboehm/docker-mailserver/issues')
