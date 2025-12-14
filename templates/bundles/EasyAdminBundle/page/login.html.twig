@@ -1,9 +1,16 @@
 {% extends '@!EasyAdmin/page/login.html.twig' %}
 
+{% block header_logo %}
+    <div class="text-center mb-4">
+        <img src="{{ asset('logo.png') }}" alt="mailserver-admin Logo" class="login-logo" style="max-width: 200px; height: auto; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));">
+    </div>
+    {{ parent() }}
+{% endblock %}
+
 {% block login_form_wrapper %}
     {{ parent() }}
     {% if enable_oauth %}
-        <a role="button" href="{{ path('hwi_oauth_service_redirect', { service: "default" }) }}" class="mt-2 btn btn-secondary btn-lg">
+        <a role="button" href="{{ path('hwi_oauth_service_redirect', { service: "default" }) }}" class="mt-2 btn btn-secondary btn-block btn-lg">
             {{ oauth_button_text }}
         </a>
     {% endif %}
