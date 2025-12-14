@@ -33,3 +33,6 @@ devenv.local.nix
 ###> phpstan/phpstan ###
 phpstan.neon
 ###< phpstan/phpstan ###
+
+/DMS-VERSION
+/VERSION
