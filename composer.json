@@ -33,7 +33,7 @@
     "dama/doctrine-test-bundle": "^v8.2.0",
     "friendsofphp/php-cs-fixer": "v3.91.3",
     "phpunit/phpunit": "^12.0",
-    "rector/rector": "2.2.11",
+    "rector/rector": "2.2.14",
     "roave/security-advisories": "dev-latest",
     "symfony/browser-kit": "v7.4.0",
     "symfony/css-selector": "v7.4.0",
