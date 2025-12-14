@@ -11,4 +11,4 @@ hwi_oauth:
       authorization_url: '%env(OAUTH_AUTHORIZATION_URL)%'
       infos_url: '%env(OAUTH_INFOS_URL)%'
       paths:
-        identifier: sub
+        identifier: '%env(default:sub:OAUTH_MAPPING_IDENTIFIER)%'
