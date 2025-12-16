@@ -71,8 +71,17 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Tools');
-        yield MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
+
+        $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');
+
+        if ($email = $this->getUserEmail()) {
+            $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail/?_user=' . urlencode($email))
+                ->setLinkRel('noreferrer');
+        }
+
+        yield $webmail;
+
         yield MenuItem::linkToUrl('Rspamd', 'fa fa-filter', '/rspamd')
             ->setLinkRel('noreferrer')
             ->setPermission(Roles::ROLE_ADMIN);
@@ -84,5 +93,22 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToUrl('Report a bug', 'fa fa-bug', 'https://github.com/jeboehm/docker-mailserver/issues')
             ->setLinkRel('noreferrer')
             ->setLinkTarget('_blank');
+    }
+
+    private function getUserEmail(): ?string
+    {
+        $user = $this->getUser();
+
+        if (null === $user) {
+            return null;
+        }
+
+        $email = $user->getUserIdentifier();
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
+        return $email;
     }
 }
