@@ -1,0 +1,60 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}DNS validation wizard{% endblock %}
+
+{% block main %}
+    <div class="container-fluid">
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                            <div>
+                                <div class="text-muted small">Mail host</div>
+                                <div class="fw-bold">{{ mailname }}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted small">Expected host IPs{% if expectedIps.isOverride %} (override){% endif %}</div>
+                                <div class="fw-bold">
+                                    {% set allIps = expectedIps.all %}
+                                    {% if allIps is empty %}
+                                        <span class="text-muted">none</span>
+                                    {% else %}
+                                        {{ allIps|join(', ') }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-muted small">
+                                Refresh the page after DNS changes propagate.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <h3 class="h5 mb-3">Mail host checks</h3>
+                {% include 'admin/dns_wizard/table.html.twig' with { rows: result.mailHost } only %}
+            </div>
+
+            <div class="col-12">
+                <h3 class="h5 mb-3">Per-domain checks</h3>
+                {% for domainName, rows in result.domains %}
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-header bg-light">
+                            <strong>{{ domainName }}</strong>
+                        </div>
+                        <div class="card-body">
+                            {% include 'admin/dns_wizard/table.html.twig' with { rows: rows } only %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">No domains available.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
