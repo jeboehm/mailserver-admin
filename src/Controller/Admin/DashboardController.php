@@ -37,7 +37,9 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureDashboard(): Dashboard
     {
-        return Dashboard::new()->setTitle('mailserver-admin');
+        return Dashboard::new()
+            ->setTitle('mailserver-admin')
+            ->setFaviconPath('favicon.svg');
     }
 
     #[\Override]
