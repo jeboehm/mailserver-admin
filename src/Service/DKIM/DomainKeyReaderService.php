@@ -11,10 +11,11 @@ declare(strict_types=1);
 namespace App\Service\DKIM;
 
 use App\Exception\DKIM\DomainKeyNotFoundException;
+use App\Service\DnsWizard\DnsLookupInterface;
 
-class DomainKeyReaderService
+readonly class DomainKeyReaderService
 {
-    public function __construct(private readonly DNSResolver $resolver)
+    public function __construct(private DnsLookupInterface $resolver)
     {
     }
 
@@ -24,18 +25,18 @@ class DomainKeyReaderService
     public function getDomainKey(string $domain, string $selector): array
     {
         $dkimDomain = \sprintf('%s._domainkey.%s', $selector, $domain);
-        $result = $this->resolver->resolve($dkimDomain);
-
-        if (isset($result[0]['entries'])) {
-            $result[0]['txt'] = implode('', $result[0]['entries']);
-        }
-
-        $parts = explode(';', trim((string) $result[0]['txt']));
+        $result = implode('', $this->resolver->lookupTxt($dkimDomain));
+        $parts = explode(';', trim($result));
         $record = [];
 
         foreach ($parts as $part) {
-            [$key, $val] = explode('=', trim($part), 2);
-            $record[$key] = $val;
+            $keyVal = explode('=', trim($part), 2);
+
+            if (\count($keyVal) !== 2) {
+                return [];
+            }
+
+            $record[$keyVal[0]] = $keyVal[1];
         }
 
         return $record;
