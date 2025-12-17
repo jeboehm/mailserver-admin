@@ -14,7 +14,6 @@ use App\Entity\Domain;
 use App\Service\DnsWizard\Check\AaaaRecordCheck;
 use App\Service\DnsWizard\Check\ARecordCheck;
 use App\Service\DnsWizard\Check\AutodiscoveryRecordCheck;
-use App\Service\DnsWizard\Check\DkimRecordCheck;
 use App\Service\DnsWizard\Check\DmarcRecordCheck;
 use App\Service\DnsWizard\Check\MxRecordCheck;
 use App\Service\DnsWizard\Check\PtrRecordCheck;
@@ -77,7 +76,6 @@ class DnsWizardValidatorTest extends TestCase
             new PtrRecordCheck($dns),
             new MxRecordCheck($dns),
             new SpfRecordCheck($dns),
-            new DkimRecordCheck($dns),
             new DmarcRecordCheck($dns),
             new AutodiscoveryRecordCheck($dns),
         ];
