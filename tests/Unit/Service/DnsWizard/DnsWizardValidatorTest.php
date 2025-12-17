@@ -149,7 +149,6 @@ class DnsWizardValidatorTest extends TestCase
             new PtrRecordCheck($dns),
             new MxRecordCheck($dns),
             new SpfRecordCheck($dns),
-            new DkimRecordCheck($dns),
             new DmarcRecordCheck($dns),
             new AutodiscoveryRecordCheck($dns),
         ];

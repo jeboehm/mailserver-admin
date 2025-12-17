@@ -27,7 +27,7 @@
                         {{ row.expectedValues|join('<br>')|raw }}
                     {% endif %}
                 </td>
-                <td class="small">
+                <td class="small" style="max-width: 200px; overflow-x: auto; word-break: break-all;">
                     {% if row.actualValues is empty %}
                         <span class="text-muted">—</span>
                     {% else %}

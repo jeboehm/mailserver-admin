@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace App\Service\DnsWizard\Check;
 
 use App\Entity\Domain;
-use App\Service\DnsWizard\DnsLookupInterface;
+use App\Service\DKIM\DKIMStatusService;
 use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\ExpectedHostIps;
@@ -19,7 +19,7 @@ use App\Service\DnsWizard\Scopes;
 
 readonly class DkimRecordCheck implements DnsCheckInterface
 {
-    public function __construct(private DnsLookupInterface $dns)
+    public function __construct(private DKIMStatusService $statusService)
     {
     }
 
@@ -44,28 +44,23 @@ readonly class DkimRecordCheck implements DnsCheckInterface
             return [];
         }
 
-        $domainName = $domain->getName();
-        $selector = $domain->getDkimSelector();
-        $dkimName = \sprintf('%s._domainkey.%s', $selector, $domainName);
-        $dkimTxt = $this->dns->lookupTxt($dkimName);
+        $status = $this->statusService->getStatus($domain);
+        $message = 'DKIM record valid';
 
-        $nonEmpty = false;
-
-        foreach ($dkimTxt as $txt) {
-            if ('' !== \trim($txt)) {
-                $nonEmpty = true;
-                break;
-            }
+        if (!$status->isDkimRecordFound()) {
+            $message = 'DKIM record missing or empty';
+        } elseif (!$status->isDkimRecordValid()) {
+            $message = 'DKIM record mismatch';
         }
 
         return [new DnsWizardRow(
             scope: Scopes::SCOPE_DOMAIN,
-            subject: $dkimName,
+            subject: \sprintf('%s._domainkey.%s', $domain->getDkimSelector(), $domain),
             recordType: 'TXT',
-            expectedValues: ['DKIM selector record (non-empty)'],
-            actualValues: $dkimTxt,
-            status: $nonEmpty ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: $nonEmpty ? 'DKIM selector record found' : 'DKIM selector record missing or empty',
+            expectedValues: ['Valid DKIM record'],
+            actualValues: [$status->getCurrentRecord()],
+            status: $status->isDkimRecordValid() ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+            message: $message,
         )];
     }
 }
