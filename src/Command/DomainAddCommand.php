@@ -13,7 +13,7 @@ namespace App\Command;
 use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,7 +26,7 @@ class DomainAddCommand extends Command
     use ConnectionCheckTrait;
 
     public function __construct(
-        private readonly ManagerRegistry $manager,
+        private readonly EntityManagerInterface $manager,
         private readonly ValidatorInterface $validator,
         private readonly ConnectionCheckService $connectionCheckService,
     ) {
@@ -63,8 +63,8 @@ class DomainAddCommand extends Command
             return 1;
         }
 
-        $this->manager->getManager()->persist($domain);
-        $this->manager->getManager()->flush();
+        $this->manager->persist($domain);
+        $this->manager->flush();
 
         return 0;
     }

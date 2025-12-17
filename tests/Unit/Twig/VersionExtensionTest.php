@@ -39,6 +39,8 @@ class VersionExtensionTest extends TestCase
             ->method('getAdminVersion')
             ->willReturn('1.2.3');
 
+        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
+
         $result = $this->extension->getAdminVersion();
 
         $this->assertEquals('1.2.3', $result);
@@ -50,6 +52,8 @@ class VersionExtensionTest extends TestCase
             ->expects($this->once())
             ->method('getAdminVersion')
             ->willReturn(null);
+
+        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
 
         $result = $this->extension->getAdminVersion();
 
@@ -63,6 +67,8 @@ class VersionExtensionTest extends TestCase
             ->method('getMailserverVersion')
             ->willReturn('2.0.0');
 
+        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
+
         $result = $this->extension->getMailserverVersion();
 
         $this->assertEquals('2.0.0', $result);
@@ -74,6 +80,8 @@ class VersionExtensionTest extends TestCase
             ->expects($this->once())
             ->method('getMailserverVersion')
             ->willReturn(null);
+
+        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
 
         $result = $this->extension->getMailserverVersion();
 

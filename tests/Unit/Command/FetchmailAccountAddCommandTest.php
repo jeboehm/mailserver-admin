@@ -31,14 +31,14 @@ class FetchmailAccountAddCommandTest extends TestCase
     private MockObject&EntityManagerInterface $entityManager;
     private MockObject&UserRepository $userRepository;
     private MockObject&ValidatorInterface $validator;
-    private MockObject&ConnectionCheckService $connectionCheckService;
+    private ConnectionCheckService $connectionCheckService;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->userRepository = $this->createMock(UserRepository::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
-        $this->connectionCheckService = $this->createMock(ConnectionCheckService::class);
+        $this->connectionCheckService = $this->createStub(ConnectionCheckService::class);
 
         $this->connectionCheckService
             ->method('checkAll')
@@ -59,7 +59,7 @@ class FetchmailAccountAddCommandTest extends TestCase
 
     public function testCreateAccount(): void
     {
-        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createMock(User::class));
+        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createStub(User::class));
         $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList());
         $this->entityManager->expects($this->once())->method('persist')->with(
             $this->callback(function (FetchmailAccount $fetchmailAccount) {
@@ -94,7 +94,7 @@ class FetchmailAccountAddCommandTest extends TestCase
 
     public function testCreateAccountWithValidationError(): void
     {
-        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createMock(User::class));
+        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createStub(User::class));
         $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList(
             [
                 new ConstraintViolation('test', 'test', [], '', '', ''),
@@ -121,7 +121,7 @@ class FetchmailAccountAddCommandTest extends TestCase
 
     public function testCreateAccountWithForce(): void
     {
-        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createMock(User::class));
+        $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createStub(User::class));
         $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList(
             [
                 new ConstraintViolation('test', 'test', [], '', '', ''),

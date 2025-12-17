@@ -12,11 +12,12 @@ namespace App\Command;
 
 use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +30,8 @@ class DKIMSetupCommand extends Command
     use ConnectionCheckTrait;
 
     public function __construct(
-        private readonly ManagerRegistry $manager,
+        private readonly EntityManagerInterface $manager,
+        private readonly DomainRepository $domainRepository,
         private readonly KeyGenerationService $keyGenerationService,
         private readonly FormatterService $formatterService,
         private readonly Manager $dkimManager,
@@ -94,7 +96,7 @@ class DKIMSetupCommand extends Command
             KeyGenerationService::DIGEST_ALGORITHM
         );
 
-        $this->manager->getManager()->flush();
+        $this->manager->flush();
         $this->dkimManager->refresh();
 
         $output->writeln(sprintf('<info>Add the following TXT record to %s.%s:</info>', $selector, $domain->getName()));
@@ -112,7 +114,7 @@ class DKIMSetupCommand extends Command
     private function getDomain(InputInterface $input, OutputInterface $output): ?Domain
     {
         $name = $input->getArgument('domain');
-        $domain = $this->manager->getRepository(Domain::class)->findOneBy(['name' => $name]);
+        $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {
             $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));

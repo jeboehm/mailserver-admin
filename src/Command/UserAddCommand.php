@@ -13,8 +13,9 @@ namespace App\Command;
 use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -30,7 +31,8 @@ class UserAddCommand extends Command
     use ConnectionCheckTrait;
 
     public function __construct(
-        private readonly ManagerRegistry $manager,
+        private readonly EntityManagerInterface $manager,
+        private readonly DomainRepository $domainRepository,
         private readonly ValidatorInterface $validator,
         private readonly ConnectionCheckService $connectionCheckService,
     ) {
@@ -108,14 +110,14 @@ class UserAddCommand extends Command
             return 1;
         }
 
-        $this->manager->getManager()->persist($user);
-        $this->manager->getManager()->flush();
+        $this->manager->persist($user);
+        $this->manager->flush();
 
         return 0;
     }
 
     private function getDomain(string $domain): ?Domain
     {
-        return $this->manager->getRepository(Domain::class)->findOneBy(['name' => \mb_strtolower($domain)]);
+        return $this->domainRepository->findOneBy(['name' => \mb_strtolower($domain)]);
     }
 }

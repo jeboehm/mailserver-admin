@@ -31,8 +31,8 @@ class OAuthUserProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->requestStack = $this->createMock(RequestStack::class);
-        $this->session = $this->createMock(SessionInterface::class);
+        $this->requestStack = $this->createStub(RequestStack::class);
+        $this->session = $this->createStub(SessionInterface::class);
 
         // Default to enabled=true, adminGroup='admins'
         $this->provider = new OAuthUserProvider(true, 'admins', $this->requestStack);
@@ -119,7 +119,7 @@ class OAuthUserProviderTest extends TestCase
     public function testLoadUserByOAuthUserResponseThrowsWhenDisabled(): void
     {
         $provider = new OAuthUserProvider(false, 'admins', $this->requestStack);
-        $response = $this->createMock(UserResponseInterface::class);
+        $response = $this->createStub(UserResponseInterface::class);
 
         $this->expectException(UserNotFoundException::class);
         $this->expectExceptionMessage('OAuth not enabled');
@@ -129,9 +129,12 @@ class OAuthUserProviderTest extends TestCase
 
     public function testLoadUserByOAuthUserResponseCreatesAdminUserWhenGroupMatches(): void
     {
-        $this->setupSession();
+        $this->session = $this->createMock(SessionInterface::class);
+        $request = $this->createStub(Request::class);
+        $request->method('getSession')->willReturn($this->session);
+        $this->requestStack->method('getCurrentRequest')->willReturn($request);
 
-        $response = $this->createMock(UserResponseInterface::class);
+        $response = $this->createStub(UserResponseInterface::class);
         $response->method('getNickname')->willReturn('testuser');
         $response->method('getData')->willReturn(['groups' => ['users', 'admins']]);
 
@@ -150,7 +153,7 @@ class OAuthUserProviderTest extends TestCase
     {
         $this->setupSession();
 
-        $response = $this->createMock(UserResponseInterface::class);
+        $response = $this->createStub(UserResponseInterface::class);
         $response->method('getNickname')->willReturn('testuser');
         $response->method('getData')->willReturn(['groups' => ['users']]);
 
@@ -165,7 +168,7 @@ class OAuthUserProviderTest extends TestCase
         // Provider with empty admin group -> everyone is admin
         $provider = new OAuthUserProvider(true, '', $this->requestStack);
 
-        $response = $this->createMock(UserResponseInterface::class);
+        $response = $this->createStub(UserResponseInterface::class);
         $response->method('getNickname')->willReturn('testuser');
         $response->method('getData')->willReturn([]);
 
@@ -178,7 +181,7 @@ class OAuthUserProviderTest extends TestCase
     {
         $this->setupSession();
 
-        $response = $this->createMock(UserResponseWithIdentifier::class);
+        $response = $this->createStub(UserResponseWithIdentifier::class);
 
         $response->method('getNickname')->willReturn('');
         $response->method('getUserIdentifier')->willReturn('user@example.com');
@@ -191,7 +194,7 @@ class OAuthUserProviderTest extends TestCase
 
     private function setupSession(): void
     {
-        $request = $this->createMock(Request::class);
+        $request = $this->createStub(Request::class);
         $request->method('getSession')->willReturn($this->session);
         $this->requestStack->method('getCurrentRequest')->willReturn($request);
     }

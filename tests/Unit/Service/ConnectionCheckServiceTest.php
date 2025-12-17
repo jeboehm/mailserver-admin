@@ -27,6 +27,9 @@ class ConnectionCheckServiceTest extends TestCase
     {
         $this->connection = $this->createMock(Connection::class);
         $this->redis = $this->createMock(ClientInterface::class);
+        // Add default stub behavior to prevent PHPUnit warnings in tests that don't use these mocks
+        $this->connection->method('executeQuery')->willReturn($this->createStub(Result::class));
+        $this->redis->method('__call')->willReturn(null);
         $this->service = new ConnectionCheckService($this->connection, $this->redis);
     }
 
@@ -36,7 +39,9 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willReturn($this->createMock(Result::class));
+            ->willReturn($this->createStub(Result::class));
+
+        $this->redis->expects($this->never())->method('__call');
 
         $result = $this->service->checkMySQL();
 
@@ -52,6 +57,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->method('executeQuery')
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
+
+        $this->redis->expects($this->never())->method('__call');
 
         $result = $this->service->checkMySQL();
 
@@ -69,6 +76,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
+        $this->redis->expects($this->never())->method('__call');
+
         $result = $this->service->checkMySQL();
 
         $this->assertNotNull($result);
@@ -84,6 +93,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->method('executeQuery')
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
+
+        $this->redis->expects($this->never())->method('__call');
 
         $result = $this->service->checkMySQL();
 
@@ -101,6 +112,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
+        $this->redis->expects($this->never())->method('__call');
+
         $result = $this->service->checkMySQL();
 
         $this->assertNotNull($result);
@@ -116,6 +129,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->method('executeQuery')
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
+
+        $this->redis->expects($this->never())->method('__call');
 
         $result = $this->service->checkMySQL();
 
@@ -133,6 +148,8 @@ class ConnectionCheckServiceTest extends TestCase
             ->with('SELECT id FROM mail_domains LIMIT 1')
             ->willThrowException($exception);
 
+        $this->redis->expects($this->never())->method('__call');
+
         $result = $this->service->checkMySQL();
 
         $this->assertNotNull($result);
@@ -141,6 +158,8 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckRedisSuccess(): void
     {
+        $this->connection->expects($this->never())->method('executeQuery');
+
         $this->redis
             ->expects($this->once())
             ->method('__call')
@@ -155,6 +174,8 @@ class ConnectionCheckServiceTest extends TestCase
     public function testCheckRedisFailureConnectionRefused(): void
     {
         $exception = new \RuntimeException('Connection refused');
+
+        $this->connection->expects($this->never())->method('executeQuery');
 
         $this->redis
             ->expects($this->once())
@@ -172,6 +193,8 @@ class ConnectionCheckServiceTest extends TestCase
     {
         $exception = new \RuntimeException('Connection timed out');
 
+        $this->connection->expects($this->never())->method('executeQuery');
+
         $this->redis
             ->expects($this->once())
             ->method('__call')
@@ -187,6 +210,8 @@ class ConnectionCheckServiceTest extends TestCase
     public function testCheckRedisFailureAuthentication(): void
     {
         $exception = new \RuntimeException('AUTH failed');
+
+        $this->connection->expects($this->never())->method('executeQuery');
 
         $this->redis
             ->expects($this->once())
@@ -204,6 +229,8 @@ class ConnectionCheckServiceTest extends TestCase
     {
         $exception = new \RuntimeException('getaddrinfo failed');
 
+        $this->connection->expects($this->never())->method('executeQuery');
+
         $this->redis
             ->expects($this->once())
             ->method('__call')
@@ -219,6 +246,8 @@ class ConnectionCheckServiceTest extends TestCase
     public function testCheckRedisFailureGeneric(): void
     {
         $exception = new \RuntimeException('Some generic error: detailed message');
+
+        $this->connection->expects($this->never())->method('executeQuery');
 
         $this->redis
             ->expects($this->once())
@@ -238,7 +267,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willReturn($this->createMock(Result::class));
+            ->willReturn($this->createStub(Result::class));
 
         $this->redis
             ->expects($this->once())

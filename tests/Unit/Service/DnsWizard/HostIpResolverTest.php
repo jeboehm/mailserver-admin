@@ -42,7 +42,10 @@ class HostIpResolverTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $resolver = new HostIpResolver($this->httpClient, 'not-an-ip');
+        $this->httpClient->expects($this->never())->method('request');
+
+        $httpClient = $this->createStub(HttpClientInterface::class);
+        $resolver = new HostIpResolver($httpClient, 'not-an-ip');
         $resolver->resolveExpectedHostIps();
     }
 

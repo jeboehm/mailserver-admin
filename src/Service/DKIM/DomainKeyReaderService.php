@@ -32,7 +32,7 @@ readonly class DomainKeyReaderService
         foreach ($parts as $part) {
             $keyVal = explode('=', trim($part), 2);
 
-            if (\count($keyVal) !== 2) {
+            if (2 !== \count($keyVal)) {
                 return [];
             }
 

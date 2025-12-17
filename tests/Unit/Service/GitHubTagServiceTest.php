@@ -284,7 +284,14 @@ class GitHubTagServiceTest extends TestCase
 
     public function testGetLatestTagFromPathInvalidFormat(): void
     {
-        $result = $this->service->getLatestTagFromPath('invalid');
+        $this->httpClient->expects($this->never())->method('request');
+        $this->cache->expects($this->never())->method('get');
+
+        $httpClient = $this->createStub(HttpClientInterface::class);
+        $cache = $this->createStub(CacheInterface::class);
+        $service = new GitHubTagService($httpClient, $cache);
+
+        $result = $service->getLatestTagFromPath('invalid');
 
         $this->assertNull($result);
     }

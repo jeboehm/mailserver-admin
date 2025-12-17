@@ -103,9 +103,12 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
 
     public function testProcessThrowsExceptionWhenNotWritable(): void
     {
-        $this->containerBuilderMock->method('getParameter')
+        $this->containerBuilderMock
+            ->expects($this->once())
+            ->method('getParameter')
             ->with('kernel.cache_dir')
             ->willReturn($this->tempDir);
+        $this->containerBuilderMock->method('setParameter')->willReturnCallback(function () {});
 
         // Make the directory read-only so file creation fails
         chmod($this->tempDir, 0555);

@@ -16,24 +16,27 @@ use App\Service\DKIM\DKIMStatusService;
 use App\Service\DKIM\DomainKeyReaderService;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class DKIMStatusServiceTest extends TestCase
 {
-    private MockObject $domainKeyReaderService;
+    private DomainKeyReaderService $domainKeyReaderService;
 
-    private MockObject $formatterService;
+    private FormatterService $formatterService;
 
-    private MockObject $keyGenerationService;
+    private KeyGenerationService $keyGenerationService;
 
     private DKIMStatusService $instance;
 
     protected function setUp(): void
     {
-        $this->domainKeyReaderService = $this->createMock(DomainKeyReaderService::class);
-        $this->formatterService = $this->createMock(FormatterService::class);
-        $this->keyGenerationService = $this->createMock(KeyGenerationService::class);
+        $this->domainKeyReaderService = $this->createStub(DomainKeyReaderService::class);
+        $this->formatterService = $this->createStub(FormatterService::class);
+        // Add default stub behavior to prevent PHPUnit warnings in tests that don't use these services
+        $this->formatterService->method('getTXTRecord')->willReturn('');
+        $this->keyGenerationService = $this->createStub(KeyGenerationService::class);
+        // Add default stub behavior to prevent PHPUnit warnings in tests that don't use this service
+        $this->keyGenerationService->method('extractPublicKey')->willReturn('');
         $this->instance = new DKIMStatusService(
             $this->domainKeyReaderService,
             $this->formatterService,
@@ -76,23 +79,32 @@ class DKIMStatusServiceTest extends TestCase
         $domain->setDkimSelector('20181203');
         $domain->setName('example.com');
 
+        $this->domainKeyReaderService = $this->createMock(DomainKeyReaderService::class);
         $this->domainKeyReaderService
             ->expects($this->once())
             ->method('getDomainKey')
             ->with('example.com', '20181203')
             ->willReturn(['p' => 'public', 's' => '20181203', 'h' => 'sha256']);
 
+        $this->keyGenerationService = $this->createMock(KeyGenerationService::class);
         $this->keyGenerationService
             ->expects($this->once())
             ->method('extractPublicKey')
             ->with('lorem ipsum')
             ->willReturn('public');
 
+        $this->formatterService = $this->createMock(FormatterService::class);
         $this->formatterService
             ->expects($this->once())
             ->method('getTXTRecord')
             ->with('public', 'sha256')
             ->willReturn('p=public\; s=20181203\; h=sha256');
+
+        $this->instance = new DKIMStatusService(
+            $this->domainKeyReaderService,
+            $this->formatterService,
+            $this->keyGenerationService
+        );
 
         $status = $this->instance->getStatus($domain);
 
@@ -110,23 +122,32 @@ class DKIMStatusServiceTest extends TestCase
         $domain->setDkimSelector('20181203');
         $domain->setName('example.com');
 
+        $this->domainKeyReaderService = $this->createMock(DomainKeyReaderService::class);
         $this->domainKeyReaderService
             ->expects($this->once())
             ->method('getDomainKey')
             ->with('example.com', '20181203')
             ->willReturn(['p' => 'public', 's' => '20181203', 'h' => 'sha256']);
 
+        $this->keyGenerationService = $this->createMock(KeyGenerationService::class);
         $this->keyGenerationService
             ->expects($this->once())
             ->method('extractPublicKey')
             ->with('lorem ipsum')
             ->willReturn('anotherpublickey');
 
+        $this->formatterService = $this->createMock(FormatterService::class);
         $this->formatterService
             ->expects($this->once())
             ->method('getTXTRecord')
             ->with('anotherpublickey', 'sha256')
             ->willReturn('p=anotherpublickey\; s=20181203\; h=sha256');
+
+        $this->instance = new DKIMStatusService(
+            $this->domainKeyReaderService,
+            $this->formatterService,
+            $this->keyGenerationService
+        );
 
         $status = $this->instance->getStatus($domain);
 
@@ -144,11 +165,18 @@ class DKIMStatusServiceTest extends TestCase
         $domain->setDkimSelector('20181203');
         $domain->setName('example.com');
 
+        $this->domainKeyReaderService = $this->createMock(DomainKeyReaderService::class);
         $this->domainKeyReaderService
             ->expects($this->once())
             ->method('getDomainKey')
             ->with('example.com', '20181203')
             ->willThrowException(new DomainKeyNotFoundException());
+
+        $this->instance = new DKIMStatusService(
+            $this->domainKeyReaderService,
+            $this->formatterService,
+            $this->keyGenerationService
+        );
 
         $status = $this->instance->getStatus($domain);
 
