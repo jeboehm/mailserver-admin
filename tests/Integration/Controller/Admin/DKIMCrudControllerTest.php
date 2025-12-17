@@ -67,13 +67,12 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     public function testDkimEditDnsWrong(): void
     {
         $this->client->disableReboot();
-        $dkimStatusService = $this->createMock(DKIMStatusService::class);
-        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
-        $this->loginClient($this->client);
-
+        $dkimStatusService = $this->createStub(DKIMStatusService::class);
         $dkimStatusService->method('getStatus')->willReturn(
             new DKIMStatus(true, true, false, 'v=DKIM1; k=rsa; p=...')
         );
+        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+        $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
         assert($domainRepository instanceof DomainRepository);
@@ -94,13 +93,12 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     public function testDkimEditDnsCorrect(): void
     {
         $this->client->disableReboot();
-        $dkimStatusService = $this->createMock(DKIMStatusService::class);
-        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
-        $this->loginClient($this->client);
-
+        $dkimStatusService = $this->createStub(DKIMStatusService::class);
         $dkimStatusService->method('getStatus')->willReturn(
             new DKIMStatus(true, true, true, 'v=DKIM1; k=rsa; p=...')
         );
+        $this->client->getContainer()->set(DKIMStatusService::class, $dkimStatusService);
+        $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
         assert($domainRepository instanceof DomainRepository);

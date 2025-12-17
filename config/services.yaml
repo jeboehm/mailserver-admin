@@ -10,6 +10,9 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+    App\Service\DnsWizard\DnsLookupInterface:
+        class: App\Service\DnsWizard\NativeDnsLookup
+
     App\:
         resource: '../src/*'
         exclude: '../src/{Entity,Kernel.php}'
@@ -30,6 +33,31 @@ services:
     App\Service\ApplicationVersionService:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    App\Service\DnsWizard\Check\ARecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 100 }]
+
+    App\Service\DnsWizard\Check\AaaaRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 90 }]
+
+    App\Service\DnsWizard\Check\PtrRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 80 }]
+
+    App\Service\DnsWizard\Check\MxRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 70 }]
+
+    App\Service\DnsWizard\Check\SpfRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 60 }]
+
+    App\Service\DnsWizard\Check\DkimRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 50 }]
+
+    App\Service\DnsWizard\Check\DmarcRecordCheck:
+        tags: [{ name: 'dns_wizard.check', priority: 40 }]
+
+    App\Service\DnsWizard\DnsWizardValidator:
+        arguments:
+            $checks: !tagged_iterator 'dns_wizard.check'
 
 when@test:
     services:

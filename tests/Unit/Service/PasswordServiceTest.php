@@ -36,8 +36,16 @@ class PasswordServiceTest extends TestCase
     {
         $user = new User();
 
-        $this->passwordHasherFactory->expects(self::once())->method('getPasswordHasher')->with($user)->willReturn($this->passwordHasher);
-        $this->passwordHasher->method('hash')->willReturn('test1234');
+        $this->passwordHasher
+            ->expects($this->once())
+            ->method('hash')
+            ->with('test4321')
+            ->willReturn('test1234');
+        $this->passwordHasherFactory
+            ->expects($this->once())
+            ->method('getPasswordHasher')
+            ->with($user)
+            ->willReturn($this->passwordHasher);
 
         $user->setPlainPassword('test4321');
 

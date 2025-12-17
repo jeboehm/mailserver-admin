@@ -11,9 +11,9 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Command\Trait\ConnectionCheckTrait;
-use App\Entity\Domain;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -26,7 +26,8 @@ class DKIMDisableCommand extends Command
     use ConnectionCheckTrait;
 
     public function __construct(
-        private readonly ManagerRegistry $manager,
+        private readonly EntityManagerInterface $manager,
+        private readonly DomainRepository $domainRepository,
         private readonly ConnectionCheckService $connectionCheckService,
     ) {
         parent::__construct();
@@ -49,7 +50,7 @@ class DKIMDisableCommand extends Command
         }
 
         $name = $input->getArgument('domain');
-        $domain = $this->manager->getRepository(Domain::class)->findOneBy(['name' => $name]);
+        $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {
             $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));
@@ -73,7 +74,7 @@ class DKIMDisableCommand extends Command
 
         $domain->setDkimEnabled(false);
 
-        $this->manager->getManager()->flush();
+        $this->manager->flush();
 
         $output->writeln('Done.');
 

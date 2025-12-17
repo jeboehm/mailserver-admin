@@ -12,10 +12,9 @@ namespace Tests\Unit\Command;
 
 use App\Command\DKIMDisableCommand;
 use App\Entity\Domain;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -25,38 +24,31 @@ class DKIMDisableCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
-    private MockObject $managerRegistryMock;
+    private MockObject&EntityManagerInterface $managerMock;
 
-    private MockObject $managerMock;
-
-    private MockObject $connectionCheckServiceMock;
+    private MockObject&ConnectionCheckService $connectionCheckServiceMock;
+    private MockObject&DomainRepository $domainRepositoryMock;
 
     protected function setUp(): void
     {
-        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
-        $this->managerMock = $this->createMock(ObjectManager::class);
-        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->managerMock = $this->createMock(EntityManagerInterface::class);
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+        $this->domainRepositoryMock = $this->createMock(DomainRepository::class);
 
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new DKIMDisableCommand($this->managerRegistryMock, $this->connectionCheckServiceMock));
+        $application->add(new DKIMDisableCommand($this->managerMock, $this->domainRepositoryMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:disable'));
     }
 
     public function testDomainNotFound(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(null);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn(null);
 
         $this->managerMock->expects($this->never())->method('persist');
 
@@ -71,21 +63,13 @@ class DKIMDisableCommandTest extends TestCase
 
     public function testAbort(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-
         $domain = new Domain();
         $domain->setName('example.com');
         $domain->setDkimPrivateKey('xy');
         $domain->setDkimSelector('xy');
         $domain->setDkimEnabled(true);
 
-        $repository->method('findOneBy')->willReturn($domain);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn($domain);
         $this->managerMock->expects($this->never())->method('flush');
 
         $this->commandTester->setInputs(['no']);
@@ -100,20 +84,12 @@ class DKIMDisableCommandTest extends TestCase
 
     public function testExecute(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-
         $domain = new Domain();
         $domain->setDkimPrivateKey('xy');
         $domain->setDkimSelector('xy');
         $domain->setDkimEnabled(true);
 
-        $repository->method('findOneBy')->willReturn($domain);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn($domain);
         $this->managerMock->expects($this->once())->method('flush');
 
         $this->commandTester->setInputs(['Y']);

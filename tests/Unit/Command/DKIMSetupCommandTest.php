@@ -12,13 +12,12 @@ namespace Tests\Unit\Command;
 
 use App\Command\DKIMSetupCommand;
 use App\Entity\Domain;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -28,29 +27,39 @@ class DKIMSetupCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
-    private MockObject $managerRegistryMock;
+    private MockObject&EntityManagerInterface $managerMock;
 
-    private MockObject $managerMock;
+    private MockObject&DomainRepository $domainRepository;
 
-    private MockObject $dkimManagerMock;
+    private MockObject&Manager $dkimManagerMock;
 
-    private MockObject $connectionCheckServiceMock;
+    private MockObject&ConnectionCheckService $connectionCheckServiceMock;
+
+    private KeyGenerationService $keyGenerationService;
 
     protected function setUp(): void
     {
-        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
-        $this->managerMock = $this->createMock(ObjectManager::class);
-        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->domainRepository = $this->createMock(DomainRepository::class);
         $this->dkimManagerMock = $this->createMock(Manager::class);
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
+        $this->keyGenerationService = new KeyGenerationService();
 
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
         $application->add(
-            new DKIMSetupCommand($this->managerRegistryMock, new KeyGenerationService(), new FormatterService(), $this->dkimManagerMock, $this->connectionCheckServiceMock)
+            new DKIMSetupCommand(
+                $this->managerMock,
+                $this->domainRepository,
+                new KeyGenerationService(),
+                new FormatterService(),
+                $this->dkimManagerMock,
+                $this->connectionCheckServiceMock
+            )
         );
 
         $this->commandTester = new CommandTester($application->find('dkim:setup'));
@@ -58,14 +67,7 @@ class DKIMSetupCommandTest extends TestCase
 
     public function testDomainNotFound(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(null);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn(null);
         $this->managerMock->expects($this->never())->method('flush');
         $this->dkimManagerMock->expects($this->never())->method('refresh');
 
@@ -82,20 +84,13 @@ class DKIMSetupCommandTest extends TestCase
     {
         $domain = new Domain();
         $domain->setName('example.com');
+        $privateKey = $this->keyGenerationService->createKeyPair()->getPrivate();
+        $domain->setDkimPrivateKey($privateKey);
 
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn($domain);
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn($domain);
+        $this->managerMock->expects($this->once())->method('flush');
+        $this->dkimManagerMock->expects($this->once())->method('refresh');
 
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
-        $this->commandTester->execute(['domain' => 'example.com']);
-
-        $privateKey = $domain->getDkimPrivateKey();
-
-        $this->commandTester->setInputs(['Y']);
         $this->commandTester->execute(['domain' => 'example.com']);
 
         $this->assertEquals($privateKey, $domain->getDkimPrivateKey());
@@ -103,20 +98,14 @@ class DKIMSetupCommandTest extends TestCase
 
     public function testKeyIsRegenerated(): void
     {
+        $privateKey = $this->keyGenerationService->createKeyPair()->getPrivate();
         $domain = new Domain();
         $domain->setName('example.com');
+        $domain->setDkimPrivateKey($privateKey);
 
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn($domain);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
-        $this->commandTester->execute(['domain' => 'example.com']);
-
-        $privateKey = $domain->getDkimPrivateKey();
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn($domain);
+        $this->managerMock->expects($this->once())->method('flush');
+        $this->dkimManagerMock->expects($this->once())->method('refresh');
 
         $this->commandTester->setInputs(['Y']);
         $this->commandTester->execute(['domain' => 'example.com', '--regenerate' => true]);
@@ -129,14 +118,7 @@ class DKIMSetupCommandTest extends TestCase
         $domain = new Domain();
         $domain->setName('example.com');
 
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn($domain);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn($domain);
         $this->managerMock->expects($this->once())->method('flush');
         $this->dkimManagerMock->expects($this->once())->method('refresh');
 
@@ -152,13 +134,9 @@ class DKIMSetupCommandTest extends TestCase
         $domain = new Domain();
         $domain->setName('example.com');
 
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn($domain);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn($domain);
+        $this->managerMock->expects($this->never())->method('flush');
+        $this->dkimManagerMock->expects($this->never())->method('refresh');
 
         $this->commandTester->setInputs(['N']);
         $this->commandTester->execute(['domain' => 'example.com', '--regenerate' => true]);

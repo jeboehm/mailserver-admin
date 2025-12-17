@@ -14,8 +14,7 @@ use App\Command\InitSetupCommand;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -29,38 +28,36 @@ class InitSetupCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
-    private MockObject $managerRegistryMock;
+    private MockObject&EntityManagerInterface $managerMock;
 
-    private MockObject $managerMock;
+    private MockObject&ValidatorInterface $validatorMock;
 
-    private MockObject $validatorMock;
-
-    private MockObject $connectionCheckServiceMock;
+    private MockObject&ConnectionCheckService $connectionCheckServiceMock;
 
     protected function setUp(): void
     {
-        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
-        $this->managerMock = $this->createMock(ObjectManager::class);
-        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->managerMock = $this->createMock(EntityManagerInterface::class);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
 
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new InitSetupCommand($this->validatorMock, $this->managerRegistryMock, $this->connectionCheckServiceMock));
+        $application->add(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('init:setup'));
     }
 
     public function testExecuteSuccess(): void
     {
-        $violationList = $this->createMock(ConstraintViolationListInterface::class);
+        $violationList = $this->createStub(ConstraintViolationListInterface::class);
         $violationList->method('count')->willReturn(0);
 
         $this->validatorMock
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->willReturn($violationList);
 
@@ -82,7 +79,7 @@ class InitSetupCommandTest extends TestCase
                         $this->assertEquals('jeff', $user->getName());
                         $this->assertEquals('123456789', $user->getPlainPassword());
                         $this->assertTrue($user->isAdmin());
-                        $this->assertEquals('example.com', $user->getDomain()->getName());
+                        $this->assertEquals('example.com', $user->getDomain()?->getName());
 
                         return true;
                     };
@@ -105,13 +102,16 @@ class InitSetupCommandTest extends TestCase
 
     public function testExecuteConnectionCheckFailure(): void
     {
+        $this->validatorMock->expects($this->never())->method('validate');
+        $this->connectionCheckServiceMock->checkAll(); // to fulfill the requirement in setUp()
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => 'Connection refused', 'redis' => null]);
 
         $application = new Application();
-        $application->add(new InitSetupCommand($this->validatorMock, $this->managerRegistryMock, $this->connectionCheckServiceMock));
+        $application->add(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
         $this->commandTester = new CommandTester($application->find('init:setup'));
 
         $this->managerMock->expects($this->never())->method('persist');
@@ -124,6 +124,10 @@ class InitSetupCommandTest extends TestCase
 
     public function testExecuteInvalidEmailAddress(): void
     {
+        $this->validatorMock->expects($this->atLeastOnce())->method('validate');
+        $this->managerMock->expects($this->atLeastOnce())->method('persist');
+        $this->managerMock->expects($this->once())->method('flush');
+
         $this->commandTester->setInputs([
             'invalid-email',
             'jeff@example.com',
@@ -138,6 +142,10 @@ class InitSetupCommandTest extends TestCase
 
     public function testExecutePasswordTooShort(): void
     {
+        $this->validatorMock->expects($this->atLeastOnce())->method('validate');
+        $this->managerMock->expects($this->atLeastOnce())->method('persist');
+        $this->managerMock->expects($this->once())->method('flush');
+
         $this->commandTester->setInputs([
             'jeff@example.com',
             'short',
@@ -152,6 +160,10 @@ class InitSetupCommandTest extends TestCase
 
     public function testExecutePasswordMismatch(): void
     {
+        $this->validatorMock->expects($this->atLeastOnce())->method('validate');
+        $this->managerMock->expects($this->atLeastOnce())->method('persist');
+        $this->managerMock->expects($this->once())->method('flush');
+
         $this->commandTester->setInputs([
             'jeff@example.com',
             '123456789',
@@ -170,10 +182,11 @@ class InitSetupCommandTest extends TestCase
         $violationList = new ConstraintViolationList();
         $violationList->add(new ConstraintViolation('Domain name is invalid', null, [], null, 'name', 'example.com'));
 
-        $emptyViolationList = $this->createMock(ConstraintViolationListInterface::class);
+        $emptyViolationList = $this->createStub(ConstraintViolationListInterface::class);
         $emptyViolationList->method('count')->willReturn(0);
 
         $this->validatorMock
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->willReturnCallback(function ($entity) use ($violationList, $emptyViolationList) {
                 if ($entity instanceof Domain) {
@@ -204,10 +217,11 @@ class InitSetupCommandTest extends TestCase
         $violationList = new ConstraintViolationList();
         $violationList->add(new ConstraintViolation('User name is invalid', null, [], null, 'name', 'jeff'));
 
-        $emptyViolationList = $this->createMock(ConstraintViolationListInterface::class);
+        $emptyViolationList = $this->createStub(ConstraintViolationListInterface::class);
         $emptyViolationList->method('count')->willReturn(0);
 
         $this->validatorMock
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->willReturnCallback(function ($entity) use ($violationList, $emptyViolationList) {
                 if ($entity instanceof User) {
@@ -239,10 +253,11 @@ class InitSetupCommandTest extends TestCase
         $domainViolationList->add(new ConstraintViolation('Domain name is invalid', null, [], null, 'name', 'example.com'));
         $domainViolationList->add(new ConstraintViolation('Domain name is too short', null, [], null, 'name', 'example.com'));
 
-        $emptyViolationList = $this->createMock(ConstraintViolationListInterface::class);
+        $emptyViolationList = $this->createStub(ConstraintViolationListInterface::class);
         $emptyViolationList->method('count')->willReturn(0);
 
         $this->validatorMock
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->willReturnCallback(function ($entity) use ($domainViolationList, $emptyViolationList) {
                 if ($entity instanceof Domain) {
@@ -270,10 +285,11 @@ class InitSetupCommandTest extends TestCase
 
     public function testExecuteWithDifferentEmailFormat(): void
     {
-        $violationList = $this->createMock(ConstraintViolationListInterface::class);
+        $violationList = $this->createStub(ConstraintViolationListInterface::class);
         $violationList->method('count')->willReturn(0);
 
         $this->validatorMock
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->willReturn($violationList);
 

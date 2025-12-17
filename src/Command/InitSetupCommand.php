@@ -14,7 +14,7 @@ use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +29,7 @@ class InitSetupCommand extends Command
 
     public function __construct(
         private readonly ValidatorInterface $validator,
-        private readonly ManagerRegistry $manager,
+        private readonly EntityManagerInterface $manager,
         private readonly ConnectionCheckService $connectionCheckService,
     ) {
         parent::__construct();
@@ -40,7 +40,7 @@ class InitSetupCommand extends Command
     {
         $this
             ->setName('init:setup')
-            ->setDescription('Does an initially setup for docker-mailserver.');
+            ->setDescription('Does an initial setup for docker-mailserver.');
     }
 
     #[\Override]
@@ -102,10 +102,10 @@ class InitSetupCommand extends Command
             return 1;
         }
 
-        $this->manager->getManager()->persist($domain);
-        $this->manager->getManager()->persist($user);
+        $this->manager->persist($domain);
+        $this->manager->persist($user);
 
-        $this->manager->getManager()->flush();
+        $this->manager->flush();
 
         $output->writeln(sprintf('<info>Your new email address %s was successfully created.</info>', $user));
         $output->writeln('<info>You can now login using the previously set password.</info>');

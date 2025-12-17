@@ -31,7 +31,7 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteAbstainsOnUnsupportedAttribute(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $subject = new User();
 
         $result = $this->voter->vote($token, $subject, ['UNSUPPORTED_ATTRIBUTE']);
@@ -41,7 +41,7 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteAbstainsOnUnsupportedSubject(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $subject = new \stdClass();
 
         $result = $this->voter->vote($token, $subject, [DomainAdminVoter::VIEW]);
@@ -51,7 +51,7 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteGrantsOnNullSubject(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         // Voter::vote calls supports() then voteOnAttribute().
         // supports handles null subject.
 
@@ -62,7 +62,7 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteGrantsForAdminRole(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_ADMIN]);
 
         $subject = new User();
@@ -76,14 +76,14 @@ class DomainAdminVoterTest extends TestCase
     {
         $domain = new Domain();
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $user->method('getDomain')->willReturn($domain);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn($user);
 
-        $subject = $this->createMock(User::class);
+        $subject = $this->createStub(User::class);
         $subject->method('getDomain')->willReturn($domain);
 
         $result = $this->voter->vote($token, $subject, [DomainAdminVoter::VIEW]);
@@ -96,14 +96,14 @@ class DomainAdminVoterTest extends TestCase
         $domain1 = new Domain();
         $domain2 = new Domain();
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $user->method('getDomain')->willReturn($domain1);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn($user);
 
-        $subject = $this->createMock(User::class);
+        $subject = $this->createStub(User::class);
         $subject->method('getDomain')->willReturn($domain2);
 
         $result = $this->voter->vote($token, $subject, [DomainAdminVoter::VIEW]);
@@ -113,7 +113,7 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteDeniesForUserWithoutRoles(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_USER]);
 
         $subject = new User();
@@ -125,9 +125,9 @@ class DomainAdminVoterTest extends TestCase
 
     public function testVoteThrowsExceptionWhenTokenUserIsNotUserEntity(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
-        $token->method('getUser')->willReturn($this->createMock(UserInterface::class));
+        $token->method('getUser')->willReturn($this->createStub(UserInterface::class));
 
         $subject = new User();
 
@@ -141,14 +141,14 @@ class DomainAdminVoterTest extends TestCase
     {
         $domain = new Domain();
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $user->method('getDomain')->willReturn($domain);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn($user);
 
-        $subject = $this->createMock(Alias::class);
+        $subject = $this->createStub(Alias::class);
         $subject->method('getDomain')->willReturn($domain);
 
         $result = $this->voter->vote($token, $subject, [DomainAdminVoter::VIEW]);

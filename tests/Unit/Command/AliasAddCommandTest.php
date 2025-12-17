@@ -13,10 +13,9 @@ namespace Tests\Unit\Command;
 use App\Command\AliasAddCommand;
 use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -30,34 +29,38 @@ class AliasAddCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
-    private MockObject $managerRegistryMock;
+    private MockObject&EntityManagerInterface $managerMock;
 
-    private MockObject $managerMock;
+    private MockObject&DomainRepository $domainRepositoryMock;
 
-    private MockObject $validatorMock;
+    private MockObject&ValidatorInterface $validatorMock;
 
-    private MockObject $connectionCheckServiceMock;
+    private MockObject&ConnectionCheckService $connectionCheckServiceMock;
 
     protected function setUp(): void
     {
-        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
-        $this->managerMock = $this->createMock(ObjectManager::class);
-        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->domainRepositoryMock = $this->createMock(DomainRepository::class);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
 
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new AliasAddCommand($this->managerRegistryMock, $this->validatorMock, $this->connectionCheckServiceMock));
+        $application->add(
+            new AliasAddCommand($this->managerMock, $this->domainRepositoryMock, $this->validatorMock, $this->connectionCheckServiceMock)
+        );
 
         $this->commandTester = new CommandTester($application->find('alias:add'));
     }
 
     public function testInvalidEmailFrom(): void
     {
+        $this->domainRepositoryMock->expects($this->never())->method('findOneBy');
+        $this->validatorMock->expects($this->never())->method('validate');
         $this->managerMock->expects($this->never())->method('persist');
 
         $this->commandTester->execute(['from' => 'yolo', 'to' => 'jeff@example.com']);
@@ -68,6 +71,8 @@ class AliasAddCommandTest extends TestCase
 
     public function testInvalidEmailTo(): void
     {
+        $this->domainRepositoryMock->expects($this->never())->method('findOneBy');
+        $this->validatorMock->expects($this->never())->method('validate');
         $this->managerMock->expects($this->never())->method('persist');
 
         $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'yolo']);
@@ -78,14 +83,8 @@ class AliasAddCommandTest extends TestCase
 
     public function testDomainNotFound(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(null);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->validatorMock->expects($this->never())->method('validate');
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn(null);
         $this->managerMock->expects($this->never())->method('persist');
 
         $this->commandTester->execute(['from' => 'jeff@example.com', 'to' => 'admin@example.com']);
@@ -99,18 +98,13 @@ class AliasAddCommandTest extends TestCase
 
     public function testValidationFail(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(new Domain());
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn(new Domain());
 
         $violationList = new ConstraintViolationList();
         $violationList->add(new ConstraintViolation('Test', null, [], null, 'name', 1));
 
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
         $this->validatorMock
+            ->expects($this->once())
             ->method('validate')
             ->willReturn($violationList);
 
@@ -124,17 +118,11 @@ class AliasAddCommandTest extends TestCase
 
     public function testExecute(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(new Domain());
-
-        $violationList = $this->createMock(ConstraintViolationListInterface::class);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
+        $this->domainRepositoryMock->expects($this->once())->method('findOneBy')->willReturn(new Domain());
+        $violationList = $this->createStub(ConstraintViolationListInterface::class);
 
         $this->validatorMock
+            ->expects($this->once())
             ->method('validate')
             ->willReturn($violationList);
 

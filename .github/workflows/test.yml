@@ -42,7 +42,7 @@ jobs:
       - name: rector
         run: vendor/bin/rector process src/ --dry-run
       - name: PHPStan
-        run: vendor/bin/phpstan analyse --level 3
+        run: composer run phpstan
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest

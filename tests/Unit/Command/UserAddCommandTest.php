@@ -13,10 +13,9 @@ namespace Tests\Unit\Command;
 use App\Command\UserAddCommand;
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
-use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -30,43 +29,37 @@ class UserAddCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
-    private MockObject $managerRegistryMock;
+    private MockObject&EntityManagerInterface $managerMock;
 
-    private MockObject $managerMock;
+    private MockObject&DomainRepository $domainRepository;
 
-    private MockObject $validatorMock;
+    private MockObject&ValidatorInterface $validatorMock;
 
-    private MockObject $connectionCheckServiceMock;
+    private MockObject&ConnectionCheckService $connectionCheckServiceMock;
 
     protected function setUp(): void
     {
-        $this->managerRegistryMock = $this->createMock(ManagerRegistry::class);
-        $this->managerMock = $this->createMock(ObjectManager::class);
-        $this->managerRegistryMock->method('getManager')->willReturn($this->managerMock);
+        $this->managerMock = $this->createMock(EntityManagerInterface::class);
+        $this->domainRepository = $this->createMock(DomainRepository::class);
         $this->validatorMock = $this->createMock(ValidatorInterface::class);
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
 
         $this->connectionCheckServiceMock
+            ->expects($this->once())
             ->method('checkAll')
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new UserAddCommand($this->managerRegistryMock, $this->validatorMock, $this->connectionCheckServiceMock));
+        $application->add(new UserAddCommand($this->managerMock, $this->domainRepository, $this->validatorMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('user:add'));
     }
 
     public function testDomainNotFound(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(null);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn(null);
         $this->managerMock->expects($this->never())->method('persist');
+        $this->validatorMock->expects($this->never())->method('validate');
 
         $this->commandTester->execute(['name' => 'jeff', 'domain' => 'example.com']);
 
@@ -79,18 +72,13 @@ class UserAddCommandTest extends TestCase
 
     public function testValidationFail(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
-        $repository->method('findOneBy')->willReturn(new Domain());
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn(new Domain());
 
         $violationList = new ConstraintViolationList();
         $violationList->add(new ConstraintViolation('Test', null, [], null, 'name', 1));
 
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
-
         $this->validatorMock
+            ->expects($this->once())
             ->method('validate')
             ->willReturn($violationList);
 
@@ -104,18 +92,13 @@ class UserAddCommandTest extends TestCase
 
     public function testExecute(): void
     {
-        $repository = $this->createMock(ObjectRepository::class);
         $domain = new Domain();
-        $repository->method('findOneBy')->willReturn($domain);
+        $this->domainRepository->expects($this->once())->method('findOneBy')->willReturn($domain);
 
-        $violationList = $this->createMock(ConstraintViolationListInterface::class);
-
-        $this->managerRegistryMock
-            ->method('getRepository')
-            ->with(Domain::class)
-            ->willReturn($repository);
+        $violationList = $this->createStub(ConstraintViolationListInterface::class);
 
         $this->validatorMock
+            ->expects($this->once())
             ->method('validate')
             ->willReturn($violationList);
 

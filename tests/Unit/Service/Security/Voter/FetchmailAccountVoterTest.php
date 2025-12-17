@@ -30,8 +30,8 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteAbstainsOnWrongAttribute(): void
     {
-        $token = $this->createMock(TokenInterface::class);
-        $subject = $this->createMock(FetchmailAccount::class);
+        $token = $this->createStub(TokenInterface::class);
+        $subject = $this->createStub(FetchmailAccount::class);
 
         $result = $this->voter->vote($token, $subject, ['WRONG_ATTRIBUTE']);
 
@@ -40,7 +40,7 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteAbstainsOnWrongSubject(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $subject = new \stdClass();
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
@@ -50,7 +50,7 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteGrantsAccessOnNullSubject(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
 
         // When subject is null, voteOnAttribute returns true.
         $result = $this->voter->vote($token, null, [FetchmailAccountVoter::VIEW]);
@@ -60,10 +60,10 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteGrantsAccessForAdmin(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_ADMIN]);
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
 
@@ -72,19 +72,19 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteGrantsAccessForDomainAdminSameDomain(): void
     {
-        $domain = $this->createMock(Domain::class);
+        $domain = $this->createStub(Domain::class);
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $user->method('getDomain')->willReturn($domain);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn($user);
 
-        $accountUser = $this->createMock(User::class);
+        $accountUser = $this->createStub(User::class);
         $accountUser->method('getDomain')->willReturn($domain);
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
         $subject->method('getUser')->willReturn($accountUser);
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
@@ -94,20 +94,20 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteDeniesAccessForDomainAdminDifferentDomain(): void
     {
-        $domain1 = $this->createMock(Domain::class);
-        $domain2 = $this->createMock(Domain::class);
+        $domain1 = $this->createStub(Domain::class);
+        $domain2 = $this->createStub(Domain::class);
 
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
         $user->method('getDomain')->willReturn($domain1);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn($user);
 
-        $accountUser = $this->createMock(User::class);
+        $accountUser = $this->createStub(User::class);
         $accountUser->method('getDomain')->willReturn($domain2);
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
         $subject->method('getUser')->willReturn($accountUser);
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
@@ -117,11 +117,11 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteThrowsLogicExceptionIfDomainAdminIsNotUserInstance(): void
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_DOMAIN_ADMIN]);
         $token->method('getUser')->willReturn(null); // Not a User instance
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
 
         $this->expectException(\LogicException::class);
         $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
@@ -129,13 +129,13 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteGrantsAccessForOwner(): void
     {
-        $user = $this->createMock(User::class);
+        $user = $this->createStub(User::class);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_USER]);
         $token->method('getUser')->willReturn($user);
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
         $subject->method('getUser')->willReturn($user);
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
@@ -145,14 +145,14 @@ class FetchmailAccountVoterTest extends TestCase
 
     public function testVoteDeniesAccessForNonOwner(): void
     {
-        $user1 = $this->createMock(User::class);
-        $user2 = $this->createMock(User::class);
+        $user1 = $this->createStub(User::class);
+        $user2 = $this->createStub(User::class);
 
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getRoleNames')->willReturn([Roles::ROLE_USER]);
         $token->method('getUser')->willReturn($user1);
 
-        $subject = $this->createMock(FetchmailAccount::class);
+        $subject = $this->createStub(FetchmailAccount::class);
         $subject->method('getUser')->willReturn($user2);
 
         $result = $this->voter->vote($token, $subject, [FetchmailAccountVoter::VIEW]);
