@@ -11,6 +11,14 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\DnsWizard;
 
 use App\Entity\Domain;
+use App\Service\DnsWizard\Check\AaaaRecordCheck;
+use App\Service\DnsWizard\Check\ARecordCheck;
+use App\Service\DnsWizard\Check\AutodiscoveryRecordCheck;
+use App\Service\DnsWizard\Check\DkimRecordCheck;
+use App\Service\DnsWizard\Check\DmarcRecordCheck;
+use App\Service\DnsWizard\Check\MxRecordCheck;
+use App\Service\DnsWizard\Check\PtrRecordCheck;
+use App\Service\DnsWizard\Check\SpfRecordCheck;
 use App\Service\DnsWizard\DnsLookupInterface;
 use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\DnsWizardValidator;
@@ -63,7 +71,18 @@ class DnsWizardValidatorTest extends TestCase
         $domain->setDkimEnabled(true);
         $domain->setDkimSelector('dkim');
 
-        $validator = new DnsWizardValidator($dns);
+        $checks = [
+            new ARecordCheck($dns),
+            new AaaaRecordCheck($dns),
+            new PtrRecordCheck($dns),
+            new MxRecordCheck($dns),
+            new SpfRecordCheck($dns),
+            new DkimRecordCheck($dns),
+            new DmarcRecordCheck($dns),
+            new AutodiscoveryRecordCheck($dns),
+        ];
+
+        $validator = new DnsWizardValidator($checks);
         $expectedIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $result = $validator->validate('mail.example.com', $expectedIps, [$domain]);
 
@@ -124,7 +143,18 @@ class DnsWizardValidatorTest extends TestCase
         $domain->setName('example.com');
         $domain->setDkimEnabled(false);
 
-        $validator = new DnsWizardValidator($dns);
+        $checks = [
+            new ARecordCheck($dns),
+            new AaaaRecordCheck($dns),
+            new PtrRecordCheck($dns),
+            new MxRecordCheck($dns),
+            new SpfRecordCheck($dns),
+            new DkimRecordCheck($dns),
+            new DmarcRecordCheck($dns),
+            new AutodiscoveryRecordCheck($dns),
+        ];
+
+        $validator = new DnsWizardValidator($checks);
         $expectedIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $result = $validator->validate('mail.example.com', $expectedIps, [$domain]);
 
