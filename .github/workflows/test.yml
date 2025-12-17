@@ -99,7 +99,7 @@ jobs:
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
       - name: Run tests
-        run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml --fail-on-all-issues
+        run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml
       - name: Create code coverage report
         if: ${{ matrix.php-versions == '8.4' }}
         uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0

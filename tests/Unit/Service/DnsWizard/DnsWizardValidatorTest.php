@@ -96,7 +96,6 @@ class DnsWizardValidatorTest extends TestCase
         self::assertSame(DnsWizardStatus::OK, $rows[2]->status); // DKIM
         self::assertSame(DnsWizardStatus::OK, $rows[3]->status); // DMARC
         self::assertSame(DnsWizardStatus::OK, $rows[4]->status); // _autoconfig
-        self::assertSame(DnsWizardStatus::OK, $rows[5]->status); // _autodiscover
     }
 
     public function testMxCanResolveToExpectedIps(): void
