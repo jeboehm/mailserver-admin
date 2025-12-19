@@ -75,24 +75,8 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
 
         static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
 
-        $this->assertIndexEntityActionExists('edit', $domainId);
         $this->assertIndexEntityActionExists('delete', $domainId);
         $this->assertGlobalActionExists('new');
-    }
-
-    public function testEditDomain(): void
-    {
-        $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
-        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
-        static::assertInstanceOf(Domain::class, $domain);
-
-        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
-        static::assertResponseIsSuccessful();
-
-        // Domain name should not be editable (it's the primary key)
-        // But we can verify the page loads correctly
-        static::assertSelectorTextContains('h1', 'Edit Domain');
     }
 
     protected function getControllerFqcn(): string

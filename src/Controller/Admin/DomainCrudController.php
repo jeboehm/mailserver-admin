@@ -13,12 +13,11 @@ namespace App\Controller\Admin;
 use App\Entity\Domain;
 use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -40,31 +39,23 @@ class DomainCrudController extends AbstractCrudController
             ->setDefaultSort(['name' => 'ASC']);
     }
 
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions->disable(Action::EDIT);
+    }
+
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $name = TextField::new('name');
-        $id = IdField::new('id', 'ID');
-        $dkimEnabled = BooleanField::new('dkimEnabled');
-        $dkimSelector = TextField::new('dkimSelector');
-        $dkimPrivateKey = TextareaField::new('dkimPrivateKey');
-        $users = AssociationField::new('users')
-            ->setSortable(false);
-        $aliases = AssociationField::new('aliases')
-            ->setSortable(false);
-
-        if (Crud::PAGE_DETAIL === $pageName) {
-            return [$id, $name, $dkimEnabled, $dkimSelector, $dkimPrivateKey, $users, $aliases];
-        }
-
-        if (Crud::PAGE_NEW === $pageName) {
-            return [$name];
-        }
-
-        if (Crud::PAGE_EDIT === $pageName) {
-            return [$name];
-        }
-
-        return [$name, $aliases, $users];
+        yield TextField::new('name')
+            ->setRequired(true)
+            ->setHelp('The domain name must contain only ASCII characters. You need to use punycode if you want to use non-ASCII characters.')
+            ->hideWhenUpdating();
+        yield AssociationField::new('users')
+            ->setSortable(false)
+            ->hideOnForm();
+        yield AssociationField::new('aliases')
+            ->setSortable(false)
+            ->hideOnForm();
     }
 }

@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\DomainRepository;
+use App\Validator\DomainName;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -29,6 +30,7 @@ class Domain implements \Stringable
     #[ORM\Column(name: 'id', type: Types::INTEGER)]
     private ?int $id = null;
     #[Assert\NotBlank]
+    #[DomainName]
     #[ORM\Column(name: 'name', type: Types::STRING, unique: true, options: ['collation' => 'utf8_unicode_ci'])]
     private string $name = '';
     #[ORM\Column(name: 'dkim_enabled', type: Types::BOOLEAN)]
