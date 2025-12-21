@@ -13,6 +13,7 @@ namespace Tests\Unit\Twig;
 use App\Service\ApplicationVersionService;
 use App\Service\GitHubTagService;
 use App\Twig\VersionExtension;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -32,199 +33,139 @@ class VersionExtensionTest extends TestCase
         );
     }
 
-    public function testGetAdminVersionDelegatesToService(): void
+    #[DataProvider('adminVersionProvider')]
+    public function testGetAdminVersion(?string $serviceReturn, ?string $expectedResult, string $description): void
     {
         $this->applicationVersionService
             ->expects($this->once())
             ->method('getAdminVersion')
-            ->willReturn('1.2.3');
+            ->willReturn($serviceReturn);
 
         $this->gitHubTagService->expects($this->never())->method('getLatestTag');
 
         $result = $this->extension->getAdminVersion();
 
-        $this->assertEquals('1.2.3', $result);
+        $this->assertEquals($expectedResult, $result, $description);
     }
 
-    public function testGetAdminVersionReturnsNullWhenServiceReturnsNull(): void
+    /**
+     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
+     */
+    public static function adminVersionProvider(): array
     {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getAdminVersion')
-            ->willReturn(null);
-
-        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
-
-        $result = $this->extension->getAdminVersion();
-
-        $this->assertNull($result);
+        return [
+            'delegates to service' => ['1.2.3', '1.2.3', 'Should return version from service'],
+            'returns null when service returns null' => [null, null, 'Should return null when service returns null'],
+        ];
     }
 
-    public function testGetMailserverVersionDelegatesToService(): void
-    {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getMailserverVersion')
-            ->willReturn('2.0.0');
-
-        $this->gitHubTagService->expects($this->never())->method('getLatestTag');
-
-        $result = $this->extension->getMailserverVersion();
-
-        $this->assertEquals('2.0.0', $result);
-    }
-
-    public function testGetMailserverVersionReturnsNullWhenServiceReturnsNull(): void
+    #[DataProvider('mailserverVersionProvider')]
+    public function testGetMailserverVersion(?string $serviceReturn, ?string $expectedResult, string $description): void
     {
         $this->applicationVersionService
             ->expects($this->once())
             ->method('getMailserverVersion')
-            ->willReturn(null);
+            ->willReturn($serviceReturn);
 
         $this->gitHubTagService->expects($this->never())->method('getLatestTag');
 
         $result = $this->extension->getMailserverVersion();
 
-        $this->assertNull($result);
+        $this->assertEquals($expectedResult, $result, $description);
     }
 
-    public function testIsAdminUpdateAvailableReturnsFalseWhenCurrentVersionIsNull(): void
+    /**
+     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
+     */
+    public static function mailserverVersionProvider(): array
     {
+        return [
+            'delegates to service' => ['2.0.0', '2.0.0', 'Should return version from service'],
+            'returns null when service returns null' => [null, null, 'Should return null when service returns null'],
+        ];
+    }
+
+    #[DataProvider('adminUpdateAvailableProvider')]
+    public function testIsAdminUpdateAvailable(
+        ?string $currentVersion,
+        ?string $latestVersion,
+        bool $expectedResult,
+        string $description
+    ): void {
         $this->applicationVersionService
             ->expects($this->once())
             ->method('getAdminVersion')
-            ->willReturn(null);
+            ->willReturn($currentVersion);
 
-        $this->gitHubTagService
-            ->expects($this->never())
-            ->method('getLatestTag');
-
-        $result = $this->extension->isAdminUpdateAvailable();
-
-        $this->assertFalse($result);
-    }
-
-    public function testIsAdminUpdateAvailableReturnsFalseWhenLatestVersionIsNull(): void
-    {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getAdminVersion')
-            ->willReturn('1.2.3');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'mailserver-admin')
-            ->willReturn(null);
+        if (null !== $currentVersion) {
+            $this->gitHubTagService
+                ->expects($this->once())
+                ->method('getLatestTag')
+                ->with('jeboehm', 'mailserver-admin')
+                ->willReturn($latestVersion);
+        } else {
+            $this->gitHubTagService
+                ->expects($this->never())
+                ->method('getLatestTag');
+        }
 
         $result = $this->extension->isAdminUpdateAvailable();
 
-        $this->assertFalse($result);
+        $this->assertEquals($expectedResult, $result, $description);
     }
 
-    public function testIsAdminUpdateAvailableReturnsFalseWhenVersionsMatch(): void
+    /**
+     * @return array<int, array{0: string|null, 1: string|null, 2: bool, 3: string}>
+     */
+    public static function adminUpdateAvailableProvider(): array
     {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getAdminVersion')
-            ->willReturn('1.2.3');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'mailserver-admin')
-            ->willReturn('1.2.3');
-
-        $result = $this->extension->isAdminUpdateAvailable();
-
-        $this->assertFalse($result);
+        return [
+            'returns false when current version is null' => [null, null, false, 'Should return false when current version is null'],
+            'returns false when latest version is null' => ['1.2.3', null, false, 'Should return false when latest version is null'],
+            'returns false when versions match' => ['1.2.3', '1.2.3', false, 'Should return false when versions match'],
+            'returns true when versions differ' => ['1.2.2', '1.2.3', true, 'Should return true when versions differ'],
+        ];
     }
 
-    public function testIsAdminUpdateAvailableReturnsTrueWhenVersionsDiffer(): void
-    {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getAdminVersion')
-            ->willReturn('1.2.2');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'mailserver-admin')
-            ->willReturn('1.2.3');
-
-        $result = $this->extension->isAdminUpdateAvailable();
-
-        $this->assertTrue($result);
-    }
-
-    public function testIsMailserverUpdateAvailableReturnsFalseWhenCurrentVersionIsNull(): void
-    {
+    #[DataProvider('mailserverUpdateAvailableProvider')]
+    public function testIsMailserverUpdateAvailable(
+        ?string $currentVersion,
+        ?string $latestVersion,
+        bool $expectedResult,
+        string $description
+    ): void {
         $this->applicationVersionService
             ->expects($this->once())
             ->method('getMailserverVersion')
-            ->willReturn(null);
+            ->willReturn($currentVersion);
 
-        $this->gitHubTagService
-            ->expects($this->never())
-            ->method('getLatestTag');
+        if (null !== $currentVersion) {
+            $this->gitHubTagService
+                ->expects($this->once())
+                ->method('getLatestTag')
+                ->with('jeboehm', 'docker-mailserver')
+                ->willReturn($latestVersion);
+        } else {
+            $this->gitHubTagService
+                ->expects($this->never())
+                ->method('getLatestTag');
+        }
 
         $result = $this->extension->isMailserverUpdateAvailable();
 
-        $this->assertFalse($result);
+        $this->assertEquals($expectedResult, $result, $description);
     }
 
-    public function testIsMailserverUpdateAvailableReturnsFalseWhenLatestVersionIsNull(): void
+    /**
+     * @return array<int, array{0: string|null, 1: string|null, 2: bool, 3: string}>
+     */
+    public static function mailserverUpdateAvailableProvider(): array
     {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getMailserverVersion')
-            ->willReturn('2.0.0');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'docker-mailserver')
-            ->willReturn(null);
-
-        $result = $this->extension->isMailserverUpdateAvailable();
-
-        $this->assertFalse($result);
-    }
-
-    public function testIsMailserverUpdateAvailableReturnsFalseWhenVersionsMatch(): void
-    {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getMailserverVersion')
-            ->willReturn('2.0.0');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'docker-mailserver')
-            ->willReturn('2.0.0');
-
-        $result = $this->extension->isMailserverUpdateAvailable();
-
-        $this->assertFalse($result);
-    }
-
-    public function testIsMailserverUpdateAvailableReturnsTrueWhenVersionsDiffer(): void
-    {
-        $this->applicationVersionService
-            ->expects($this->once())
-            ->method('getMailserverVersion')
-            ->willReturn('1.9.9');
-
-        $this->gitHubTagService
-            ->expects($this->once())
-            ->method('getLatestTag')
-            ->with('jeboehm', 'docker-mailserver')
-            ->willReturn('2.0.0');
-
-        $result = $this->extension->isMailserverUpdateAvailable();
-
-        $this->assertTrue($result);
+        return [
+            'returns false when current version is null' => [null, null, false, 'Should return false when current version is null'],
+            'returns false when latest version is null' => ['2.0.0', null, false, 'Should return false when latest version is null'],
+            'returns false when versions match' => ['2.0.0', '2.0.0', false, 'Should return false when versions match'],
+            'returns true when versions differ' => ['1.9.9', '2.0.0', true, 'Should return true when versions differ'],
+        ];
     }
 }
