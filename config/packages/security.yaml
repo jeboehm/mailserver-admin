@@ -31,7 +31,7 @@ security:
       form_login:
         login_path: app_login
         check_path: app_login
-        enable_csrf: false
+        enable_csrf: "%env(bool:CSRF_ENABLED)%"
 
       oauth:
         resource_owners:
