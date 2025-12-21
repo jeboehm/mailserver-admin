@@ -11,6 +11,7 @@
       xdebug.client_port = 9003
       xdebug.start_with_request = yes
       max_execution_time = 0
+      opcache.enable = false
     '';
   };
 
