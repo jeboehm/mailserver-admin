@@ -2,7 +2,7 @@
 framework:
     form:
         csrf_protection:
-            enabled: '%app_csrf_enabled%'
+            enabled: '%env(bool:CSRF_ENABLED)%'
             token_id: submit
 
     csrf_protection:

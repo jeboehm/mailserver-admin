@@ -1,9 +1,11 @@
 parameters:
-    env(WAITSTART_TIMEOUT): '1m'
-    app_oauth_enabled: '%env(bool:OAUTH_ENABLED)%'
-    app_oauth_button_text: '%env(string:OAUTH_BUTTON_TEXT)%'
-    app_oauth_admin_group: '%env(string:OAUTH_ADMIN_GROUP)%'
-    app_csrf_enabled: '%env(bool:CSRF_ENABLED)%'
+    env(WAITSTART_TIMEOUT): "1m"
+    env(OAUTH_ENABLED): "false"
+    env(OAUTH_BUTTON_TEXT): "OIDC Login"
+    env(OAUTH_ADMIN_GROUP): ""
+    env(CSRF_ENABLED): "true"
+    env(ADMIN_VERSION_FILE): "%kernel.project_dir%/VERSION"
+    env(MAILSERVER_VERSION_FILE): "%kernel.project_dir%/DMS-VERSION"
 
 services:
     _defaults:
@@ -29,10 +31,6 @@ services:
                 host: '%env(REDIS_HOST)%'
                 port: '%env(REDIS_PORT)%'
                 password: '%env(REDIS_PASSWORD)%'
-
-    App\Service\ApplicationVersionService:
-        arguments:
-            $projectDir: '%kernel.project_dir%'
 
 when@test:
     services:
