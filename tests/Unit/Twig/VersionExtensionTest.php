@@ -48,9 +48,6 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
-     */
     public static function adminVersionProvider(): array
     {
         return [
@@ -74,9 +71,6 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
-     */
     public static function mailserverVersionProvider(): array
     {
         return [
@@ -114,9 +108,6 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: bool, 3: string}>
-     */
     public static function adminUpdateAvailableProvider(): array
     {
         return [
@@ -156,9 +147,6 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: bool, 3: string}>
-     */
     public static function mailserverUpdateAvailableProvider(): array
     {
         return [

@@ -10,37 +10,34 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
 readonly class ApplicationVersionService
 {
     public function __construct(
-        private string $projectDir,
+        #[Autowire('%env(file:MAILSERVER_VERSION_FILE)%')]
+        private ?string $mailserverVersion = null,
+        #[Autowire('%env(file:ADMIN_VERSION_FILE)%')]
+        private ?string $adminVersion = null,
     ) {
     }
 
     public function getMailserverVersion(): ?string
     {
-        $versionFile = $this->projectDir . '/DMS-VERSION';
-
-        return $this->readFile($versionFile);
+        return $this->mailserverVersion ? $this->formatVersion($this->mailserverVersion) : null;
     }
 
     public function getAdminVersion(): ?string
     {
-        $versionFile = $this->projectDir . '/VERSION';
-
-        return $this->readFile($versionFile);
+        return $this->adminVersion ? $this->formatVersion($this->adminVersion) : null;
     }
 
     /**
      * @return string|null The version number without 'v' prefix (e.g., '1.2.3') or null if file not found
      */
-    private function readFile(string $versionFile): ?string
+    private function formatVersion(string $version): ?string
     {
-        if (!file_exists($versionFile) || !is_readable($versionFile)) {
-            return null;
-        }
-
-        $version = trim((string) file_get_contents($versionFile));
+        $version = trim($version);
 
         if (empty($version)) {
             return null;
