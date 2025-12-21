@@ -25,9 +25,9 @@ readonly class OAuthUserProvider implements UserProviderInterface, OAuthAwareUse
     private const string SESSION_KEY = 'oauth_user_provider';
 
     public function __construct(
-        #[Autowire(param: 'app_oauth_enabled')]
+        #[Autowire('%env(bool:OAUTH_ENABLED)%')]
         private bool $oauthEnabled,
-        #[Autowire(param: 'app_oauth_admin_group')]
+        #[Autowire('%env(string:OAUTH_ADMIN_GROUP)%')]
         private string $adminGroupName,
         private RequestStack $requestStack,
     ) {
