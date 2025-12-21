@@ -16,42 +16,15 @@ use PHPUnit\Framework\TestCase;
 
 class ApplicationVersionServiceTest extends TestCase
 {
-    private string $tempDir;
-
-    protected function setUp(): void
-    {
-        $this->tempDir = sys_get_temp_dir() . '/' . uniqid('version_test_', true);
-        mkdir($this->tempDir, 0755, true);
-    }
-
-    protected function tearDown(): void
-    {
-        if (is_dir($this->tempDir)) {
-            $files = array_diff(scandir($this->tempDir), ['.', '..']);
-            foreach ($files as $file) {
-                unlink($this->tempDir . '/' . $file);
-            }
-            rmdir($this->tempDir);
-        }
-    }
-
     #[DataProvider('adminVersionProvider')]
     public function testGetAdminVersion(?string $fileContent, ?string $expectedResult, string $description): void
     {
-        if (null !== $fileContent) {
-            $versionFile = $this->tempDir . '/VERSION';
-            file_put_contents($versionFile, $fileContent);
-        }
-
-        $service = new ApplicationVersionService($this->tempDir);
+        $service = new ApplicationVersionService(adminVersion: $fileContent);
         $result = $service->getAdminVersion();
 
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
-     */
     public static function adminVersionProvider(): array
     {
         return [
@@ -70,20 +43,12 @@ class ApplicationVersionServiceTest extends TestCase
     #[DataProvider('mailserverVersionProvider')]
     public function testGetMailserverVersion(?string $fileContent, ?string $expectedResult, string $description): void
     {
-        if (null !== $fileContent) {
-            $versionFile = $this->tempDir . '/DMS-VERSION';
-            file_put_contents($versionFile, $fileContent);
-        }
-
-        $service = new ApplicationVersionService($this->tempDir);
+        $service = new ApplicationVersionService(mailserverVersion: $fileContent);
         $result = $service->getMailserverVersion();
 
         $this->assertEquals($expectedResult, $result, $description);
     }
 
-    /**
-     * @return array<int, array{0: string|null, 1: string|null, 2: string}>
-     */
     public static function mailserverVersionProvider(): array
     {
         return [
@@ -99,12 +64,7 @@ class ApplicationVersionServiceTest extends TestCase
 
     public function testBothVersionsExist(): void
     {
-        $adminVersionFile = $this->tempDir . '/VERSION';
-        $mailserverVersionFile = $this->tempDir . '/DMS-VERSION';
-        file_put_contents($adminVersionFile, 'v1.2.3');
-        file_put_contents($mailserverVersionFile, 'v2.0.0');
-
-        $service = new ApplicationVersionService($this->tempDir);
+        $service = new ApplicationVersionService(mailserverVersion: 'v2.0.0', adminVersion: 'v1.2.3');
         $adminVersion = $service->getAdminVersion();
         $mailserverVersion = $service->getMailserverVersion();
 
