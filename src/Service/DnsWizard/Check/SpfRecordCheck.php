@@ -23,6 +23,11 @@ readonly class SpfRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 60;
+    }
+
     /**
      * @param list<string> $expectedAll
      *
@@ -44,15 +49,17 @@ readonly class SpfRecordCheck implements DnsCheckInterface
         $domainTxt = $this->dns->lookupTxt($domainName);
         $spf = $this->findPolicy($domainTxt, '/^v=spf1(\s+.+)?$/i');
 
-        return [new DnsWizardRow(
-            scope: Scopes::SCOPE_DOMAIN,
-            subject: $domainName,
-            recordType: 'TXT',
-            expectedValues: ['v=spf1 …'],
-            actualValues: $domainTxt,
-            status: null !== $spf ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: null !== $spf ? 'SPF policy found' : 'No valid SPF policy found',
-        )];
+        return [
+            new DnsWizardRow(
+                scope: Scopes::SCOPE_DOMAIN,
+                subject: $domainName,
+                recordType: 'TXT',
+                expectedValues: ['v=spf1 …'],
+                actualValues: $domainTxt,
+                status: null !== $spf ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+                message: null !== $spf ? 'SPF policy found' : 'No valid SPF policy found',
+            ),
+        ];
     }
 
     /**

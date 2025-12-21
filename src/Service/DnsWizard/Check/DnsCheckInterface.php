@@ -13,18 +13,24 @@ namespace App\Service\DnsWizard\Check;
 use App\Entity\Domain;
 use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\ExpectedHostIps;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
+#[AutoconfigureTag(self::TAG_NAME)]
 interface DnsCheckInterface
 {
+    public const string TAG_NAME = 'app.dns_wizard.check';
+
+    public static function getDefaultPriority(): int;
+
     /**
-     * @return list<DnsWizardRow>
+     * @return DnsWizardRow[]
      */
     public function validateMailHost(string $mailname, ExpectedHostIps $expectedHostIps, array $expectedAll): array;
 
     /**
-     * @param list<string> $expectedAll
+     * @param string[] $expectedAll
      *
-     * @return list<DnsWizardRow>
+     * @return DnsWizardRow[]
      */
     public function validateDomain(string $mailname, array $expectedAll, Domain $domain): array;
 }

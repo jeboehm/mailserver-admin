@@ -23,6 +23,11 @@ readonly class DkimRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 50;
+    }
+
     /**
      * @param list<string> $expectedAll
      *
@@ -53,14 +58,16 @@ readonly class DkimRecordCheck implements DnsCheckInterface
             $message = 'DKIM record mismatch';
         }
 
-        return [new DnsWizardRow(
-            scope: Scopes::SCOPE_DOMAIN,
-            subject: \sprintf('%s._domainkey.%s', $domain->getDkimSelector(), $domain),
-            recordType: 'TXT',
-            expectedValues: ['Valid DKIM record'],
-            actualValues: [$status->getCurrentRecord()],
-            status: $status->isDkimRecordValid() ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: $message,
-        )];
+        return [
+            new DnsWizardRow(
+                scope: Scopes::SCOPE_DOMAIN,
+                subject: \sprintf('%s._domainkey.%s', $domain->getDkimSelector(), $domain),
+                recordType: 'TXT',
+                expectedValues: ['Valid DKIM record'],
+                actualValues: [$status->getCurrentRecord()],
+                status: $status->isDkimRecordValid() ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+                message: $message,
+            ),
+        ];
     }
 }

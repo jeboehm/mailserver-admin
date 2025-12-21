@@ -12,14 +12,17 @@ namespace App\Service\DnsWizard;
 
 use App\Entity\Domain;
 use App\Service\DnsWizard\Check\DnsCheckInterface;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 readonly class DnsWizardValidator
 {
     /**
      * @param iterable<DnsCheckInterface> $checks
      */
-    public function __construct(private iterable $checks)
-    {
+    public function __construct(
+        #[AutowireIterator(DnsCheckInterface::TAG_NAME)]
+        private iterable $checks
+    ) {
     }
 
     /**
