@@ -23,6 +23,11 @@ readonly class PtrRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 80;
+    }
+
     /**
      * @param list<string> $expectedAll
      *

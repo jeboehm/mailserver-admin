@@ -17,7 +17,7 @@ use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\Scopes;
 
-readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
+readonly class AutodiscoveryRecordCheck
 {
     public function __construct(private DnsLookupInterface $dns)
     {

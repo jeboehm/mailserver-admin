@@ -23,6 +23,11 @@ readonly class AaaaRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 90;
+    }
+
     /**
      * @param list<string> $expectedAll
      *
@@ -35,14 +40,16 @@ readonly class AaaaRecordCheck implements DnsCheckInterface
         $matchedAny = 0 !== \count(\array_intersect($expectedAll, [...$a, ...$aaaa]));
         $matchedThis = 0 !== \count(\array_intersect($expectedAll, $aaaa));
 
-        return [$this->buildAddressRow(
-            recordType: 'AAAA',
-            mailname: $mailname,
-            expected: $expectedHostIps->ipv6,
-            actual: $aaaa,
-            matchedAny: $matchedAny,
-            matchedThis: $matchedThis,
-        )];
+        return [
+            $this->buildAddressRow(
+                recordType: 'AAAA',
+                mailname: $mailname,
+                expected: $expectedHostIps->ipv6,
+                actual: $aaaa,
+                matchedAny: $matchedAny,
+                matchedThis: $matchedThis,
+            ),
+        ];
     }
 
     /**
@@ -59,8 +66,14 @@ readonly class AaaaRecordCheck implements DnsCheckInterface
      * @param list<string> $expected
      * @param list<string> $actual
      */
-    private function buildAddressRow(string $recordType, string $mailname, array $expected, array $actual, bool $matchedAny, bool $matchedThis): DnsWizardRow
-    {
+    private function buildAddressRow(
+        string $recordType,
+        string $mailname,
+        array $expected,
+        array $actual,
+        bool $matchedAny,
+        bool $matchedThis
+    ): DnsWizardRow {
         if (0 === \count($expected)) {
             return new DnsWizardRow(
                 scope: Scopes::SCOPE_MAIL_HOST,

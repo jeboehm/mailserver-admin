@@ -23,6 +23,11 @@ readonly class DmarcRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 40;
+    }
+
     /**
      * @param list<string> $expectedAll
      *
@@ -45,15 +50,17 @@ readonly class DmarcRecordCheck implements DnsCheckInterface
         $dmarcTxt = $this->dns->lookupTxt($dmarcName);
         $dmarc = $this->findPolicy($dmarcTxt, '/^v=DMARC1(\s*;.*)?$/i');
 
-        return [new DnsWizardRow(
-            scope: Scopes::SCOPE_DOMAIN,
-            subject: $dmarcName,
-            recordType: 'TXT',
-            expectedValues: ['v=DMARC1 …'],
-            actualValues: $dmarcTxt,
-            status: null !== $dmarc ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: null !== $dmarc ? 'DMARC policy found' : 'DMARC policy missing',
-        )];
+        return [
+            new DnsWizardRow(
+                scope: Scopes::SCOPE_DOMAIN,
+                subject: $dmarcName,
+                recordType: 'TXT',
+                expectedValues: ['v=DMARC1 …'],
+                actualValues: $dmarcTxt,
+                status: null !== $dmarc ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+                message: null !== $dmarc ? 'DMARC policy found' : 'DMARC policy missing',
+            ),
+        ];
     }
 
     /**

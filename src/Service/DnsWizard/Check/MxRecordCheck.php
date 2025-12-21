@@ -23,6 +23,11 @@ readonly class MxRecordCheck implements DnsCheckInterface
     {
     }
 
+    public static function getDefaultPriority(): int
+    {
+        return 70;
+    }
+
     /**
      * @param list<string> $expectedAll
      *
@@ -65,15 +70,17 @@ readonly class MxRecordCheck implements DnsCheckInterface
             }
         }
 
-        return [new DnsWizardRow(
-            scope: Scopes::SCOPE_DOMAIN,
-            subject: $domainName,
-            recordType: 'MX',
-            expectedValues: [$mailname, 'or a host resolving to expected IPs'],
-            actualValues: $mxTargets,
-            status: $mxOk ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: 0 === \count($mxTargets) ? 'No MX records found' : $mxMessage,
-        )];
+        return [
+            new DnsWizardRow(
+                scope: Scopes::SCOPE_DOMAIN,
+                subject: $domainName,
+                recordType: 'MX',
+                expectedValues: [$mailname, 'or a host resolving to expected IPs'],
+                actualValues: $mxTargets,
+                status: $mxOk ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+                message: 0 === \count($mxTargets) ? 'No MX records found' : $mxMessage,
+            ),
+        ];
     }
 
     private function normalizeHostname(string $host): string
