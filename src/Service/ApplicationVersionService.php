@@ -47,6 +47,12 @@ readonly class ApplicationVersionService
         }
 
         // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
-        return ltrim($version, 'v');
+        $version = ltrim($version, 'v');
+
+        if (!is_numeric(\substr($version, 0, 1))) {
+            return null;
+        }
+
+        return $version;
     }
 }
