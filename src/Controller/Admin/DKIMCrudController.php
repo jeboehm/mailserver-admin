@@ -104,19 +104,17 @@ class DKIMCrudController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $name = TextField::new('name')
+        yield TextField::new('name')
             ->setDisabled();
-        $dkimEnabled = BooleanField::new('dkimEnabled', 'Enabled');
-        $dkimSelector = TextField::new('dkimSelector', 'Selector')
+        yield BooleanField::new('dkimEnabled', 'Enabled');
+        yield TextField::new('dkimSelector', 'Selector')
             ->setDisabled()
             ->hideOnIndex();
-        $dkimStatusDkimRecordFound = BooleanField::new('dkimStatus.dkimRecordFound', 'Domain Key found')
+        yield BooleanField::new('dkimStatus.dkimRecordFound', 'Domain Key found')
             ->renderAsSwitch(false)
             ->hideOnForm();
-        $dkimStatusDkimRecordValid = BooleanField::new('dkimStatus.dkimRecordValid', 'Record valid')
+        yield BooleanField::new('dkimStatus.dkimRecordValid', 'Record valid')
             ->renderAsSwitch(false)
             ->hideOnForm();
-
-        return [$name, $dkimSelector, $dkimEnabled, $dkimStatusDkimRecordFound, $dkimStatusDkimRecordValid];
     }
 }

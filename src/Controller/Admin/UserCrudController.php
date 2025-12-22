@@ -26,10 +26,11 @@ use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminCrud(routePath: '/user', routeName: 'user')]
@@ -59,38 +60,48 @@ class UserCrudController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $domain = AssociationField::new('domain')
+        yield FormField::addColumn();
+        yield TextField::new('name')
+            ->hideWhenUpdating();
+        yield AssociationField::new('domain')
             ->setRequired(true)
             ->hideWhenUpdating()
             ->setPermission(Roles::ROLE_ADMIN)
             ->setSortProperty('name');
-        $name = TextField::new('name')
-            ->hideWhenUpdating();
-        $admin = BooleanField::new('admin')
-            ->setPermission(Roles::ROLE_ADMIN);
-        $domainAdmin = BooleanField::new('domainAdmin')
-            ->setHelp('Domain admins can manage all users in their domain')
-            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
-        $enabled = BooleanField::new('enabled');
-        $sendOnly = BooleanField::new('sendOnly')
-            ->setHelp('Send only accounts are not allowed to receive mails');
-        $quota = IntegerField::new('quota')
+        yield IntegerField::new('quota')
             ->setHelp('How much space the account can use (in megabytes)')
             ->formatValue(fn (?int $value) => $value ? sprintf('%d MB', $value) : 'Unlimited');
-        $plainPassword = Field::new('plainPassword')
-            ->setFormType(PasswordType::class)
-            ->setLabel('Password')
+
+        $passwordField = Field::new('plainPassword')
+            ->setFormType(RepeatedType::class)
+            ->setFormTypeOption('type', PasswordType::class)
+            ->setLabel('Repeat password')
             ->setRequired(true)
+            ->setFormTypeOption('first_options', [
+                'label' => 'Password',
+            ])
+            ->setFormTypeOption('second_options', [
+                'label' => 'Repeat password',
+            ])
             ->onlyOnForms();
 
         if (Crud::PAGE_EDIT === $pageName) {
-            $plainPassword
-                ->setHelp('Leave empty to keep the current password.')
+            $passwordField
                 ->setRequired(false)
-                ->setFormTypeOption('empty_data', fn (FormInterface $form) => $form->getData());
+                ->setHelp('Leave empty to keep the current password.');
         }
 
-        return [$domain, $name, $plainPassword, $admin, $domainAdmin, $enabled, $sendOnly, $quota];
+        yield $passwordField;
+
+        yield FormField::addColumn();
+        yield BooleanField::new('enabled');
+        yield BooleanField::new('admin')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield BooleanField::new('domainAdmin')
+            ->setHelp('Domain admins can manage all users in their domain')
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
+        yield BooleanField::new('sendOnly')
+            ->setHelp('Send only accounts are not allowed to receive mails');
     }
 
     #[\Override]

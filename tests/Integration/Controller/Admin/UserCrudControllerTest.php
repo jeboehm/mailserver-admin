@@ -64,7 +64,8 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->client->submitForm('Create', [
             'User[name]' => 'newuser',
-            'User[plainPassword]' => 'password123',
+            'User[plainPassword][first]' => 'password123',
+            'User[plainPassword][second]' => 'password123',
             'User[quota]' => 1000,
         ]);
         static::assertResponseIsSuccessful();
@@ -134,16 +135,9 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
         static::assertResponseIsSuccessful();
 
-        // Submit form without password field (leave empty)
-        // The form's empty_data option should return the existing data, keeping password unchanged
         $crawler = $this->client->getCrawler();
         $form = $crawler->selectButton('Save changes')->form();
         $form['User[quota]'] = '1500';
-        // Don't set the password field at all - let it use empty_data which returns form data
-        // Remove the password field from the form values to simulate leaving it blank
-        $values = $form->getValues();
-        unset($values['User[plainPassword]']);
-        $form->setValues($values);
         $this->client->submit($form);
         static::assertResponseIsSuccessful();
 
@@ -152,7 +146,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         assert($userRepository instanceof UserRepository);
         $updatedUser = $userRepository->find($user->getId());
         static::assertInstanceOf(User::class, $updatedUser);
-        // Password should remain unchanged - verify it's still a valid hash (starts with $2y$)
         static::assertStringStartsWith('$2y$', $updatedUser->getPassword());
         static::assertEquals($originalPassword, $updatedUser->getPassword());
     }
@@ -181,7 +174,8 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->client->submitForm('Create', [
             'User[name]' => 'duplicateuser',
-            'User[plainPassword]' => 'password123',
+            'User[plainPassword][first]' => 'password123',
+            'User[plainPassword][second]' => 'password123',
             'User[quota]' => 1000,
         ]);
 

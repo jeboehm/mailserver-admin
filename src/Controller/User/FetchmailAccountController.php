@@ -58,7 +58,7 @@ class FetchmailAccountController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $user = AssociationField::new('user')
+        yield AssociationField::new('user')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN)
             ->setQueryBuilder(function (QueryBuilder $qb) {
                 if ($this->isGranted(Roles::ROLE_ADMIN)) {
@@ -86,18 +86,18 @@ class FetchmailAccountController extends AbstractCrudController
                 throw new \RuntimeException('User is not an instance of User');
             });
 
-        $host = TextField::new('host');
-        $port = NumberField::new('port')
+        yield TextField::new('host');
+        yield NumberField::new('port')
             ->hideOnIndex();
 
-        $protocol = ChoiceField::new('protocol')
+        yield ChoiceField::new('protocol')
             ->setChoices([
                 'POP3' => 'pop3',
                 'IMAP' => 'imap',
             ])
             ->hideOnIndex();
 
-        $username = TextField::new('username');
+        yield TextField::new('username');
 
         $password = TextField::new('password')
             ->setFormType(PasswordType::class)
@@ -110,16 +110,18 @@ class FetchmailAccountController extends AbstractCrudController
                 ->setFormTypeOption('empty_data', fn (FormInterface $form) => $form->getData());
         }
 
-        $ssl = BooleanField::new('ssl', 'SSL')
+        yield $password;
+
+        yield BooleanField::new('ssl', 'SSL')
             ->setHelp('Use SSL to connect to the server. Use only with SSL-only connections or implicit TLS.')
             ->hideOnIndex();
 
-        $sslVerify = BooleanField::new('verifySsl', 'SSL Verify')
+        yield BooleanField::new('verifySsl', 'SSL Verify')
             ->setHelp('Verify the SSL certificate of the server.')
             ->hideOnIndex();
 
         // runtime infos
-        $lastRun = DateTimeField::new('lastRun')
+        yield DateTimeField::new('lastRun')
             ->hideOnForm()
             ->formatValue(function ($value) {
                 if (null === $value) {
@@ -128,30 +130,18 @@ class FetchmailAccountController extends AbstractCrudController
 
                 return $value->format('Y-m-d H:i:s');
             });
-        $isSuccess = BooleanField::new('isSuccess')
+
+        yield BooleanField::new('isSuccess')
             ->hideOnForm()
             ->renderAsSwitch(false)
             ->setDisabled();
-        $lastLog = TextareaField::new('lastLog')
+
+        yield TextareaField::new('lastLog')
             ->hideOnIndex()
             ->setEmptyData('')
             ->setLabel('Last run log')
             ->setHelp('The last log of the fetchmail run. Can help to identify issues.')
             ->setDisabled();
-
-        return [
-            $user,
-            $host,
-            $port,
-            $protocol,
-            $username,
-            $password,
-            $ssl,
-            $sslVerify,
-            $lastRun,
-            $isSuccess,
-            $lastLog,
-        ];
     }
 
     #[\Override]
