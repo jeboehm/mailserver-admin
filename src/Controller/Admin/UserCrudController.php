@@ -16,7 +16,7 @@ use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -33,7 +33,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminCrud(routePath: '/user', routeName: 'user')]
+#[AdminRoute(path: '/user', name: 'user')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {

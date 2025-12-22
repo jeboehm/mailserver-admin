@@ -15,7 +15,7 @@ use App\Entity\User;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\QueryBuilder;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -27,7 +27,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminCrud(routePath: '/alias', routeName: 'alias')]
+#[AdminRoute(path: '/alias', name: 'alias')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class AliasCrudController extends AbstractCrudController
 {

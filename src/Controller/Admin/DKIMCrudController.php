@@ -14,8 +14,7 @@ use App\Entity\Domain;
 use App\Service\DKIM\KeyGenerationService;
 use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminAction;
-use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -24,11 +23,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminCrud(routePath: '/dkim', routeName: 'dkim')]
+#[AdminRoute(path: '/dkim', name: 'dkim')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DKIMCrudController extends AbstractCrudController
 {
@@ -78,7 +76,7 @@ class DKIMCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
-    #[AdminAction('/recreate/{entityId}', routeName: 'dkim_recreate_key', methods: [Request::METHOD_POST])]
+    #[AdminRoute(path: '/recreate/{entityId}', name: 'dkim_recreate_key')]
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
