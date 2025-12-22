@@ -56,7 +56,7 @@ readonly class LoginAction
                     'username_label' => 'Email address',
                     'enable_oauth' => $this->oauthEnabled,
                     'oauth_button_text' => $this->oauthButtonText,
-                    'csrf_token_intention' => 'login',
+                    'csrf_token_intention' => 'authenticate',
                 ]
             )
         );
