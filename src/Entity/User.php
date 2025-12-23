@@ -172,7 +172,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     #[\Override]
     public function eraseCredentials(): void
     {
-        $this->plainPassword = '';
+        $this->plainPassword = null;
     }
 
     public function getPlainPassword(): ?string

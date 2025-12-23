@@ -52,4 +52,38 @@ class PasswordServiceTest extends TestCase
         $this->passwordService->processUserPassword($user);
         $this->assertEquals('test1234', $user->getPassword());
     }
+
+    public function testProcessNullPassword(): void
+    {
+        $user = new User();
+        $user->setPlainPassword(null);
+
+        $this->passwordHasher
+            ->expects($this->never())
+            ->method('hash');
+        $this->passwordHasherFactory
+            ->expects($this->never())
+            ->method('getPasswordHasher');
+
+        $this->passwordService->processUserPassword($user);
+
+        $this->assertEmpty($user->getPassword());
+    }
+
+    public function testProcessEmptyPassword(): void
+    {
+        $user = new User();
+        $user->setPlainPassword('');
+
+        $this->passwordHasher
+            ->expects($this->never())
+            ->method('hash');
+        $this->passwordHasherFactory
+            ->expects($this->never())
+            ->method('getPasswordHasher');
+
+        $this->passwordService->processUserPassword($user);
+
+        $this->assertEmpty($user->getPassword());
+    }
 }
