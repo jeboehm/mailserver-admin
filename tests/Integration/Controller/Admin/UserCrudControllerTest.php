@@ -61,6 +61,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->client->clickLink('Add User');
         static::assertResponseIsSuccessful();
+        static::assertAnySelectorTextNotContains('.form-text.form-help', 'Leave empty to keep the current password.');
 
         $this->client->submitForm('Create', [
             'User[name]' => 'newuser',
@@ -98,6 +99,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
         static::assertResponseIsSuccessful();
+        static::assertAnySelectorTextContains('.form-text.form-help', 'Leave empty to keep the current password.');
 
         $this->client->submitForm('Save changes', [
             'User[quota]' => 2000,
