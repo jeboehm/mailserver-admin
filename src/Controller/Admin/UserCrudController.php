@@ -69,29 +69,22 @@ class UserCrudController extends AbstractCrudController
             ->setPermission(Roles::ROLE_ADMIN)
             ->setSortProperty('name');
         yield IntegerField::new('quota')
-            ->setHelp('How much space the account can use (in megabytes)')
+            ->setHelp('How much space the account can use (in megabytes).')
             ->formatValue(fn (?int $value) => $value ? sprintf('%d MB', $value) : 'Unlimited');
 
-        $passwordField = Field::new('plainPassword')
+        yield Field::new('plainPassword')
             ->setFormType(RepeatedType::class)
             ->setFormTypeOption('type', PasswordType::class)
             ->setLabel('Repeat password')
-            ->setRequired(true)
+            ->setRequired(Crud::PAGE_EDIT !== $pageName)
             ->setFormTypeOption('first_options', [
                 'label' => 'Password',
+                'help' => Crud::PAGE_EDIT === $pageName ? 'Leave empty to keep the current password.' : null,
             ])
             ->setFormTypeOption('second_options', [
                 'label' => 'Repeat password',
             ])
             ->onlyOnForms();
-
-        if (Crud::PAGE_EDIT === $pageName) {
-            $passwordField
-                ->setRequired(false)
-                ->setHelp('Leave empty to keep the current password.');
-        }
-
-        yield $passwordField;
 
         yield FormField::addColumn();
         yield BooleanField::new('enabled');
