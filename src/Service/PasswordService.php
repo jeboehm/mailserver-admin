@@ -25,7 +25,7 @@ readonly class PasswordService
 
     public function processUserPassword(User $user): void
     {
-        if (null !== $user->getPlainPassword()) {
+        if (!empty($user->getPlainPassword())) {
             $passwordHasher = $this->passwordHasherFactory->getPasswordHasher($user);
             $user->setPassword($passwordHasher->hash($user->getPlainPassword()));
         }
