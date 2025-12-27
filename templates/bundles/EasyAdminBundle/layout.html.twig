@@ -5,12 +5,12 @@
         <footer class="text-center">
             <small class="text-muted">
                 <a href="https://github.com/jeboehm/mailserver-admin">admin</a>
-                {% if is_granted('ROLE_ADMIN') %}
+                {% if is_granted(constant('App\\Service\\Security\\Roles::ROLE_ADMIN')) %}
                     {{ admin_version()|default('') }}{% if admin_update_available() %} <span class="badge badge-warning">update available</span>{% endif %}
                 {% endif %}
                 |
                 <a href="https://github.com/jeboehm/docker-mailserver">docker-mailserver</a>
-                {% if is_granted('ROLE_ADMIN') %}
+                {% if is_granted(constant('App\\Service\\Security\\Roles::ROLE_ADMIN')) %}
                     {{ mailserver_version()|default('') }}{% if mailserver_update_available() %} <span class="badge badge-warning">update available</span>{% endif %}
                 {% endif %}
             </small>
