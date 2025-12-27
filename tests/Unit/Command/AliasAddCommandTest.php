@@ -50,7 +50,7 @@ class AliasAddCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(
+        $application->addCommand(
             new AliasAddCommand($this->managerMock, $this->domainRepositoryMock, $this->validatorMock, $this->connectionCheckServiceMock)
         );
 

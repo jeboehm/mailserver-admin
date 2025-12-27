@@ -34,7 +34,7 @@ class RedisSyncCommandTest extends TestCase
         $this->connectionCheckServiceMock = $this->createMock(ConnectionCheckService::class);
 
         $application = new Application();
-        $application->add(new RedisSyncCommand($this->managerMock, $this->accountWriterMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new RedisSyncCommand($this->managerMock, $this->accountWriterMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('redis:sync'));
     }

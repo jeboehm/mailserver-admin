@@ -46,7 +46,7 @@ class InitSetupCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('init:setup'));
     }
@@ -111,7 +111,7 @@ class InitSetupCommandTest extends TestCase
             ->willReturn(['mysql' => 'Connection refused', 'redis' => null]);
 
         $application = new Application();
-        $application->add(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
         $this->commandTester = new CommandTester($application->find('init:setup'));
 
         $this->managerMock->expects($this->never())->method('persist');

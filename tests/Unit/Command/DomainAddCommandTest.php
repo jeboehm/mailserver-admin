@@ -45,7 +45,7 @@ class DomainAddCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new DomainAddCommand($this->managerMock, $this->validatorMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new DomainAddCommand($this->managerMock, $this->validatorMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('domain:add'));
     }
