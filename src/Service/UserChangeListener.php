@@ -12,15 +12,27 @@ namespace App\Service;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
+use Doctrine\ORM\Event\PrePersistEventArgs;
+use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-#[AsEntityListener(event: Events::prePersist, method: 'processUserPassword', entity: User::class)]
-#[AsEntityListener(event: Events::preUpdate, method: 'processUserPassword', entity: User::class)]
-readonly class PasswordService
+#[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', entity: User::class)]
+#[AsEntityListener(event: Events::prePersist, method: 'prePersist', entity: User::class)]
+readonly class UserChangeListener
 {
     public function __construct(private PasswordHasherFactoryInterface $passwordHasherFactory)
     {
+    }
+
+    final public function preUpdate(User $user, PreUpdateEventArgs $args): void
+    {
+        $this->processUserPassword($user);
+    }
+
+    final public function prePersist(User $user, PrePersistEventArgs $args): void
+    {
+        $this->processUserPassword($user);
     }
 
     public function processUserPassword(User $user): void

@@ -11,25 +11,23 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use App\Entity\User;
-use App\Service\PasswordService;
+use App\Service\UserChangeListener;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 
-class PasswordServiceTest extends TestCase
+class UserChangeListenerTest extends TestCase
 {
+    private UserChangeListener $subject;
     private MockObject|PasswordHasherFactoryInterface $passwordHasherFactory;
-
-    private PasswordService $passwordService;
-
     private MockObject|PasswordHasherInterface $passwordHasher;
 
     protected function setUp(): void
     {
         $this->passwordHasherFactory = $this->createMock(PasswordHasherFactoryInterface::class);
         $this->passwordHasher = $this->createMock(PasswordHasherInterface::class);
-        $this->passwordService = new PasswordService($this->passwordHasherFactory);
+        $this->subject = new UserChangeListener($this->passwordHasherFactory);
     }
 
     public function testProcessUserPassword(): void
@@ -49,7 +47,7 @@ class PasswordServiceTest extends TestCase
 
         $user->setPlainPassword('test4321');
 
-        $this->passwordService->processUserPassword($user);
+        $this->subject->processUserPassword($user);
         $this->assertEquals('test1234', $user->getPassword());
     }
 
@@ -65,7 +63,7 @@ class PasswordServiceTest extends TestCase
             ->expects($this->never())
             ->method('getPasswordHasher');
 
-        $this->passwordService->processUserPassword($user);
+        $this->subject->processUserPassword($user);
 
         $this->assertEmpty($user->getPassword());
     }
@@ -82,7 +80,7 @@ class PasswordServiceTest extends TestCase
             ->expects($this->never())
             ->method('getPasswordHasher');
 
-        $this->passwordService->processUserPassword($user);
+        $this->subject->processUserPassword($user);
 
         $this->assertEmpty($user->getPassword());
     }
