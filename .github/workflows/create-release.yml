@@ -51,7 +51,7 @@ jobs:
           APP_ENV: prod
         run: |
           composer install --no-progress --prefer-dist -a --no-dev --no-scripts
-          bin/console assets:install
+          bin/console assets:install --symlink --relative public
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
