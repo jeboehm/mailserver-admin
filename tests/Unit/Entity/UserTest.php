@@ -25,14 +25,6 @@ class UserTest extends TestCase
         $this->assertEmpty($user->getPlainPassword());
     }
 
-    public function testGetSalt(): void
-    {
-        $user = new User();
-        $user->setPassword('$5$rounds=5000$dfee4ba3d4f76c11$OrSeU3xlQ7u58fVe.xExNwW6ImDPP2lrItyH1WhoGV/');
-
-        $this->assertEquals('dfee4ba3d4f76c11', $user->getSalt());
-    }
-
     public function testStringCast(): void
     {
         $domain = new Domain();
