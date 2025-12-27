@@ -51,7 +51,7 @@ class DKIMSetupCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(
+        $application->addCommand(
             new DKIMSetupCommand(
                 $this->managerMock,
                 $this->domainRepository,

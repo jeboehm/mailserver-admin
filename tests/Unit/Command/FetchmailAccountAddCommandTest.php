@@ -45,7 +45,7 @@ class FetchmailAccountAddCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(
+        $application->addCommand(
             new FetchmailAccountAddCommand(
                 $this->userRepository,
                 $this->validator,

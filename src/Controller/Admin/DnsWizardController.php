@@ -16,15 +16,15 @@ use App\Repository\DomainRepository;
 use App\Service\DnsWizard\DnsWizardValidator;
 use App\Service\DnsWizard\HostIpResolver;
 use App\Service\Security\Roles;
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
-#[Route(path: '/dns-wizard', name: 'dns_wizard', methods: [Request::METHOD_GET])]
+#[AdminRoute('/dns-wizard', name: 'dns_wizard')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 final readonly class DnsWizardController
 {
@@ -39,6 +39,7 @@ final readonly class DnsWizardController
     ) {
     }
 
+    #[AdminRoute('/', name: 'index')]
     public function __invoke(Request $request): Response
     {
         $mailname = $this->mailname ?? $request->getHost();
