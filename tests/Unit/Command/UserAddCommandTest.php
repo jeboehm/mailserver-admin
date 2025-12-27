@@ -50,7 +50,7 @@ class UserAddCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new UserAddCommand($this->managerMock, $this->domainRepository, $this->validatorMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new UserAddCommand($this->managerMock, $this->domainRepository, $this->validatorMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('user:add'));
     }

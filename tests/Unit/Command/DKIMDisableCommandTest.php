@@ -41,7 +41,7 @@ class DKIMDisableCommandTest extends TestCase
             ->willReturn(['mysql' => null, 'redis' => null]);
 
         $application = new Application();
-        $application->add(new DKIMDisableCommand($this->managerMock, $this->domainRepositoryMock, $this->connectionCheckServiceMock));
+        $application->addCommand(new DKIMDisableCommand($this->managerMock, $this->domainRepositoryMock, $this->connectionCheckServiceMock));
 
         $this->commandTester = new CommandTester($application->find('dkim:disable'));
     }
