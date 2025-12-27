@@ -62,7 +62,7 @@ class DKIMCrudController extends AbstractCrudController
         $recreateKeyAction = Action::new(
             'recreateKey',
             'Recreate Key',
-            'fas fa-certificate'
+            'fa fa-certificate'
         );
 
         $recreateKeyAction
@@ -76,7 +76,7 @@ class DKIMCrudController extends AbstractCrudController
             ->remove(Crud::PAGE_INDEX, Action::DELETE);
     }
 
-    #[AdminRoute(path: '/recreate/{entityId}', name: 'dkim_recreate_key')]
+    #[AdminRoute(path: '/recreate/{entityId}', name: 'recreate_key')]
     public function recreateKey(AdminContext $adminContext): Response
     {
         $domain = $adminContext->getEntity()->getInstance();
