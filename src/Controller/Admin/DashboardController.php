@@ -45,9 +45,15 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureUserMenu(UserInterface $user): UserMenu
     {
-        return parent::configureUserMenu($user)
+        $userMenu = parent::configureUserMenu($user)
             ->displayUserName(false)
             ->displayUserAvatar(false);
+
+        if (null !== $this->getUserEmail()) {
+            $userMenu->setGravatarEmail($this->getUserEmail());
+        }
+
+        return $userMenu;
     }
 
     #[\Override]
