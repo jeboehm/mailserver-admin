@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[AdminDashboard(routePath: '/', routeName: 'admin_index')]
+#[AdminDashboard(routePath: '/', routeName: 'admin')]
 #[IsGranted(Roles::ROLE_USER)]
 class DashboardController extends AbstractDashboardController
 {
@@ -53,6 +53,8 @@ class DashboardController extends AbstractDashboardController
     #[\Override]
     public function configureMenuItems(): iterable
     {
+        yield MenuItem::linkToDashboard('Home', 'fa fa-home');
+
         yield MenuItem::section('Manage');
         yield MenuItem::linkToCrud('Domain', 'fa fa-globe', Domain::class)
             ->setPermission(Roles::ROLE_ADMIN);
@@ -71,7 +73,7 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Tools');
-        yield MenuItem::linkToRoute('DNS wizard', 'fa fa-network-wired', 'dns_wizard')
+        yield MenuItem::linkToRoute('DNS wizard', 'fa fa-network-wired', 'admin_dns_wizard_index')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
 
         $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
