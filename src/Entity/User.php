@@ -82,16 +82,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return '';
     }
 
-    public function __serialize(): array
-    {
-        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->domainAdmin, $this->name];
-    }
-
-    public function __unserialize(array $data): void
-    {
-        [$this->id, $this->password, $this->domainName, $this->admin, $this->domainAdmin, $this->name] = $data;
-    }
-
     public function getDomain(): ?Domain
     {
         return $this->domain;
@@ -160,13 +150,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function setDomainAdmin(bool $domainAdmin): void
     {
         $this->domainAdmin = $domainAdmin;
-    }
-
-    public function getSalt(): string
-    {
-        $parts = explode('$', $this->password, 5);
-
-        return $parts[3] ?? '';
     }
 
     #[\Override]
