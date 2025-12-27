@@ -1,16 +1,16 @@
 { pkgs, config, ... }:
 
 {
-  languages.javascript.enable = true;
   languages.php.enable = true;
   languages.php.package = pkgs.php84.buildEnv {
     extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql xdebug ];
     extraConfig = ''
       memory_limit = -1
+      max_execution_time = 0
       xdebug.mode = debug
       xdebug.client_port = 9003
       xdebug.start_with_request = yes
-      max_execution_time = 0
+      xdebug.discover_client_host = true
       opcache.enable = false
     '';
   };
@@ -34,7 +34,6 @@
   ];
 
   services.redis.enable = true;
-
   services.caddy.enable = true;
   services.caddy.virtualHosts.":8000" = {
     extraConfig = ''
@@ -46,13 +45,10 @@
 
   env.DATABASE_URL = "mysql://root@127.0.0.1/app?version=mariadb-10.11.5";
   env.REDIS_DSN = "redis://localhost:6379/0";
-  env.CORS_ALLOW_ORIGIN = "^https?://localhost:?[0-9]*$";
 
   enterShell = ''
       if [[ ! -d vendor ]]; then
-          cd core
           composer install
-          cd ..
       fi
   '';
 }
