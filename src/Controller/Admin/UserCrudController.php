@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\User;
-use App\Service\PasswordService;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,10 +36,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {
-    public function __construct(private readonly PasswordService $passwordService)
-    {
-    }
-
     #[\Override]
     public static function getEntityFqcn(): string
     {
@@ -101,14 +96,16 @@ class UserCrudController extends AbstractCrudController
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         assert($entityInstance instanceof User);
-        $this->passwordService->processUserPassword($entityInstance);
 
-        $user = $this->getUser();
+        if (!empty($entityInstance->getPlainPassword())) {
+            $entityInstance->setPassword(''); // set password to trigger LifeCycleCallbacks
+        }
 
         /*
-         * If user is trying to update themself, we need to keep the permissions and enabled state.
+         * If user is trying to update themselves, we need to keep the permissions and enabled state.
          */
-        if ($user instanceof User && $user === $entityInstance) {
+        $user = $this->getUser();
+        if ($user === $entityInstance) {
             $entityInstance->setEnabled(true);
             $entityInstance->setAdmin($this->isGranted(Roles::ROLE_ADMIN));
             $entityInstance->setDomainAdmin(

@@ -15,6 +15,7 @@ use App\Entity\Domain;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Service\Security\Roles;
+use App\Service\Security\Voter\LocalUserVoter;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -53,6 +54,13 @@ class DashboardController extends AbstractDashboardController
             $userMenu->setGravatarEmail($this->getUserEmail());
         }
 
+        $userMenu->addMenuItems(
+            [
+                MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index')
+                    ->setPermission(LocalUserVoter::KEY),
+            ]
+        );
+
         return $userMenu;
     }
 
@@ -66,14 +74,16 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToCrud('User', 'fa fa-user', User::class)
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
-        yield MenuItem::linkToCrud('Alias', 'far fa-list-alt', Alias::class)
+        yield MenuItem::linkToCrud('Alias', 'fa fa-list-alt', Alias::class)
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
 
         yield MenuItem::section('External');
-        yield MenuItem::linkToCrud('Fetchmail', 'far fa-envelope', FetchmailAccount::class)
+        yield MenuItem::linkToCrud('Fetchmail', 'fa fa-envelope', FetchmailAccount::class)
             ->setPermission(Roles::ROLE_USER);
 
         yield MenuItem::section('Security');
+        yield MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index')
+            ->setPermission(LocalUserVoter::KEY);
         yield MenuItem::linkToCrud('DKIM', 'fa fa-shield-alt', Domain::class)
             ->setController(DKIMCrudController::class)
             ->setPermission(Roles::ROLE_ADMIN);

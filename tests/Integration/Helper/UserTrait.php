@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace Tests\Integration\Helper;
 
 use App\Repository\UserRepository;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 trait UserTrait
@@ -21,11 +20,6 @@ trait UserTrait
         $client->followRedirects();
 
         $user = $client->getContainer()->get(UserRepository::class)->findOneByEmailAddress($username);
-        $client->loginUser($user);
-    }
-
-    private function getUrlGenerator(KernelBrowser $client): AdminUrlGenerator
-    {
-        return $client->getContainer()->get(AdminUrlGenerator::class);
+        $client->loginUser($user, 'main');
     }
 }

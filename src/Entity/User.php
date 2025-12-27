@@ -82,6 +82,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         return '';
     }
 
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function __serialize(): array
+    {
+        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->domainAdmin, $this->name];
+    }
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function __unserialize(array $data): void
+    {
+        [$this->id, $this->password, $this->domainName, $this->admin, $this->domainAdmin, $this->name] = $data;
+    }
+
     public function getDomain(): ?Domain
     {
         return $this->domain;
