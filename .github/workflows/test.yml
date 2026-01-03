@@ -98,6 +98,7 @@ jobs:
           bin/console domain:add example.com
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
+          composer run create-tls
       - name: Run tests
         run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml
       - name: Create code coverage report
