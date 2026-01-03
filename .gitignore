@@ -36,3 +36,4 @@ phpstan.neon
 
 /DMS-VERSION
 /VERSION
+/tls/
