@@ -91,6 +91,8 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Tools');
         yield MenuItem::linkToRoute('DNS wizard', 'fa fa-network-wired', 'admin_dns_wizard_index')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
+        yield MenuItem::linkToRoute('iOS/MacOS Profile', 'fa fa-mobile-alt', 'admin_mobileconfig_download')
+            ->setPermission(LocalUserVoter::KEY);
 
         $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');
