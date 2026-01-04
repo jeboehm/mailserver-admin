@@ -21,12 +21,6 @@ use Twig\Environment;
 readonly class MobileConfigService
 {
     public function __construct(
-        #[Autowire('%env(int:MOBILECONFIG_IMAP_PORT)%')]
-        private int $imapPort,
-        #[Autowire('%env(int:MOBILECONFIG_SMTP_PORT)%')]
-        private int $smtpPort,
-        #[Autowire('%env(bool:MOBILECONFIG_PORTS_ARE_SSL)%')]
-        private bool $portsAreSsl,
         private Environment $twig,
         #[Autowire('%env(default::string:MOBILECONFIG_SSL_CERT_FILE)%')]
         private ?string $serverCertPath = null,
@@ -74,13 +68,9 @@ readonly class MobileConfigService
         return $this->twig->render('admin/mobileconfig/mobileconfig.xml.twig', [
             'email' => (string) $user,
             'accountName' => $user->getName(),
-            'companyName' => $user->getDomain()?->getName() ?? 'mailserver',
             'mailServerHost' => $mailServerHost,
             'uuid1' => $this->generateUuid(),
             'uuid2' => $this->generateUuid(),
-            'imapPort' => $this->imapPort,
-            'smtpPort' => $this->smtpPort,
-            'portsAreSsl' => $this->portsAreSsl,
         ]);
     }
 

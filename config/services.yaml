@@ -8,9 +8,6 @@ parameters:
     env(MAILSERVER_VERSION_FILE): "%kernel.project_dir%/DMS-VERSION"
     env(MOBILECONFIG_SSL_CERT_FILE): "%kernel.project_dir%/tls/tls.crt"
     env(MOBILECONFIG_SSL_KEY_FILE): "%kernel.project_dir%/tls/tls.key"
-    env(MOBILECONFIG_IMAP_PORT): 143
-    env(MOBILECONFIG_SMTP_PORT): 587
-    env(MOBILECONFIG_PORTS_ARE_SSL): "false"
 
 services:
     _defaults:
