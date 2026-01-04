@@ -13,13 +13,13 @@ namespace Tests\Integration\Controller\Autoconfig;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 
-class AutoconfigAction extends WebTestCase
+class AutoconfigActionTest extends WebTestCase
 {
     public function testAutoconfigEndpointReturnsXml(): void
     {
         $client = static::createClient();
 
-        $client->request(Request::METHOD_GET, '/.well-known/autoconfig/mail/config-v1.1.xml');
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml');
         self::assertResponseIsSuccessful();
 
         $response = $client->getResponse();
@@ -38,7 +38,7 @@ class AutoconfigAction extends WebTestCase
         $client = static::createClient();
         $client->setServerParameter('HTTP_HOST', 'example.com');
 
-        $client->request(Request::METHOD_GET, '/.well-known/autoconfig/mail/config-v1.1.xml');
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml');
         self::assertResponseIsSuccessful();
 
         $content = $client->getResponse()->getContent();
@@ -52,7 +52,7 @@ class AutoconfigAction extends WebTestCase
         $client = static::createClient();
         $client->setServerParameter('HTTP_HOST', 'test.example.com');
 
-        $client->request(Request::METHOD_GET, '/.well-known/autoconfig/mail/config-v1.1.xml');
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml');
         self::assertResponseIsSuccessful();
 
         $content = $client->getResponse()->getContent();
@@ -76,7 +76,62 @@ class AutoconfigAction extends WebTestCase
     {
         $client = static::createClient();
 
-        $client->request(Request::METHOD_POST, '/.well-known/autoconfig/mail/config-v1.1.xml');
+        $client->request(Request::METHOD_POST, '/mail/config-v1.1.xml');
         self::assertResponseStatusCodeSame(405);
+    }
+
+    public function testAutoconfigWithValidEmailAddress(): void
+    {
+        $client = static::createClient();
+        $client->setServerParameter('HTTP_HOST', 'example.com');
+
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml', ['emailaddress' => 'user@example.com']);
+        self::assertResponseIsSuccessful();
+
+        $content = $client->getResponse()->getContent();
+        self::assertIsString($content);
+        self::assertStringContainsString('<username>user@example.com</username>', $content);
+    }
+
+    public function testAutoconfigWithInvalidEmailAddress(): void
+    {
+        $client = static::createClient();
+        $client->setServerParameter('HTTP_HOST', 'example.com');
+
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml', ['emailaddress' => 'invalid-email']);
+        self::assertResponseIsSuccessful();
+
+        $content = $client->getResponse()->getContent();
+        self::assertIsString($content);
+        // Invalid email should fall back to placeholder
+        self::assertStringContainsString('<username>%EMAILADDRESS%</username>', $content);
+    }
+
+    public function testAutoconfigWithEmptyEmailAddress(): void
+    {
+        $client = static::createClient();
+        $client->setServerParameter('HTTP_HOST', 'example.com');
+
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml', ['emailaddress' => '']);
+        self::assertResponseIsSuccessful();
+
+        $content = $client->getResponse()->getContent();
+        self::assertIsString($content);
+        // Empty email should fall back to placeholder
+        self::assertStringContainsString('<username>%EMAILADDRESS%</username>', $content);
+    }
+
+    public function testAutoconfigWithoutEmailAddressParameter(): void
+    {
+        $client = static::createClient();
+        $client->setServerParameter('HTTP_HOST', 'example.com');
+
+        $client->request(Request::METHOD_GET, '/mail/config-v1.1.xml');
+        self::assertResponseIsSuccessful();
+
+        $content = $client->getResponse()->getContent();
+        self::assertIsString($content);
+        // No email parameter should use placeholder
+        self::assertStringContainsString('<username>%EMAILADDRESS%</username>', $content);
     }
 }

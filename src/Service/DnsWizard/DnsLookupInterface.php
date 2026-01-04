@@ -36,4 +36,14 @@ interface DnsLookupInterface
      * @return list<string> PTR target hostnames
      */
     public function lookupPtr(string $ip): array;
+
+    /**
+     * @return list<array{priority: int, weight: int, port: int, target: string}> SRV records
+     */
+    public function lookupSrv(string $name): array;
+
+    /**
+     * @return list<string> CNAME target hostnames
+     */
+    public function lookupCname(string $host): array;
 }

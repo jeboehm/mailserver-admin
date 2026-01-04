@@ -123,6 +123,68 @@ final class NativeDnsLookup implements DnsLookupInterface
         return \array_values(\array_unique($targets));
     }
 
+    /**
+     * @return list<array{priority: int, weight: int, port: int, target: string}>
+     */
+    public function lookupSrv(string $name): array
+    {
+        $rows = @dns_get_record($name, \DNS_SRV);
+
+        if (!\is_array($rows)) {
+            return [];
+        }
+
+        $records = [];
+
+        foreach ($rows as $row) {
+            $priority = $row['pri'] ?? null;
+            $weight = $row['weight'] ?? null;
+            $port = $row['port'] ?? null;
+            $target = $row['target'] ?? null;
+
+            if (
+                \is_int($priority)
+                && \is_int($weight)
+                && \is_int($port)
+                && \is_string($target)
+                && '' !== $target
+            ) {
+                $records[] = [
+                    'priority' => $priority,
+                    'weight' => $weight,
+                    'port' => $port,
+                    'target' => $target,
+                ];
+            }
+        }
+
+        return $records;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function lookupCname(string $host): array
+    {
+        $rows = @dns_get_record($host, \DNS_CNAME);
+
+        if (!\is_array($rows)) {
+            return [];
+        }
+
+        $targets = [];
+
+        foreach ($rows as $row) {
+            $target = $row['target'] ?? null;
+
+            if (\is_string($target) && '' !== $target) {
+                $targets[] = $target;
+            }
+        }
+
+        return \array_values(\array_unique($targets));
+    }
+
     private function toReverseName(string $ip): ?string
     {
         if (false !== filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
