@@ -16,8 +16,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Twig\Environment;
 
-#[Route(path: '/mail/config-v1.1.xml', methods: [Request::METHOD_GET])]
-readonly class AutoconfigAction
+#[Route('/autodiscover/autodiscover.xml', methods: [Request::METHOD_GET, Request::METHOD_POST])]
+#[Route('/Autodiscover/Autodiscover.xml', methods: [Request::METHOD_GET, Request::METHOD_POST])]
+readonly class AutodiscoverAction
 {
     public function __construct(
         private Environment $twig,
@@ -31,7 +32,7 @@ readonly class AutoconfigAction
         $mailname = $this->mailname ?? $request->getHost();
 
         return new Response(
-            content: $this->twig->render('admin/autoconfig/autoconfig.xml.twig', [
+            content: $this->twig->render('admin/autoconfig/autodiscover.xml.twig', [
                 'mailname' => $mailname,
                 'emailaddress' => $this->getEmailAddress($request) ?? '%EMAILADDRESS%',
             ]),

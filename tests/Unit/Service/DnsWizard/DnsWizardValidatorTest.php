@@ -32,7 +32,7 @@ class DnsWizardValidatorTest extends TestCase
             public function lookupA(string $host): array
             {
                 return match ($host) {
-                    'mail.example.com' => ['1.2.3.4'],
+                    'mail.example.com', 'autoconfig.example.com', 'autodiscover.example.com', 'imap.example.com', 'smtp.example.com' => ['1.2.3.4'],
                     default => [],
                 };
             }
@@ -50,7 +50,7 @@ class DnsWizardValidatorTest extends TestCase
             public function lookupTxt(string $name): array
             {
                 return match ($name) {
-                    'example.com' => ['v=spf1 -all'],
+                    'example.com' => ['v=spf1 -all', 'mailconf=https://autoconfig.example.com/mail/config-v1.1.xml'],
                     '_dmarc.example.com' => ['v=DMARC1; p=none'],
                     '_autoconfig.example.com' => ['mailname=mail.example.com'],
                     '_autodiscover.example.com' => ['mailname=mail.example.com'],
@@ -62,6 +62,27 @@ class DnsWizardValidatorTest extends TestCase
             public function lookupPtr(string $ip): array
             {
                 return ['mail.example.com.'];
+            }
+
+            public function lookupSrv(string $name): array
+            {
+                return match ($name) {
+                    '_imaps._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 993, 'target' => 'mail.example.com'],
+                    ],
+                    '_submission._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 465, 'target' => 'mail.example.com'],
+                    ],
+                    '_autodiscover._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 443, 'target' => 'autodiscover.example.com'],
+                    ],
+                    default => [],
+                };
+            }
+
+            public function lookupCname(string $host): array
+            {
+                return [];
             }
         };
 
@@ -91,11 +112,15 @@ class DnsWizardValidatorTest extends TestCase
 
         self::assertArrayHasKey('example.com', $result['domains']);
         $rows = $result['domains']['example.com'];
-        self::assertSame(DnsWizardStatus::OK, $rows[0]->status); // MX
-        self::assertSame(DnsWizardStatus::OK, $rows[1]->status); // SPF
-        self::assertSame(DnsWizardStatus::OK, $rows[2]->status); // DKIM
-        self::assertSame(DnsWizardStatus::OK, $rows[3]->status); // DMARC
-        self::assertSame(DnsWizardStatus::OK, $rows[4]->status); // _autoconfig
+        self::assertSame(DnsWizardStatus::OK, $rows[0]->status); // autoconfig A
+        self::assertSame(DnsWizardStatus::OK, $rows[1]->status); // autodiscover A
+        self::assertSame(DnsWizardStatus::OK, $rows[2]->status); // imap A/CNAME
+        self::assertSame(DnsWizardStatus::OK, $rows[3]->status); // smtp A/CNAME
+        self::assertSame(DnsWizardStatus::OK, $rows[4]->status); // MX
+        self::assertSame(DnsWizardStatus::OK, $rows[5]->status); // mailconf TXT
+        self::assertSame(DnsWizardStatus::OK, $rows[6]->status); // _imaps._tcp SRV
+        self::assertSame(DnsWizardStatus::OK, $rows[7]->status); // _submission._tcp SRV
+        self::assertSame(DnsWizardStatus::OK, $rows[8]->status); // _autodiscover._tcp SRV
     }
 
     public function testMxCanResolveToExpectedIps(): void
@@ -133,6 +158,16 @@ class DnsWizardValidatorTest extends TestCase
             public function lookupPtr(string $ip): array
             {
                 return ['mail.example.com'];
+            }
+
+            public function lookupSrv(string $name): array
+            {
+                return [];
+            }
+
+            public function lookupCname(string $host): array
+            {
+                return [];
             }
         };
 
