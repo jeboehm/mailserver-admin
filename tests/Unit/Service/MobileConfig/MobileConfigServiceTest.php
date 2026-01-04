@@ -153,6 +153,7 @@ class MobileConfigServiceTest extends TestCase
                 'admin/mobileconfig/mobileconfig.xml.twig',
                 $this->callback(function (array $params) use ($mailname) {
                     return 'test@example.com' === $params['email']
+                        && 'test' === $params['accountName']
                         && 'example.com' === $params['companyName']
                         && $params['mailServerHost'] === $mailname
                         && 993 === $params['imapPort']
@@ -195,6 +196,7 @@ class MobileConfigServiceTest extends TestCase
                 'admin/mobileconfig/mobileconfig.xml.twig',
                 $this->callback(function (array $params) {
                     return 'test@example.com' === $params['email']
+                        && 'test' === $params['accountName']
                         && 'example.com' === $params['companyName']
                         && 'example.com' === $params['mailServerHost']
                         && 993 === $params['imapPort']
@@ -239,6 +241,7 @@ class MobileConfigServiceTest extends TestCase
                 $this->callback(function (array $params) {
                     // When user has no domain, __toString() returns empty string
                     return '' === $params['email']
+                        && 'test' === $params['accountName']
                         && 'mailserver' === $params['companyName']
                         && 'mail.example.com' === $params['mailServerHost']
                         && isset($params['uuid1'])

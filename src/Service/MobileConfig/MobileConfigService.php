@@ -73,6 +73,7 @@ readonly class MobileConfigService
     {
         return $this->twig->render('admin/mobileconfig/mobileconfig.xml.twig', [
             'email' => (string) $user,
+            'accountName' => $user->getName(),
             'companyName' => $user->getDomain()?->getName() ?? 'mailserver',
             'mailServerHost' => $mailServerHost,
             'uuid1' => $this->generateUuid(),
