@@ -23,7 +23,6 @@
     }
   ],
   "postUpdateOptions": [
-    "composerWithAll",
-    "composerNoMinimalChanges"
+    "composerWithAll"
   ]
 }
