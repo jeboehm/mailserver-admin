@@ -37,9 +37,6 @@ class MobileConfigServiceTest extends TestCase
         $user = $this->createUserWithDomain('test@example.com', 'example.com');
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: null,
             serverKeyPath: $this->keyPath,
@@ -58,9 +55,6 @@ class MobileConfigServiceTest extends TestCase
         $user = $this->createUserWithDomain('test@example.com', 'example.com');
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: null,
@@ -80,9 +74,6 @@ class MobileConfigServiceTest extends TestCase
         $nonExistentCertPath = __DIR__ . '/../../../../tls/non_existent.crt';
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $nonExistentCertPath,
             serverKeyPath: $this->keyPath,
@@ -102,9 +93,6 @@ class MobileConfigServiceTest extends TestCase
         $nonExistentKeyPath = __DIR__ . '/../../../../tls/non_existent.key';
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $nonExistentKeyPath,
@@ -124,9 +112,6 @@ class MobileConfigServiceTest extends TestCase
         $user->setName('test');
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
@@ -153,11 +138,8 @@ class MobileConfigServiceTest extends TestCase
                 'admin/mobileconfig/mobileconfig.xml.twig',
                 $this->callback(function (array $params) use ($mailname) {
                     return 'test@example.com' === $params['email']
-                        && 'example.com' === $params['companyName']
+                        && 'test' === $params['accountName']
                         && $params['mailServerHost'] === $mailname
-                        && 993 === $params['imapPort']
-                        && 465 === $params['smtpPort']
-                        && true === $params['portsAreSsl']
                         && isset($params['uuid1'])
                         && isset($params['uuid2']);
                 })
@@ -165,9 +147,6 @@ class MobileConfigServiceTest extends TestCase
             ->willReturn($expectedXml);
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
@@ -195,11 +174,8 @@ class MobileConfigServiceTest extends TestCase
                 'admin/mobileconfig/mobileconfig.xml.twig',
                 $this->callback(function (array $params) {
                     return 'test@example.com' === $params['email']
-                        && 'example.com' === $params['companyName']
+                        && 'test' === $params['accountName']
                         && 'example.com' === $params['mailServerHost']
-                        && 993 === $params['imapPort']
-                        && 587 === $params['smtpPort']
-                        && false === $params['portsAreSsl']
                         && isset($params['uuid1'])
                         && isset($params['uuid2']);
                 })
@@ -207,9 +183,6 @@ class MobileConfigServiceTest extends TestCase
             ->willReturn($expectedXml);
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 587,
-            portsAreSsl: false,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
@@ -239,7 +212,7 @@ class MobileConfigServiceTest extends TestCase
                 $this->callback(function (array $params) {
                     // When user has no domain, __toString() returns empty string
                     return '' === $params['email']
-                        && 'mailserver' === $params['companyName']
+                        && 'test' === $params['accountName']
                         && 'mail.example.com' === $params['mailServerHost']
                         && isset($params['uuid1'])
                         && isset($params['uuid2']);
@@ -248,9 +221,6 @@ class MobileConfigServiceTest extends TestCase
             ->willReturn($expectedXml);
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
@@ -283,9 +253,6 @@ class MobileConfigServiceTest extends TestCase
             });
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
@@ -323,9 +290,6 @@ class MobileConfigServiceTest extends TestCase
             ->willReturn($expectedXml);
 
         $service = new MobileConfigService(
-            imapPort: 993,
-            smtpPort: 465,
-            portsAreSsl: true,
             twig: $this->twigMock,
             serverCertPath: $this->certPath,
             serverKeyPath: $this->keyPath,
