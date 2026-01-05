@@ -22,6 +22,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Twig\Environment;
 
 class DnsWizardActionTest extends TestCase
@@ -31,6 +33,7 @@ class DnsWizardActionTest extends TestCase
     private MockObject|HostIpResolver $hostIpResolver;
     private MockObject|DnsWizardValidator $validator;
     private MockObject|Security $security;
+    private MockObject|CacheInterface $cacheApp;
 
     protected function setUp(): void
     {
@@ -39,6 +42,7 @@ class DnsWizardActionTest extends TestCase
         $this->hostIpResolver = $this->createMock(HostIpResolver::class);
         $this->validator = $this->createMock(DnsWizardValidator::class);
         $this->security = $this->createMock(Security::class);
+        $this->cacheApp = $this->createMock(CacheInterface::class);
     }
 
     public function testAdminSeesAllDomains(): void
@@ -49,14 +53,32 @@ class DnsWizardActionTest extends TestCase
         $expectedIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $result = ['mailHost' => [], 'domains' => []];
 
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->atLeastOnce())
+            ->method('expiresAfter')
+            ->with($this->isInstanceOf(\DateInterval::class));
+
         $this->security->expects($this->once())->method('isGranted')->with(Roles::ROLE_ADMIN)->willReturn(true);
         $this->domainRepository->expects($this->once())->method('findBy')->with([], ['name' => 'ASC'])->willReturn([$domain]);
         $this->hostIpResolver->expects($this->once())->method('resolveExpectedHostIps')->willReturn($expectedIps);
         $this->validator
-            ->expects($this->once())
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->with('mail.example.com', $expectedIps, [$domain])
             ->willReturn($result);
+
+        $this->cacheApp
+            ->expects($this->once())
+            ->method('get')
+            ->with(
+                $this->isString(),
+                $this->callback(function (callable $callback) use ($cacheItem, $result) {
+                    return $result === $callback($cacheItem);
+                })
+            )
+            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $this->twig
             ->expects($this->once())
@@ -74,6 +96,7 @@ class DnsWizardActionTest extends TestCase
             hostIpResolver: $this->hostIpResolver,
             validator: $this->validator,
             security: $this->security,
+            cacheApp: $this->cacheApp,
             mailname: 'mail.example.com',
         );
 
@@ -93,15 +116,33 @@ class DnsWizardActionTest extends TestCase
         $expectedIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $result = ['mailHost' => [], 'domains' => []];
 
+        $cacheItem = $this->createMock(ItemInterface::class);
+        $cacheItem->expects($this->atLeastOnce())
+            ->method('expiresAfter')
+            ->with($this->isInstanceOf(\DateInterval::class));
+
         $this->security->expects($this->once())->method('isGranted')->with(Roles::ROLE_ADMIN)->willReturn(false);
         $this->security->expects($this->once())->method('getUser')->willReturn($user);
         $this->domainRepository->expects($this->never())->method('findBy');
         $this->hostIpResolver->expects($this->once())->method('resolveExpectedHostIps')->willReturn($expectedIps);
         $this->validator
-            ->expects($this->once())
+            ->expects($this->atLeastOnce())
             ->method('validate')
             ->with('mail.example.com', $expectedIps, [$domain])
             ->willReturn($result);
+
+        $this->cacheApp
+            ->expects($this->once())
+            ->method('get')
+            ->with(
+                $this->isString(),
+                $this->callback(function (callable $callback) use ($cacheItem, $result) {
+                    return $result === $callback($cacheItem);
+                })
+            )
+            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem) {
+                return $callback($cacheItem);
+            });
 
         $this->twig->expects($this->once())->method('render')->willReturn('html');
 
@@ -111,6 +152,7 @@ class DnsWizardActionTest extends TestCase
             hostIpResolver: $this->hostIpResolver,
             validator: $this->validator,
             security: $this->security,
+            cacheApp: $this->cacheApp,
             mailname: 'mail.example.com',
         );
 
