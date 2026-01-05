@@ -26,9 +26,9 @@ readonly class DnsWizardValidator
     }
 
     /**
-     * @param list<Domain> $domains
+     * @param Domain[] $domains
      *
-     * @return array{mailHost:list<DnsWizardRow>, domains:array<string, list<DnsWizardRow>>}
+     * @return array{mailHost: DnsWizardRow[], domains: array<string, DnsWizardRow[]>}
      */
     public function validate(string $mailname, ExpectedHostIps $expectedHostIps, array $domains): array
     {
