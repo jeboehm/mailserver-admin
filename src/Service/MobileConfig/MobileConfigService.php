@@ -67,7 +67,6 @@ readonly class MobileConfigService
     {
         return $this->twig->render('admin/mobileconfig/mobileconfig.xml.twig', [
             'email' => (string) $user,
-            'accountName' => $user->getName(),
             'mailServerHost' => $mailServerHost,
             'uuid1' => $this->generateUuid(),
             'uuid2' => $this->generateUuid(),
@@ -125,7 +124,7 @@ readonly class MobileConfigService
                 certificate: 'file://' . $this->serverCertPath,
                 private_key: ['file://' . $this->serverKeyPath, ''],
                 headers: [],
-                encoding: OPENSSL_ENCODING_DER
+                encoding: OPENSSL_ENCODING_DER,
             );
 
             if (!$result) {
