@@ -25,10 +25,6 @@ readonly class OAuthStaticUser implements UserInterface
         return $this->admin ? [Roles::ROLE_ADMIN] : [];
     }
 
-    public function eraseCredentials(): void
-    {
-    }
-
     public function getUserIdentifier(): string
     {
         return $this->identifier;

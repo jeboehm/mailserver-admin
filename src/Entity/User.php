@@ -168,12 +168,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
         $this->domainAdmin = $domainAdmin;
     }
 
-    #[\Override]
-    public function eraseCredentials(): void
-    {
-        $this->plainPassword = null;
-    }
-
     public function getPlainPassword(): ?string
     {
         return $this->plainPassword;
