@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Controller\Admin;
 
-use App\Controller\Admin\DnsWizardController;
+use App\Controller\Admin\DnsWizardAction;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Repository\DomainRepository;
@@ -24,7 +24,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Environment;
 
-class DnsWizardControllerTest extends TestCase
+class DnsWizardActionTest extends TestCase
 {
     private MockObject|Environment $twig;
     private MockObject|DomainRepository $domainRepository;
@@ -68,7 +68,7 @@ class DnsWizardControllerTest extends TestCase
             }))
             ->willReturn('html');
 
-        $controller = new DnsWizardController(
+        $controller = new DnsWizardAction(
             twig: $this->twig,
             domainRepository: $this->domainRepository,
             hostIpResolver: $this->hostIpResolver,
@@ -105,7 +105,7 @@ class DnsWizardControllerTest extends TestCase
 
         $this->twig->expects($this->once())->method('render')->willReturn('html');
 
-        $controller = new DnsWizardController(
+        $controller = new DnsWizardAction(
             twig: $this->twig,
             domainRepository: $this->domainRepository,
             hostIpResolver: $this->hostIpResolver,
