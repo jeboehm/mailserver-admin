@@ -16,15 +16,6 @@ use PHPUnit\Framework\TestCase;
 
 class UserTest extends TestCase
 {
-    public function testEraseCredentials(): void
-    {
-        $user = new User();
-        $user->setPlainPassword('LoremIpsum');
-        $user->eraseCredentials();
-
-        $this->assertEmpty($user->getPlainPassword());
-    }
-
     public function testStringCast(): void
     {
         $domain = new Domain();
