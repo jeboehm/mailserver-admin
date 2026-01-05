@@ -7,19 +7,13 @@
     <key>PayloadVersion</key>
     <integer>1</integer>
     <key>PayloadIdentifier</key>
-    <string>docker-mailserver.mobileconfig</string>
+    <string>docker-mailserver.257E5813-963E-4A68-B426-A05AC6C03019</string>
     <key>PayloadUUID</key>
     <string>{{ uuid2 }}</string>
     <key>PayloadDisplayName</key>
     <string>docker-mailserver mail</string>
-    <key>PayloadDescription</key>
-    <string>Installs a docker-mailserver managed Mail account</string>
-    <key>PayloadOrganization</key>
-    <string>docker-mailserver</string>
     <key>PayloadRemovalDisallowed</key>
     <false/>
-    <key>PayloadScope</key>
-    <string>User</string>
     <key>PayloadContent</key>
     <array>
         <dict>
@@ -28,21 +22,17 @@
             <key>PayloadVersion</key>
             <integer>1</integer>
             <key>PayloadIdentifier</key>
-            <string>docker-mailserver.mobileconfig.mail</string>
+            <string>com.apple.mail.managed.docker-mailserver-{{ uuid1 }}</string>
             <key>PayloadUUID</key>
             <string>{{ uuid1 }}</string>
             <key>PayloadDisplayName</key>
-            <string>docker-mailserver {{ email|e }}</string>
+            <string>{{ email|e }} - docker-mailserver</string>
             <key>PayloadDescription</key>
             <string>Configures a docker-mailserver Mail account</string>
-            <key>PayloadOrganization</key>
-            <string>docker-mailserver</string>
             <key>EmailAddress</key>
             <string>{{ email|e }}</string>
             <key>EmailAccountDescription</key>
-            <string>docker-mailserver managed Mail account</string>
-            <key>EmailAccountName</key>
-            <string>{{ accountName|e }}</string>
+            <string>{{ email|e }} - docker-mailserver</string>
             <key>EmailAccountType</key>
             <string>EmailTypeIMAP</string>
             <key>IncomingMailServerHostName</key>
