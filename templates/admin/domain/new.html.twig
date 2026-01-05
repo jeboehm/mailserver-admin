@@ -1,0 +1,9 @@
+{% extends '@EasyAdmin/crud/new.html.twig' %}
+
+{% block new_form %}
+    {{ parent() }}
+
+    <p class="text-muted">
+        Check your domain's DNS configuration using the <a href="{{ path('admin_dns_wizard_index') }}">DNS Wizard</a>. This tool guides you in setting up your DNS records correctly.
+    </p>
+{% endblock %}
