@@ -42,7 +42,7 @@ readonly class PreventDomainDeletionSubscriber implements EventSubscriberInterfa
         $domain = $entityDto->getInstance();
         assert($domain instanceof Domain);
 
-        if (0 === count($domain->getAliases()) || 0 === count($domain->getUsers())) {
+        if (0 === count($domain->getAliases()) && 0 === count($domain->getUsers())) {
             return;
         }
 
