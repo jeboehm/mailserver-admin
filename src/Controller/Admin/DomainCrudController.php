@@ -36,7 +36,8 @@ class DomainCrudController extends AbstractCrudController
     {
         return $crud
             ->setSearchFields(['name'])
-            ->setDefaultSort(['name' => 'ASC']);
+            ->setDefaultSort(['name' => 'ASC'])
+            ->overrideTemplate('crud/new', 'admin/domain/new.html.twig');
     }
 
     public function configureActions(Actions $actions): Actions

@@ -69,7 +69,8 @@ class DashboardController extends AbstractDashboardController
     {
         yield MenuItem::linkToDashboard('Home', 'fa fa-home');
 
-        yield MenuItem::section('Manage');
+        yield MenuItem::section('Manage')
+            ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
         yield MenuItem::linkToCrud('Domain', 'fa fa-globe', Domain::class)
             ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToCrud('User', 'fa fa-user', User::class)
