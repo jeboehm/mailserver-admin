@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Service\MobileConfig;
 
 use App\Entity\User;
+use Composer\CaBundle\CaBundle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
 use Twig\Environment;
@@ -125,6 +126,7 @@ readonly class MobileConfigService
                 private_key: ['file://' . $this->serverKeyPath, ''],
                 headers: [],
                 encoding: OPENSSL_ENCODING_DER,
+                untrusted_certificates_filename: CaBundle::getSystemCaRootBundlePath(),
             );
 
             if (!$result) {
