@@ -52,7 +52,6 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             $this->validateA($domainName, 'autodiscover', $expectedAll),
             $this->validateAOrCname($domainName, 'imap', $expectedAll),
             $this->validateAOrCname($domainName, 'smtp', $expectedAll),
-            $this->validateMx($domainName, $mailname),
             $this->validateMailconfTxt($domainName),
             $this->validateSrv($domainName, '_imaps._tcp', 993, $mailname),
             $this->validateSrv($domainName, '_submission._tcp', 465, $mailname),
@@ -77,7 +76,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             recordType: 'A',
             expectedValues: $expectedAll,
             actualValues: $all,
-            status: $matched ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+            status: $matched ? DnsWizardStatus::OK : DnsWizardStatus::WARNING,
             message: $matched ? 'A record points to expected IP' : 'A record missing or points to wrong IP',
         );
     }
@@ -120,25 +119,8 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             recordType: 'A/CNAME',
             expectedValues: $expectedAll,
             actualValues: $actualValues,
-            status: $matched ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+            status: $matched ? DnsWizardStatus::OK : DnsWizardStatus::WARNING,
             message: $matched ? 'A or CNAME record points to expected IP' : 'A or CNAME record missing or points to wrong IP',
-        );
-    }
-
-    private function validateMx(string $domainName, string $mailname): DnsWizardRow
-    {
-        $mxTargets = $this->dns->lookupMx($domainName);
-        $mxTargetsNormalized = \array_map($this->normalizeHostname(...), $mxTargets);
-        $mxOk = \in_array($this->normalizeHostname($mailname), $mxTargetsNormalized, true);
-
-        return new DnsWizardRow(
-            scope: Scopes::SCOPE_DOMAIN,
-            subject: $domainName,
-            recordType: 'MX',
-            expectedValues: [$mailname],
-            actualValues: $mxTargets,
-            status: $mxOk ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
-            message: $mxOk ? 'MX record points to mail host' : (0 === \count($mxTargets) ? 'No MX records found' : 'MX record does not point to mail host'),
         );
     }
 
@@ -162,7 +144,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             recordType: 'TXT',
             expectedValues: [$expected],
             actualValues: $txt,
-            status: $found ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+            status: $found ? DnsWizardStatus::OK : DnsWizardStatus::WARNING,
             message: $found ? 'Mailconf TXT record found' : 'Mailconf TXT record missing',
         );
     }
@@ -199,7 +181,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             recordType: 'SRV',
             expectedValues: [$expectedString],
             actualValues: $actualValues,
-            status: $found ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
+            status: $found ? DnsWizardStatus::OK : DnsWizardStatus::WARNING,
             message: $found ? 'SRV record found' : (0 === \count($srvRecords) ? 'SRV record missing' : 'SRV record does not match expected values'),
         );
     }
