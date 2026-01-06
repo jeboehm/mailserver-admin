@@ -22,8 +22,6 @@ use Twig\Environment;
 #[Route(path: '/login', name: 'app_login')]
 readonly class LoginAction
 {
-    public const string DEFAULT_ROUTE = 'admin_index';
-
     public function __construct(
         private Security $security,
         private AuthenticationUtils $authenticationUtils,
@@ -39,7 +37,7 @@ readonly class LoginAction
     public function __invoke(): Response
     {
         if (null !== $this->security->getUser()) {
-            return new RedirectResponse($this->router->generate(self::DEFAULT_ROUTE));
+            return new RedirectResponse($this->router->generate('admin'));
         }
 
         $error = $this->authenticationUtils->getLastAuthenticationError();
@@ -50,7 +48,6 @@ readonly class LoginAction
                 '@EasyAdmin/page/login.html.twig',
                 [
                     'page_title' => '<h1>mailserver-admin</h1>',
-                    'target_path' => self::DEFAULT_ROUTE,
                     'last_username' => $lastUsername,
                     'error' => $error,
                     'username_label' => 'Email address',
