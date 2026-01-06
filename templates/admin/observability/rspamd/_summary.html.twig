@@ -1,0 +1,42 @@
+{# Summary fragment - Health + KPIs #}
+{% if not embedded|default(false) %}
+<div class="rspamd-summary">
+{% endif %}
+
+    {# Health Status #}
+    <div class="mb-4">
+        {% include 'admin/observability/rspamd/_health_badge.html.twig' with { health: summary.health } only %}
+        <small class="text-muted d-block mt-2">
+            Last updated: {{ summary.generatedAt|date('Y-m-d H:i:s') }}
+        </small>
+    </div>
+
+    {# KPI Cards #}
+    {% if summary.health.isOk %}
+        <div class="row g-3">
+            {% for key, kpi in summary.kpis %}
+                <div class="col-6 col-md-4 col-lg">
+                    <div class="card shadow-sm border-0 kpi-card h-100">
+                        <div class="card-body text-center">
+                            {% if kpi.icon %}
+                                <i class="fa {{ kpi.icon }} fa-2x mb-2 text-primary"></i>
+                            {% endif %}
+                            <div class="h4 mb-0">
+                                {{ kpi.formattedValue }}
+                            </div>
+                            <small class="text-muted">{{ kpi.label }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            Unable to fetch KPI data: {{ summary.health.message }}
+        </div>
+    {% endif %}
+
+{% if not embedded|default(false) %}
+</div>
+{% endif %}

@@ -105,8 +105,13 @@ class DashboardController extends AbstractDashboardController
 
         yield $webmail;
 
-        yield MenuItem::linkToUrl('Rspamd', 'fa fa-filter', '/rspamd')
+        yield MenuItem::section('Observability')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToRoute('Rspamd', 'fa fa-filter', 'admin_observability_rspamd_index')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToUrl('Rspamd WebUI', 'fa fa-external-link-alt', '/rspamd')
             ->setLinkRel('noreferrer')
+            ->setLinkTarget('_blank')
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Help');

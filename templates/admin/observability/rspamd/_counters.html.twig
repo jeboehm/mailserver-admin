@@ -1,0 +1,65 @@
+{# Top symbols/counters table fragment #}
+{% if not embedded|default(false) %}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-transparent border-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="fa fa-list-ol me-2"></i>Top Symbols
+            </h6>
+            <small class="text-muted">Top {{ limit|default(20) }} by hits</small>
+        </div>
+    </div>
+    <div class="card-body">
+{% endif %}
+
+        {% if counters is defined and counters is not null and counters|length > 0 %}
+            <div class="table-container" style="max-height: 350px; overflow-y: auto;">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Symbol</th>
+                            <th class="text-end">Hits</th>
+                            <th class="text-end">Weight</th>
+                            <th class="text-end">Freq</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for counter in counters %}
+                            <tr>
+                                <td>
+                                    <code class="text-break" style="font-size: 0.85rem;">{{ counter.name }}</code>
+                                    {% if counter.description %}
+                                        <br><small class="text-muted">{{ counter.description|u.truncate(50, '...') }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <strong>{{ counter.hits|number_format }}</strong>
+                                </td>
+                                <td class="text-end">
+                                    {% if counter.weight > 0 %}
+                                        <span class="text-danger">+{{ counter.weight|number_format(2) }}</span>
+                                    {% elseif counter.weight < 0 %}
+                                        <span class="text-success">{{ counter.weight|number_format(2) }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <small class="text-muted">{{ counter.frequency|number_format(2) }}</small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fa fa-list fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0">No symbol data available</p>
+            </div>
+        {% endif %}
+
+{% if not embedded|default(false) %}
+    </div>
+</div>
+{% endif %}

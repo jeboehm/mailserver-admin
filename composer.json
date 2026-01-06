@@ -27,6 +27,8 @@
     "symfony/security-bundle": "v7.4.0",
     "symfony/serializer": "v7.4.3",
     "symfony/twig-bundle": "v7.4.3",
+    "symfony/http-client": "v7.4.3",
+    "symfony/ux-chartjs": "^2.22",
     "symfony/validator": "v7.4.3",
     "symfony/yaml": "v7.4.1"
   },
