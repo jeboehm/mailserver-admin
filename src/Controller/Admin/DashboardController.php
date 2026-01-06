@@ -99,6 +99,11 @@ class DashboardController extends AbstractDashboardController
             ->setController(DKIMCrudController::class)
             ->setPermission(Roles::ROLE_ADMIN);
 
+        yield MenuItem::section('Observability')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToRoute('Dovecot', 'fa fa-chart-bar', 'admin_dovecot_stats_index')
+            ->setPermission(Roles::ROLE_ADMIN);
+
         yield MenuItem::section('Tools');
         yield MenuItem::linkToRoute('DNS wizard', 'fa fa-network-wired', 'admin_dns_wizard_index')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);

@@ -20,6 +20,11 @@ services:
     App\Service\DnsWizard\DnsLookupInterface:
         class: App\Service\DnsWizard\NativeDnsLookup
 
+    # Dovecot Stats Sampler needs logger injection
+    App\Service\Dovecot\DovecotStatsSampler:
+        arguments:
+            $logger: '@?Psr\Log\LoggerInterface'
+
     App\:
         resource: '../src/*'
         exclude: '../src/{Entity,Kernel.php}'

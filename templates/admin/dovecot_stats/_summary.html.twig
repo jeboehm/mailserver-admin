@@ -1,0 +1,194 @@
+{# Summary fragment: Health status and KPI tiles #}
+
+{# Health Status Card #}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                {# Health Badge #}
+                {% if health.status.value == 'ok' %}
+                    <span class="badge bg-success fs-6">
+                        <i class="fa fa-check-circle me-1"></i>API OK
+                    </span>
+                {% elseif health.status.value == 'warning' %}
+                    <span class="badge bg-warning text-dark fs-6">
+                        <i class="fa fa-exclamation-triangle me-1"></i>Warning
+                    </span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">
+                        <i class="fa fa-times-circle me-1"></i>Critical
+                    </span>
+                {% endif %}
+
+                <span class="text-muted">{{ health.message }}</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                {% if lastSampleTime %}
+                    <small class="text-muted">
+                        <i class="fa fa-clock me-1"></i>
+                        Last sample: {{ lastSampleTime|date('H:i:s') }}
+                    </small>
+                {% endif %}
+
+                {% if resetDateTime %}
+                    <small class="text-muted">
+                        <i class="fa fa-history me-1"></i>
+                        Stats since: {{ resetDateTime|date('Y-m-d H:i') }}
+                    </small>
+                {% endif %}
+
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="refreshDovecotStats()">
+                    <i class="fa fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# KPI Tiles #}
+{% if sample %}
+    <div class="row g-3 mb-4">
+        {# Connected Sessions #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-plug me-1"></i>Connected Sessions
+                    </div>
+                    <div class="fs-3 fw-bold text-primary">
+                        {{ sample.getCounterAsInt('num_connected_sessions') ?? 'n/a' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Total Logins #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-sign-in-alt me-1"></i>Total Logins
+                    </div>
+                    <div class="fs-3 fw-bold text-primary">
+                        {{ sample.getCounterAsInt('num_logins')|default('n/a')|number_format }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Auth Successes #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-check me-1"></i>Auth Successes
+                    </div>
+                    <div class="fs-3 fw-bold text-success">
+                        {{ sample.getCounterAsInt('auth_successes')|default('n/a')|number_format }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Auth Failures #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-times me-1"></i>Auth Failures
+                    </div>
+                    <div class="fs-3 fw-bold text-danger">
+                        {{ sample.getCounterAsInt('auth_failures')|default('n/a')|number_format }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Cache Hit Rate #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-database me-1"></i>Auth Cache Hit Rate
+                    </div>
+                    <div class="fs-3 fw-bold {% if cacheHitRate is not null %}{% if cacheHitRate > 80 %}text-success{% elseif cacheHitRate > 50 %}text-warning{% else %}text-danger{% endif %}{% endif %}">
+                        {% if cacheHitRate is not null %}
+                            {{ cacheHitRate|number_format(1) }}%
+                        {% else %}
+                            n/a
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Disk IO Total #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-hdd me-1"></i>Disk I/O
+                    </div>
+                    <div class="fs-5 fw-bold text-info">
+                        {% set diskIn = sample.getCounterAsInt('disk_input') %}
+                        {% set diskOut = sample.getCounterAsInt('disk_output') %}
+                        {% if diskIn is not null and diskOut is not null %}
+                            <span class="d-block">↓ {{ (diskIn / 1048576)|number_format(1) }} MB</span>
+                            <span class="d-block">↑ {{ (diskOut / 1048576)|number_format(1) }} MB</span>
+                        {% else %}
+                            n/a
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Mail Read #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-envelope-open me-1"></i>Mail Read
+                    </div>
+                    <div class="fs-5 fw-bold text-secondary">
+                        {% set mailBytes = sample.getCounterAsInt('mail_read_bytes') %}
+                        {% set mailCount = sample.getCounterAsInt('mail_read_count') %}
+                        {% if mailBytes is not null and mailCount is not null %}
+                            <span class="d-block">{{ (mailBytes / 1048576)|number_format(1) }} MB</span>
+                            <span class="d-block small text-muted">{{ mailCount|number_format }} reads</span>
+                        {% else %}
+                            n/a
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# CPU Time #}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small mb-1">
+                        <i class="fa fa-microchip me-1"></i>CPU Time
+                    </div>
+                    <div class="fs-5 fw-bold text-secondary">
+                        {% set userCpu = sample.getCounterAsFloat('user_cpu') %}
+                        {% set sysCpu = sample.getCounterAsFloat('sys_cpu') %}
+                        {% if userCpu is not null and sysCpu is not null %}
+                            <span class="d-block">User: {{ userCpu|number_format(2) }}s</span>
+                            <span class="d-block">Sys: {{ sysCpu|number_format(2) }}s</span>
+                        {% else %}
+                            n/a
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle me-2"></i>
+        No statistics data available yet. Data will appear after the first successful fetch from the Doveadm API.
+    </div>
+{% endif %}

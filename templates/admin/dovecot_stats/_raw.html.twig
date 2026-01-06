@@ -1,0 +1,182 @@
+{# Raw data fragment: Detailed counter tables #}
+
+{% if sample is null %}
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle me-2"></i>
+        No detailed statistics available yet.
+    </div>
+{% else %}
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fa fa-table me-2"></i>Detailed Counters
+            </h5>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="copy-diagnostics-btn" onclick="copyDiagnostics()">
+                    <i class="fa fa-copy me-1"></i>Copy Diagnostics
+                </button>
+                <a href="{{ path('admin_dovecot_stats_export', {download: 1}) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fa fa-download me-1"></i>Download JSON
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="countersAccordion">
+                {# Authentication Counters #}
+                {% if authCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#authCounters">
+                                <i class="fa fa-key me-2 text-primary"></i>Authentication ({{ authCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="authCounters" class="accordion-collapse collapse show" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(authCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Session Counters #}
+                {% if sessionCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sessionCounters">
+                                <i class="fa fa-users me-2 text-success"></i>Sessions & Commands ({{ sessionCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="sessionCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(sessionCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# IO Counters #}
+                {% if ioCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ioCounters">
+                                <i class="fa fa-hdd me-2 text-info"></i>Disk & Mail I/O ({{ ioCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="ioCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(ioCounters, true) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Index Counters #}
+                {% if indexCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#indexCounters">
+                                <i class="fa fa-list-ol me-2 text-warning"></i>Index Operations ({{ indexCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="indexCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(indexCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# FTS Counters #}
+                {% if ftsCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ftsCounters">
+                                <i class="fa fa-search me-2 text-secondary"></i>Full-Text Search ({{ ftsCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="ftsCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(ftsCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# System Counters #}
+                {% if systemCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#systemCounters">
+                                <i class="fa fa-microchip me-2 text-dark"></i>System ({{ systemCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="systemCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(systemCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Other Counters #}
+                {% if otherCounters is not empty %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#otherCounters">
+                                <i class="fa fa-ellipsis-h me-2"></i>Other ({{ otherCounters|length }})
+                            </button>
+                        </h2>
+                        <div id="otherCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
+                            <div class="accordion-body">
+                                {{ _self.render_counter_table(otherCounters) }}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="text-muted small mt-3">
+        <i class="fa fa-info-circle me-1"></i>
+        Counters are cumulative since reset at {{ sample.getResetDateTime()|date('Y-m-d H:i:s') }}.
+        Sample fetched at {{ sample.fetchedAt|date('H:i:s') }}.
+    </div>
+{% endif %}
+
+{% macro render_counter_table(counters, formatBytes) %}
+    <table class="table table-sm table-striped mb-0">
+        <thead>
+            <tr>
+                <th>Counter</th>
+                <th class="text-end">Value</th>
+                {% if formatBytes %}
+                    <th class="text-end">Formatted</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for name, value in counters %}
+                <tr>
+                    <td><code>{{ name }}</code></td>
+                    <td class="text-end font-monospace">{{ value|number_format }}</td>
+                    {% if formatBytes %}
+                        <td class="text-end text-muted">
+                            {% if name ends with '_bytes' or name ends with '_input' or name ends with '_output' %}
+                                {% if value > 1073741824 %}
+                                    {{ (value / 1073741824)|number_format(2) }} GB
+                                {% elseif value > 1048576 %}
+                                    {{ (value / 1048576)|number_format(2) }} MB
+                                {% elseif value > 1024 %}
+                                    {{ (value / 1024)|number_format(2) }} KB
+                                {% else %}
+                                    {{ value }} B
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
