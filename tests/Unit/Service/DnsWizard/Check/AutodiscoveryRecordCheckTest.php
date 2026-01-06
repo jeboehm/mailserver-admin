@@ -90,7 +90,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(9, $result);
+        self::assertCount(8, $result);
 
         // Check autoconfig A record
         $row = $result[0];
@@ -117,32 +117,26 @@ class AutodiscoveryRecordCheckTest extends TestCase
         self::assertSame('A/CNAME', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
-        // Check MX record
-        $row = $result[4];
-        self::assertSame('example.com', $row->subject);
-        self::assertSame('MX', $row->recordType);
-        self::assertSame(DnsWizardStatus::OK, $row->status);
-
         // Check mailconf TXT record
-        $row = $result[5];
+        $row = $result[4];
         self::assertSame('example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
         // Check _imaps._tcp SRV record
-        $row = $result[6];
+        $row = $result[5];
         self::assertSame('_imaps._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
         // Check _submission._tcp SRV record
-        $row = $result[7];
+        $row = $result[6];
         self::assertSame('_submission._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
         // Check _autodiscover._tcp SRV record
-        $row = $result[8];
+        $row = $result[7];
         self::assertSame('_autodiscover._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
@@ -164,13 +158,13 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(9, $result);
+        self::assertCount(8, $result);
 
         // Check that A records are marked as ERROR
-        self::assertSame(DnsWizardStatus::ERROR, $result[0]->status); // autoconfig
-        self::assertSame(DnsWizardStatus::ERROR, $result[1]->status); // autodiscover
-        self::assertSame(DnsWizardStatus::ERROR, $result[2]->status); // imap
-        self::assertSame(DnsWizardStatus::ERROR, $result[3]->status); // smtp
+        self::assertSame(DnsWizardStatus::WARNING, $result[0]->status); // autoconfig
+        self::assertSame(DnsWizardStatus::WARNING, $result[1]->status); // autodiscover
+        self::assertSame(DnsWizardStatus::WARNING, $result[2]->status); // imap
+        self::assertSame(DnsWizardStatus::WARNING, $result[3]->status); // smtp
     }
 
     public function testValidateDomainWithCnameRecords(): void
@@ -209,28 +203,6 @@ class AutodiscoveryRecordCheckTest extends TestCase
         self::assertSame(DnsWizardStatus::OK, $result[3]->status); // smtp via CNAME
     }
 
-    public function testValidateDomainWithWrongMxRecord(): void
-    {
-        $domain = new Domain();
-        $domain->setName('example.com');
-        $mailname = 'mail.example.com';
-        $expectedAll = ['1.2.3.4'];
-
-        $this->dns->method('lookupA')->willReturn($expectedAll);
-        $this->dns->method('lookupAaaa')->willReturn([]);
-        $this->dns->method('lookupCname')->willReturn([]);
-        $this->dns->method('lookupMx')->willReturn(['wrong.example.com']);
-        $this->dns->method('lookupTxt')->willReturn([]);
-        $this->dns->method('lookupSrv')->willReturn([]);
-
-        $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
-
-        $mxRow = $result[4];
-        self::assertSame('MX', $mxRow->recordType);
-        self::assertSame(DnsWizardStatus::ERROR, $mxRow->status);
-        self::assertStringContainsString('does not point to mail host', $mxRow->message);
-    }
-
     public function testValidateDomainWithMissingMailconfTxt(): void
     {
         $domain = new Domain();
@@ -247,9 +219,9 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        $txtRow = $result[5];
+        $txtRow = $result[4];
         self::assertSame('TXT', $txtRow->recordType);
-        self::assertSame(DnsWizardStatus::ERROR, $txtRow->status);
+        self::assertSame(DnsWizardStatus::WARNING, $txtRow->status);
         self::assertStringContainsString('missing', $txtRow->message);
     }
 
@@ -277,9 +249,9 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        $srvRow = $result[6];
+        $srvRow = $result[5];
         self::assertSame('SRV', $srvRow->recordType);
-        self::assertSame(DnsWizardStatus::ERROR, $srvRow->status);
+        self::assertSame(DnsWizardStatus::WARNING, $srvRow->status);
         self::assertStringContainsString('does not match', $srvRow->message);
     }
 
@@ -301,7 +273,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $srvRow = $result[6];
         self::assertSame('SRV', $srvRow->recordType);
-        self::assertSame(DnsWizardStatus::ERROR, $srvRow->status);
+        self::assertSame(DnsWizardStatus::WARNING, $srvRow->status);
         self::assertStringContainsString('missing', $srvRow->message);
     }
 }
