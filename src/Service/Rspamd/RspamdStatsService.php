@@ -25,7 +25,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 /**
  * Service layer for Rspamd statistics with caching support.
  */
-final readonly class RspamdStatsService
+readonly class RspamdStatsService
 {
     private const int DEFAULT_CACHE_TTL = 10;
     private const int GRAPH_CACHE_TTL = 30;

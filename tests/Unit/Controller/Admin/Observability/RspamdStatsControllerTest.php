@@ -17,12 +17,14 @@ use App\Service\Rspamd\DTO\RspamdSummaryDto;
 use App\Service\Rspamd\DTO\TimeSeriesDto;
 use App\Service\Rspamd\RspamdChartFactory;
 use App\Service\Rspamd\RspamdStatsService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\UX\Chartjs\Model\Chart;
 use Twig\Environment;
 
+#[AllowMockObjectsWithoutExpectations]
 class RspamdStatsControllerTest extends TestCase
 {
     private MockObject|Environment $twig;

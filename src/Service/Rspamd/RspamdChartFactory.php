@@ -18,7 +18,7 @@ use Symfony\UX\Chartjs\Model\Chart;
 /**
  * Factory for creating Chart.js charts for Rspamd statistics.
  */
-final readonly class RspamdChartFactory
+readonly class RspamdChartFactory
 {
     public function __construct(
         private ChartBuilderInterface $chartBuilder,
