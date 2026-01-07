@@ -64,7 +64,7 @@
                         </h2>
                         <div id="ioCounters" class="accordion-collapse collapse" data-bs-parent="#countersAccordion">
                             <div class="accordion-body">
-                                {{ _self.render_counter_table(ioCounters, true) }}
+                                {{ _self.render_counter_table(ioCounters) }}
                             </div>
                         </div>
                     </div>
@@ -144,15 +144,12 @@
     </div>
 {% endif %}
 
-{% macro render_counter_table(counters, formatBytes) %}
+{% macro render_counter_table(counters) %}
     <table class="table table-sm table-striped mb-0">
         <thead>
             <tr>
                 <th>Counter</th>
                 <th class="text-end">Value</th>
-                {% if formatBytes %}
-                    <th class="text-end">Formatted</th>
-                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -160,21 +157,6 @@
                 <tr>
                     <td><code>{{ name }}</code></td>
                     <td class="text-end font-monospace">{{ value|number_format }}</td>
-                    {% if formatBytes %}
-                        <td class="text-end text-muted">
-                            {% if name ends with '_bytes' or name ends with '_input' or name ends with '_output' %}
-                                {% if value > 1073741824 %}
-                                    {{ (value / 1073741824)|number_format(2) }} GB
-                                {% elseif value > 1048576 %}
-                                    {{ (value / 1048576)|number_format(2) }} MB
-                                {% elseif value > 1024 %}
-                                    {{ (value / 1024)|number_format(2) }} KB
-                                {% else %}
-                                    {{ value }} B
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                    {% endif %}
                 </tr>
             {% endfor %}
         </tbody>

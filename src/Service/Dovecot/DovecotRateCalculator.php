@@ -174,6 +174,16 @@ readonly class DovecotRateCalculator
     }
 
     /**
+     * Calculate mail delivery rates (per minute).
+     *
+     * @param list<StatsDumpDto> $samples
+     */
+    public function calculateMailDeliveryRates(array $samples): RateSeriesDto
+    {
+        return $this->calculateRateSeries($samples, 'mail_deliveries', '/min', 60.0);
+    }
+
+    /**
      * Calculate index operation rates (per minute).
      *
      * @param list<StatsDumpDto> $samples

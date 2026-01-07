@@ -49,34 +49,6 @@
 {# KPI Tiles #}
 {% if sample %}
     <div class="row g-3 mb-4">
-        {# Connected Sessions #}
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small mb-1">
-                        <i class="fa fa-plug me-1"></i>Connected Sessions
-                    </div>
-                    <div class="fs-3 fw-bold text-primary">
-                        {{ sample.getCounterAsInt('num_connected_sessions') ?? 'n/a' }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# Total Logins #}
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small mb-1">
-                        <i class="fa fa-sign-in-alt me-1"></i>Total Logins
-                    </div>
-                    <div class="fs-3 fw-bold text-primary">
-                        {{ sample.getCounterAsInt('num_logins')|default('n/a')|number_format }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
         {# Auth Successes #}
         <div class="col-6 col-md-4 col-lg-3">
             <div class="card shadow-sm border-0 h-100">
@@ -85,7 +57,12 @@
                         <i class="fa fa-check me-1"></i>Auth Successes
                     </div>
                     <div class="fs-3 fw-bold text-success">
-                        {{ sample.getCounterAsInt('auth_successes')|default('n/a')|number_format }}
+                        {% set authSuccesses = sample.getCounterAsInt('auth_successes') %}
+                        {% if authSuccesses is not null %}
+                            {{ authSuccesses|number_format }}
+                        {% else %}
+                            n/a
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -99,22 +76,9 @@
                         <i class="fa fa-times me-1"></i>Auth Failures
                     </div>
                     <div class="fs-3 fw-bold text-danger">
-                        {{ sample.getCounterAsInt('auth_failures')|default('n/a')|number_format }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# Cache Hit Rate #}
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small mb-1">
-                        <i class="fa fa-database me-1"></i>Auth Cache Hit Rate
-                    </div>
-                    <div class="fs-3 fw-bold {% if cacheHitRate is not null %}{% if cacheHitRate > 80 %}text-success{% elseif cacheHitRate > 50 %}text-warning{% else %}text-danger{% endif %}{% endif %}">
-                        {% if cacheHitRate is not null %}
-                            {{ cacheHitRate|number_format(1) }}%
+                        {% set authFailures = sample.getCounterAsInt('auth_failures') %}
+                        {% if authFailures is not null %}
+                            {{ authFailures|number_format }}
                         {% else %}
                             n/a
                         {% endif %}
@@ -123,61 +87,17 @@
             </div>
         </div>
 
-        {# Disk IO Total #}
+        {# Indexes #}
         <div class="col-6 col-md-4 col-lg-3">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body text-center">
                     <div class="text-muted small mb-1">
-                        <i class="fa fa-hdd me-1"></i>Disk I/O
+                        <i class="fa fa-list-ol me-1"></i>Indexes
                     </div>
-                    <div class="fs-5 fw-bold text-info">
-                        {% set diskIn = sample.getCounterAsInt('disk_input') %}
-                        {% set diskOut = sample.getCounterAsInt('disk_output') %}
-                        {% if diskIn is not null and diskOut is not null %}
-                            <span class="d-block">↓ {{ (diskIn / 1048576)|number_format(1) }} MB</span>
-                            <span class="d-block">↑ {{ (diskOut / 1048576)|number_format(1) }} MB</span>
-                        {% else %}
-                            n/a
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# Mail Read #}
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small mb-1">
-                        <i class="fa fa-envelope-open me-1"></i>Mail Read
-                    </div>
-                    <div class="fs-5 fw-bold text-secondary">
-                        {% set mailBytes = sample.getCounterAsInt('mail_read_bytes') %}
-                        {% set mailCount = sample.getCounterAsInt('mail_read_count') %}
-                        {% if mailBytes is not null and mailCount is not null %}
-                            <span class="d-block">{{ (mailBytes / 1048576)|number_format(1) }} MB</span>
-                            <span class="d-block small text-muted">{{ mailCount|number_format }} reads</span>
-                        {% else %}
-                            n/a
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# CPU Time #}
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body text-center">
-                    <div class="text-muted small mb-1">
-                        <i class="fa fa-microchip me-1"></i>CPU Time
-                    </div>
-                    <div class="fs-5 fw-bold text-secondary">
-                        {% set userCpu = sample.getCounterAsFloat('user_cpu') %}
-                        {% set sysCpu = sample.getCounterAsFloat('sys_cpu') %}
-                        {% if userCpu is not null and sysCpu is not null %}
-                            <span class="d-block">User: {{ userCpu|number_format(2) }}s</span>
-                            <span class="d-block">Sys: {{ sysCpu|number_format(2) }}s</span>
+                    <div class="fs-3 fw-bold text-info">
+                        {% set indexes = sample.getCounterAsInt('imap_command_SELECT') %}
+                        {% if indexes is not null %}
+                            {{ indexes|number_format }}
                         {% else %}
                             n/a
                         {% endif %}

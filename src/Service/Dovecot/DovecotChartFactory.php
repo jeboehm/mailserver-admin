@@ -178,6 +178,32 @@ readonly class DovecotChartFactory
     }
 
     /**
+     * Create a mail deliveries rate chart.
+     */
+    public function createMailDeliveriesChart(RateSeriesDto $series): Chart
+    {
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+
+        $chart->setData([
+            'labels' => $series->getLabels(),
+            'datasets' => [
+                [
+                    'label' => 'Mail Deliveries',
+                    'data' => $series->rates,
+                    'borderColor' => self::COLORS['success'],
+                    'backgroundColor' => self::COLORS['success_bg'],
+                    'fill' => true,
+                    'tension' => 0.3,
+                ],
+            ],
+        ]);
+
+        $chart->setOptions($this->getDefaultLineOptions('Mail Deliveries (/min)'));
+
+        return $chart;
+    }
+
+    /**
      * Create an index operations chart.
      *
      * @param array<string, RateSeriesDto> $rates

@@ -398,14 +398,11 @@ readonly class DoveadmHttpClient
     /**
      * Parse the statsDump response into a DTO.
      *
-     * The response format is an array of metric objects:
-     * [
-     *   {"metric_name":"auth_successes","field":"duration","count":0,"sum":0,...},
-     *   {"metric_name":"imap_commands","field":"duration","count":0,...},
-     *   ...
-     * ]
+     * The response format can be either:
+     * 1. An array of metric objects: [{"metric_name":"auth_successes","field":"duration","count":0,...}, ...]
+     * 2. A flat array of counters: [{"num_logins":"42","auth_successes":"100",...}]
      *
-     * @param array<int, array<string, mixed>> $response The raw response data (array of metric objects)
+     * @param array<int, array<string, mixed>> $response The raw response data
      *
      * @throws DoveadmResponseException
      */
@@ -415,39 +412,78 @@ readonly class DoveadmHttpClient
         $lastUpdateSeconds = null;
         $resetTimestamp = null;
 
-        // Process each metric object in the response
-        foreach ($response as $metric) {
-            if (!is_array($metric)) {
-                continue;
+        // Check if this is a flat format (single object with counter keys) or metric format (array of metric objects)
+        if (!empty($response) && is_array($response[0]) && !isset($response[0]['metric_name'])) {
+            // Flat format: single object with counter keys
+            $flatCounters = $response[0];
+
+            // Extract last_update and reset_timestamp if present
+            if (isset($flatCounters['last_update'])) {
+                $lastUpdateSeconds = $this->parseNumericValue($flatCounters['last_update']);
+                if (null !== $lastUpdateSeconds) {
+                    $lastUpdateSeconds = (float) $lastUpdateSeconds;
+                }
             }
 
-            $metricName = $metric['metric_name'] ?? null;
-            $field = $metric['field'] ?? null;
-
-            if (!is_string($metricName) || !is_string($field)) {
-                continue;
+            if (isset($flatCounters['reset_timestamp'])) {
+                $resetTimestamp = $this->parseNumericValue($flatCounters['reset_timestamp']);
+                if (null !== $resetTimestamp) {
+                    $resetTimestamp = (int) $resetTimestamp;
+                }
             }
 
-            // Create a composite key: metric_name.field
-            $counterKey = $metricName . '.' . $field;
+            // Store all counter values
+            foreach ($flatCounters as $key => $value) {
+                // Skip metadata fields
+                if (in_array($key, ['last_update', 'reset_timestamp'], true)) {
+                    continue;
+                }
 
-            // Extract all numeric values from the metric
-            // We'll store the 'count' as the primary counter value
-            // and other stats as separate counters with suffixes
-            $count = $this->parseNumericValue($metric['count'] ?? null);
-            if (null !== $count) {
-                $counters[$counterKey] = $count;
+                $parsedValue = $this->parseNumericValue($value);
+                if (null !== $parsedValue) {
+                    $counters[$key] = $parsedValue;
+                }
             }
+        } else {
+            // Metric format: array of metric objects
+            foreach ($response as $metric) {
+                if (!is_array($metric)) {
+                    continue;
+                }
 
-            // Store additional statistics with suffixes
-            $statsFields = ['sum', 'min', 'max', 'avg', 'median', 'stddev', '%95'];
-            foreach ($statsFields as $statField) {
-                if (isset($metric[$statField])) {
-                    $statValue = $this->parseNumericValue($metric[$statField]);
-                    if (null !== $statValue) {
-                        // Use a safe key format (replace % with pct)
-                        $safeStatField = str_replace('%', 'pct', $statField);
-                        $counters[$counterKey . '.' . $safeStatField] = $statValue;
+                $metricName = $metric['metric_name'] ?? null;
+                $field = $metric['field'] ?? null;
+
+                if (!is_string($metricName) || !is_string($field)) {
+                    continue;
+                }
+
+                // Create a composite key: metric_name.field
+                $counterKey = $metricName . '.' . $field;
+
+                // Extract all numeric values from the metric
+                // We'll store the 'count' as the primary counter value
+                // and other stats as separate counters with suffixes
+                $count = $this->parseNumericValue($metric['count'] ?? null);
+                if (null !== $count) {
+                    $counters[$counterKey] = $count;
+                    // Also store with simple metric name for easy access (template expects this format)
+                    // Only store if not already set to avoid overwriting with different field values
+                    if (!isset($counters[$metricName])) {
+                        $counters[$metricName] = $count;
+                    }
+                }
+
+                // Store additional statistics with suffixes
+                $statsFields = ['sum', 'min', 'max', 'avg', 'median', 'stddev', '%95'];
+                foreach ($statsFields as $statField) {
+                    if (isset($metric[$statField])) {
+                        $statValue = $this->parseNumericValue($metric[$statField]);
+                        if (null !== $statValue) {
+                            // Use a safe key format (replace % with pct)
+                            $safeStatField = str_replace('%', 'pct', $statField);
+                            $counters[$counterKey . '.' . $safeStatField] = $statValue;
+                        }
                     }
                 }
             }

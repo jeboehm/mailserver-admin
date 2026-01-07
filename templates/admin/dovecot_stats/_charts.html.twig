@@ -39,36 +39,18 @@
             </div>
         {% endif %}
 
-        {# IO Throughput Chart #}
-        {% if ioChart %}
+        {# Mail Deliveries Chart #}
+        {% if mailDeliveriesChart %}
             <div class="col-12 col-lg-6">
                 <div class="card shadow-sm border-0">
                     <div class="card-header bg-white">
                         <h6 class="mb-0">
-                            <i class="fa fa-hdd text-info me-2"></i>I/O Throughput
+                            <i class="fa fa-envelope text-success me-2"></i>Mail Deliveries
                         </h6>
                     </div>
                     <div class="card-body">
                         <div style="height: 250px;">
-                            {{ render_chart(ioChart) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-
-        {# Logins Chart #}
-        {% if loginsChart %}
-            <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white">
-                        <h6 class="mb-0">
-                            <i class="fa fa-sign-in-alt text-success me-2"></i>Login Rate
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div style="height: 250px;">
-                            {{ render_chart(loginsChart) }}
+                            {{ render_chart(mailDeliveriesChart) }}
                         </div>
                     </div>
                 </div>

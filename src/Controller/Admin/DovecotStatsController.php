@@ -94,8 +94,7 @@ final readonly class DovecotStatsController
         $samples = $this->sampler->getSamples();
 
         $authChart = null;
-        $ioChart = null;
-        $loginsChart = null;
+        $mailDeliveriesChart = null;
         $indexChart = null;
         $ftsChart = null;
         $hasData = !empty($samples) && count($samples) >= 2;
@@ -104,11 +103,10 @@ final readonly class DovecotStatsController
             $authRates = $this->rateCalculator->calculateAuthRates($samples);
             $authChart = $this->chartFactory->createAuthRatesChart($authRates);
 
-            $ioRates = $this->rateCalculator->calculateIoRates($samples);
-            $ioChart = $this->chartFactory->createIoThroughputChart($ioRates);
-
-            $loginRates = $this->rateCalculator->calculateLoginRates($samples);
-            $loginsChart = $this->chartFactory->createLoginsChart($loginRates);
+            $mailDeliveryRates = $this->rateCalculator->calculateMailDeliveryRates($samples);
+            if (!$mailDeliveryRates->isEmpty()) {
+                $mailDeliveriesChart = $this->chartFactory->createMailDeliveriesChart($mailDeliveryRates);
+            }
 
             $indexRates = $this->rateCalculator->calculateIndexRates($samples);
 
@@ -127,8 +125,7 @@ final readonly class DovecotStatsController
             'hasData' => $hasData,
             'sampleCount' => count($samples),
             'authChart' => $authChart,
-            'ioChart' => $ioChart,
-            'loginsChart' => $loginsChart,
+            'mailDeliveriesChart' => $mailDeliveriesChart,
             'indexChart' => $indexChart,
             'ftsChart' => $ftsChart,
         ]));
