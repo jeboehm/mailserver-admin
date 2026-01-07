@@ -17,6 +17,7 @@ use App\Entity\User;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\LocalUserVoter;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\UserMenu;
@@ -33,6 +34,15 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         return $this->render('admin/dashboard/index.html.twig');
+    }
+
+    public function configureAssets(): Assets
+    {
+        $assets = parent::configureAssets();
+        $assets
+            ->addAssetMapperEntry('app');
+
+        return $assets;
     }
 
     #[\Override]
@@ -105,8 +115,13 @@ class DashboardController extends AbstractDashboardController
 
         yield $webmail;
 
-        yield MenuItem::linkToUrl('Rspamd', 'fa fa-filter', '/rspamd')
+        yield MenuItem::section('Observability')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToRoute('Rspamd', 'fa fa-filter', 'admin_observability_rspamd_index')
+            ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToUrl('Rspamd WebUI', 'fa fa-external-link-alt', '/rspamd')
             ->setLinkRel('noreferrer')
+            ->setLinkTarget('_blank')
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Help');

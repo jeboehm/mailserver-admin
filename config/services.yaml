@@ -8,6 +8,9 @@ parameters:
     env(MAILSERVER_VERSION_FILE): "%kernel.project_dir%/DMS-VERSION"
     env(MOBILECONFIG_SSL_CERT_FILE): "%kernel.project_dir%/tls/tls.crt"
     env(MOBILECONFIG_SSL_KEY_FILE): "%kernel.project_dir%/tls/tls.key"
+    # Rspamd default values
+    rspamd_timeout_default: 2500
+    rspamd_cache_ttl_default: 10
 
 services:
     _defaults:

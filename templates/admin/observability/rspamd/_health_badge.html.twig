@@ -1,0 +1,26 @@
+{# Health status badge component #}
+{% if health.isOk %}
+    <span class="health-indicator health-ok">
+        <i class="fa fa-check-circle"></i>
+        {{ health.message }}
+        {% if health.latencyMs %}
+            <small>({{ health.latencyMs|number_format(0) }}ms)</small>
+        {% endif %}
+    </span>
+{% elseif health.isWarning %}
+    <span class="health-indicator health-warning">
+        <i class="fa fa-exclamation-triangle"></i>
+        {{ health.message }}
+        {% if health.httpStatus %}
+            <small>(HTTP {{ health.httpStatus }})</small>
+        {% endif %}
+    </span>
+{% else %}
+    <span class="health-indicator health-critical">
+        <i class="fa fa-times-circle"></i>
+        {{ health.message }}
+        {% if health.httpStatus %}
+            <small>(HTTP {{ health.httpStatus }})</small>
+        {% endif %}
+    </span>
+{% endif %}

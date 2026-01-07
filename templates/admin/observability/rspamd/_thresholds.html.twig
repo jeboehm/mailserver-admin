@@ -1,0 +1,53 @@
+{# Action thresholds table fragment #}
+{% if not embedded|default(false) %}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-transparent border-0">
+        <h6 class="mb-0">
+            <i class="fa fa-sliders-h me-2"></i>Action Thresholds
+        </h6>
+    </div>
+    <div class="card-body">
+{% endif %}
+
+        {% if thresholds is defined and thresholds is not null and thresholds|length > 0 %}
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Action</th>
+                        <th class="text-end">Threshold</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for threshold in thresholds %}
+                        <tr>
+                            <td>
+                                {% if threshold.action == 'reject' %}
+                                    <span class="badge bg-danger">{{ threshold.action }}</span>
+                                {% elseif threshold.action == 'rewrite subject' %}
+                                    <span class="badge bg-warning text-dark">{{ threshold.action }}</span>
+                                {% elseif threshold.action == 'add header' %}
+                                    <span class="badge bg-warning text-dark">{{ threshold.action }}</span>
+                                {% elseif threshold.action == 'greylist' %}
+                                    <span class="badge bg-secondary">{{ threshold.action }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ threshold.action }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <code>{{ threshold.threshold|number_format(1) }}</code>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fa fa-sliders-h fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0">No threshold data available</p>
+            </div>
+        {% endif %}
+
+{% if not embedded|default(false) %}
+    </div>
+</div>
+{% endif %}
