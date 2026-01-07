@@ -20,27 +20,6 @@ use Symfony\UX\Chartjs\Model\Chart;
  */
 final readonly class RspamdChartFactory
 {
-    /**
-     * Color palette for charts.
-     */
-    private const array COLORS = [
-        'reject' => 'rgba(220, 53, 69, 0.8)',    // Red
-        'rewrite subject' => 'rgba(255, 193, 7, 0.8)',    // Yellow
-        'add header' => 'rgba(255, 159, 64, 0.8)',  // Orange
-        'greylist' => 'rgba(108, 117, 125, 0.8)',  // Grey
-        'soft reject' => 'rgba(102, 16, 242, 0.8)', // Purple
-        'no action' => 'rgba(40, 167, 69, 0.8)',   // Green
-    ];
-
-    private const array DATASET_COLORS = [
-        'rgba(54, 162, 235, 0.8)',   // Blue
-        'rgba(255, 99, 132, 0.8)',   // Red
-        'rgba(75, 192, 192, 0.8)',   // Teal
-        'rgba(255, 206, 86, 0.8)',   // Yellow
-        'rgba(153, 102, 255, 0.8)',  // Purple
-        'rgba(255, 159, 64, 0.8)',   // Orange
-        'rgba(40, 167, 69, 0.8)',    // Green
-    ];
 
     public function __construct(
         private ChartBuilderInterface $chartBuilder,
@@ -56,53 +35,22 @@ final readonly class RspamdChartFactory
 
         $datasets = [];
 
-        // Define order for consistent display (matching Rspamd web interface)
-        $actionOrder = [
-            'reject',
-            'soft reject',
-            'rewrite subject',
-            'add header',
-            'greylist',
-            'no action',
-        ];
-
         // Process datasets in the defined order
-        foreach ($actionOrder as $actionName) {
+        foreach (RspamdConstants::ACTION_ORDER as $actionName) {
             if (!isset($series->datasets[$actionName])) {
                 continue;
             }
 
-            $values = $series->datasets[$actionName];
-            $color = self::COLORS[strtolower($actionName)] ?? self::DATASET_COLORS[0];
-            $borderColor = str_replace('0.8)', '1)', $color);
-
-            $datasets[] = [
-                'label' => $this->formatActionLabel($actionName),
-                'data' => $values,
-                'borderColor' => $borderColor,
-                'backgroundColor' => $color,
-                'fill' => true,
-                'tension' => 0.3,
-            ];
+            $datasets[] = $this->createDataset($actionName, $series->datasets[$actionName], true);
         }
 
         // Include any remaining datasets not in the standard order
         foreach ($series->datasets as $name => $values) {
-            if (\in_array($name, $actionOrder, true)) {
+            if (\in_array($name, RspamdConstants::ACTION_ORDER, true)) {
                 continue;
             }
 
-            $color = self::COLORS[strtolower($name)] ?? self::DATASET_COLORS[0];
-            $borderColor = str_replace('0.8)', '1)', $color);
-
-            $datasets[] = [
-                'label' => $this->formatDatasetLabel($name),
-                'data' => $values,
-                'borderColor' => $borderColor,
-                'backgroundColor' => $color,
-                'fill' => true,
-                'tension' => 0.3,
-            ];
+            $datasets[] = $this->createDataset($name, $values, false);
         }
 
         $chart->setData([
@@ -168,10 +116,10 @@ final readonly class RspamdChartFactory
 
         $backgroundColors = [];
         foreach ($labels as $index => $label) {
-            // Use color from API if available, otherwise try to map from COLORS, otherwise random
+            // Use color from API if available, otherwise try to map from constants, otherwise random
             $color = $apiColors[$index] ?? null;
             if (null === $color) {
-                $color = self::COLORS[strtolower($label)] ?? $this->getRandomColor();
+                $color = RspamdConstants::ACTION_COLORS[strtolower($label)] ?? $this->getRandomColor();
             } else {
                 // Convert hex to rgba if needed (Chart.js supports hex, but rgba with alpha is better)
                 $color = $this->hexToRgba($color);
@@ -180,7 +128,7 @@ final readonly class RspamdChartFactory
         }
 
         $borderColors = array_map(
-            static fn (string $color) => str_replace('0.8)', '1)', $color),
+            [$this, 'makeBorderColor'],
             $backgroundColors
         );
 
@@ -255,11 +203,37 @@ final readonly class RspamdChartFactory
         return ucwords(str_replace('_', ' ', $action));
     }
 
+    /**
+     * Create a dataset configuration for a line chart.
+     */
+    private function createDataset(string $name, array $values, bool $isAction): array
+    {
+        $label = $isAction ? $this->formatActionLabel($name) : $this->formatDatasetLabel($name);
+        $color = $this->getColorForName($name);
+
+        return [
+            'label' => $label,
+            'data' => $values,
+            'borderColor' => $this->makeBorderColor($color),
+            'backgroundColor' => $color,
+            'fill' => true,
+            'tension' => 0.3,
+        ];
+    }
+
+    private function getColorForName(string $name): string
+    {
+        return RspamdConstants::ACTION_COLORS[strtolower($name)] ?? RspamdConstants::DATASET_COLORS[0];
+    }
+
     private function getRandomColor(): string
     {
-        $colors = self::DATASET_COLORS;
+        return RspamdConstants::DATASET_COLORS[array_rand(RspamdConstants::DATASET_COLORS)];
+    }
 
-        return $colors[array_rand($colors)];
+    private function makeBorderColor(string $color): string
+    {
+        return str_replace('0.8)', '1)', $color);
     }
 
     /**

@@ -18,12 +18,6 @@ use App\Service\Rspamd\DTO\KpiValueDto;
  */
 final class RspamdMetricsParser
 {
-    private const string METRIC_SCANNED = 'rspamd_scanned_total';
-    private const string METRIC_LEARNED = 'rspamd_learned_total';
-    private const string METRIC_ACTIONS = 'rspamd_actions_total';
-    private const string METRIC_SPAM = 'rspamd_spam_total';
-    private const string METRIC_HAM = 'rspamd_ham_total';
-    private const string METRIC_CONNECTIONS = 'rspamd_connections_total';
 
     /**
      * Parse all metrics from Prometheus text format.
@@ -61,39 +55,35 @@ final class RspamdMetricsParser
     public function extractKpis(string $metricsText): array
     {
         $metrics = $this->parseAll($metricsText);
-
-        return [
-            'scanned' => new KpiValueDto(
-                'Messages scanned',
-                $this->findMetricValue($metrics, self::METRIC_SCANNED),
-                null,
-                'fa-envelope'
-            ),
-            'spam' => new KpiValueDto(
-                'Spam detected',
-                $this->findMetricValue($metrics, self::METRIC_SPAM),
-                null,
-                'fa-ban'
-            ),
-            'ham' => new KpiValueDto(
-                'Ham (clean)',
-                $this->findMetricValue($metrics, self::METRIC_HAM),
-                null,
-                'fa-check'
-            ),
-            'learned' => new KpiValueDto(
-                'Learned',
-                $this->findMetricValue($metrics, self::METRIC_LEARNED),
-                null,
-                'fa-graduation-cap'
-            ),
-            'connections' => new KpiValueDto(
-                'Connections',
-                $this->findMetricValue($metrics, self::METRIC_CONNECTIONS),
-                null,
-                'fa-plug'
-            ),
+        $metricMap = [
+            'scanned' => RspamdConstants::METRIC_SCANNED,
+            'spam' => RspamdConstants::METRIC_SPAM,
+            'ham' => RspamdConstants::METRIC_HAM,
+            'learned' => RspamdConstants::METRIC_LEARNED,
+            'connections' => RspamdConstants::METRIC_CONNECTIONS,
         ];
+
+        $values = [];
+        foreach ($metricMap as $kpiKey => $metricName) {
+            $values[$kpiKey] = $this->findMetricValue($metrics, $metricName);
+        }
+
+        return $this->createKpisFromValues($values);
+    }
+
+    /**
+     * @param array<string, int|float|null> $values
+     *
+     * @return array<string, KpiValueDto>
+     */
+    private function createKpisFromValues(array $values): array
+    {
+        $kpis = [];
+        foreach (RspamdConstants::KPI_DEFINITIONS as $key => [$label, $icon]) {
+            $kpis[$key] = new KpiValueDto($label, $values[$key] ?? null, null, $icon);
+        }
+
+        return $kpis;
     }
 
     /**
@@ -106,7 +96,7 @@ final class RspamdMetricsParser
 
         foreach ($metrics as $key => $value) {
             // Match rspamd_actions_total{action="reject"} pattern
-            if (str_starts_with($key, self::METRIC_ACTIONS . '{')) {
+            if (str_starts_with($key, RspamdConstants::METRIC_ACTIONS . '{')) {
                 $action = $this->extractLabel($key, 'action');
 
                 if (null !== $action) {
