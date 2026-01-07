@@ -39,10 +39,10 @@ final readonly class RspamdControllerClient
         private HttpClientInterface $httpClient,
         #[Autowire('%env(default::string:RSPAMD_CONTROLLER_URL)%')]
         private string $controllerUrl,
-        #[Autowire('%env(default::string:RSPAMD_PASSWORD)%')]
-        private string $password,
         #[Autowire('%env(default:rspamd_timeout_default:int:RSPAMD_TIMEOUT_MS)%')]
         private int $timeoutMs,
+        #[Autowire('%env(default::string:RSPAMD_PASSWORD)%')]
+        private ?string $password = null,
     ) {
     }
 
@@ -203,7 +203,7 @@ final readonly class RspamdControllerClient
             $options['query'] = $query;
         }
 
-        if ('' !== $this->password) {
+        if (null !== $this->password) {
             $options['headers'] = [
                 'Password' => $this->password,
             ];

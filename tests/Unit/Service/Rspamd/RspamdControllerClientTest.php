@@ -32,8 +32,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $health = $client->ping();
@@ -51,8 +51,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             '',
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $health = $client->ping();
@@ -70,8 +70,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $health = $client->ping();
@@ -90,8 +90,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $health = $client->ping();
@@ -112,8 +112,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $health = $client->ping();
@@ -133,8 +133,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->stat();
@@ -152,8 +152,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->graph('day');
@@ -171,8 +171,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->pie();
@@ -190,8 +190,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->actions();
@@ -209,8 +209,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->counters();
@@ -228,8 +228,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $result = $client->history(50);
@@ -246,8 +246,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $this->expectException(RspamdClientException::class);
@@ -265,8 +265,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $this->expectException(RspamdClientException::class);
@@ -281,8 +281,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $this->expectException(\InvalidArgumentException::class);
@@ -304,8 +304,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $this->expectException(RspamdClientException::class);
@@ -323,8 +323,8 @@ final class RspamdControllerClientTest extends TestCase
         $client = new RspamdControllerClient(
             $httpClient,
             self::CONTROLLER_URL,
+            2500,
             self::PASSWORD,
-            2500
         );
 
         $this->expectException(RspamdClientException::class);

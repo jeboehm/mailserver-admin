@@ -56,7 +56,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $summary = $service->getSummary();
 
@@ -76,7 +76,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse('Error', ['http_code' => 500]), // ping fails
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $summary = $service->getSummary();
 
@@ -92,7 +92,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse('pong', ['http_code' => 200]), // ping - only called once due to cache
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $result1 = $service->getHealth();
         $result2 = $service->getHealth(); // Should be cached
@@ -114,7 +114,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($graphData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
@@ -126,7 +126,7 @@ final class RspamdStatsServiceTest extends TestCase
     public function testGetThroughputSeriesReturnsEmptyOnInvalidType(): void
     {
         $httpClient = new MockHttpClient();
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('invalid');
 
@@ -145,7 +145,7 @@ final class RspamdStatsServiceTest extends TestCase
             },
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
@@ -164,7 +164,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($pieData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $distribution = $service->getActionDistribution();
 
@@ -182,7 +182,7 @@ final class RspamdStatsServiceTest extends TestCase
             },
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $distribution = $service->getActionDistribution();
 
@@ -202,7 +202,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($actionsData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
@@ -221,7 +221,7 @@ final class RspamdStatsServiceTest extends TestCase
             },
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
@@ -240,7 +240,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($countersData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
@@ -262,7 +262,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($countersData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
@@ -277,7 +277,7 @@ final class RspamdStatsServiceTest extends TestCase
             },
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
@@ -307,7 +307,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($historyData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
@@ -326,7 +326,7 @@ final class RspamdStatsServiceTest extends TestCase
             },
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
@@ -346,7 +346,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $summary1 = $service->getSummary();
         $summary2 = $service->getSummary(); // Should use cache
@@ -365,7 +365,7 @@ final class RspamdStatsServiceTest extends TestCase
             new MockResponse(json_encode($legacyGraphData), ['http_code' => 200]),
         ]);
 
-        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
@@ -373,23 +373,6 @@ final class RspamdStatsServiceTest extends TestCase
         self::assertNotEmpty($series->labels);
         self::assertArrayHasKey('reject', $series->datasets);
         self::assertArrayHasKey('no action', $series->datasets);
-    }
-
-    private function createClientWithMockResponse(string $endpoint, mixed $responseData, int $statusCode = 200): RspamdControllerClient
-    {
-        $httpClient = new MockHttpClient([
-            new MockResponse(
-                \is_string($responseData) ? $responseData : json_encode($responseData),
-                ['http_code' => $statusCode]
-            ),
-        ]);
-
-        return new RspamdControllerClient(
-            $httpClient,
-            'http://localhost:11334',
-            'test-password',
-            2500
-        );
     }
 
     private function createServiceWithClient(RspamdControllerClient $client, int $cacheTtl = 10): RspamdStatsService
