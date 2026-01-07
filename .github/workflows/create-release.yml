@@ -50,8 +50,8 @@ jobs:
         env:
           APP_ENV: prod
         run: |
-          composer install --no-progress --prefer-dist -a --no-dev --no-scripts
-          bin/console assets:install --symlink --relative public
+          composer install --no-progress --prefer-dist -a --no-dev
+          bin/console asset-map:compile
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
@@ -64,6 +64,7 @@ jobs:
             .github \
             .gitignore \
             .php-cs-fixer.dist.php \
+            assets/ \
             bin/phpunit \
             composer.lock \
             devenv.* \

@@ -81,8 +81,8 @@
   "scripts": {
     "auto-scripts": {
       "cache:clear": "symfony-cmd",
-      "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd",
-      "importmap:install": "symfony-cmd"
+      "importmap:install": "symfony-cmd",
+      "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd"
     },
     "post-install-cmd": [
       "@auto-scripts"
@@ -93,7 +93,7 @@
     "csfix": "php-cs-fixer fix",
     "rector": "vendor/bin/rector process",
     "test": "phpunit --display-all-issues",
-    "coverage": "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-text",
+    "coverage": "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html=_coverage",
     "phpstan": "phpstan analyse --level 3",
     "create-tls": "if ! [ -d tls ]; then mkdir tls; fi && openssl req -x509 -newkey rsa:4096 -keyout tls/tls.key -out tls/tls.crt -sha256 -days 365 -nodes -subj \"/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname\""
   },

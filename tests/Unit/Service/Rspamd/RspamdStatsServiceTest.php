@@ -20,6 +20,7 @@ use App\Service\Rspamd\RspamdControllerClient;
 use App\Service\Rspamd\RspamdStatsService;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -140,7 +141,7 @@ final class RspamdStatsServiceTest extends TestCase
         // Create a client that throws a connection error
         $httpClient = new MockHttpClient([
             function () {
-                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+                throw new TransportException('Connection failed');
             },
         ]);
 
@@ -177,7 +178,7 @@ final class RspamdStatsServiceTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             function () {
-                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+                throw new TransportException('Connection failed');
             },
         ]);
 
@@ -216,7 +217,7 @@ final class RspamdStatsServiceTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             function () {
-                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+                throw new TransportException('Connection failed');
             },
         ]);
 
@@ -272,7 +273,7 @@ final class RspamdStatsServiceTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             function () {
-                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+                throw new TransportException('Connection failed');
             },
         ]);
 
@@ -321,7 +322,7 @@ final class RspamdStatsServiceTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             function () {
-                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+                throw new TransportException('Connection failed');
             },
         ]);
 
