@@ -19,12 +19,12 @@ class TimeSeriesDtoTest extends TestCase
     public function testConstruction(): void
     {
         $dto = new TimeSeriesDto(
-            TimeSeriesDto::TYPE_HOURLY,
+            TimeSeriesDto::TYPE_DAY,
             ['00:00', '01:00', '02:00'],
             ['spam' => [10, 20, 30], 'ham' => [100, 200, 300]]
         );
 
-        self::assertSame(TimeSeriesDto::TYPE_HOURLY, $dto->type);
+        self::assertSame(TimeSeriesDto::TYPE_DAY, $dto->type);
         self::assertCount(3, $dto->labels);
         self::assertCount(2, $dto->datasets);
         self::assertFalse($dto->isEmpty());
@@ -32,9 +32,9 @@ class TimeSeriesDtoTest extends TestCase
 
     public function testEmpty(): void
     {
-        $dto = TimeSeriesDto::empty(TimeSeriesDto::TYPE_DAILY);
+        $dto = TimeSeriesDto::empty(TimeSeriesDto::TYPE_WEEK);
 
-        self::assertSame(TimeSeriesDto::TYPE_DAILY, $dto->type);
+        self::assertSame(TimeSeriesDto::TYPE_WEEK, $dto->type);
         self::assertSame([], $dto->labels);
         self::assertSame([], $dto->datasets);
         self::assertTrue($dto->isEmpty());
@@ -51,11 +51,12 @@ class TimeSeriesDtoTest extends TestCase
      */
     public static function validTypeProvider(): iterable
     {
-        yield ['hourly', true];
-        yield ['daily', true];
-        yield ['weekly', true];
-        yield ['monthly', true];
-        yield ['yearly', false];
+        yield ['day', true];
+        yield ['week', true];
+        yield ['month', true];
+        yield ['year', true];
+        yield ['hourly', false];
+        yield ['daily', false];
         yield ['invalid', false];
         yield ['', false];
     }

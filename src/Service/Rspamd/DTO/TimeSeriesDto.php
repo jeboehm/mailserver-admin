@@ -15,20 +15,20 @@ namespace App\Service\Rspamd\DTO;
  */
 final readonly class TimeSeriesDto
 {
-    public const string TYPE_HOURLY = 'hourly';
-    public const string TYPE_DAILY = 'daily';
-    public const string TYPE_WEEKLY = 'weekly';
-    public const string TYPE_MONTHLY = 'monthly';
+    public const string TYPE_DAY = 'day';
+    public const string TYPE_WEEK = 'week';
+    public const string TYPE_MONTH = 'month';
+    public const string TYPE_YEAR = 'year';
 
     public const array VALID_TYPES = [
-        self::TYPE_HOURLY,
-        self::TYPE_DAILY,
-        self::TYPE_WEEKLY,
-        self::TYPE_MONTHLY,
+        self::TYPE_DAY,
+        self::TYPE_WEEK,
+        self::TYPE_MONTH,
+        self::TYPE_YEAR,
     ];
 
     /**
-     * @param list<string>    $labels
+     * @param list<string>                   $labels
      * @param array<string, list<int|float>> $datasets Dataset name => values
      */
     public function __construct(

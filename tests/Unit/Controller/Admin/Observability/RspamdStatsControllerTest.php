@@ -99,13 +99,13 @@ class RspamdStatsControllerTest extends TestCase
 
     public function testThroughputWithValidType(): void
     {
-        $series = new TimeSeriesDto(TimeSeriesDto::TYPE_HOURLY, ['00:00'], ['spam' => [10]]);
+        $series = new TimeSeriesDto(TimeSeriesDto::TYPE_DAY, ['00:00'], ['spam' => [10]]);
         $chart = $this->createMock(Chart::class);
 
         $this->statsService
             ->expects($this->once())
             ->method('getThroughputSeries')
-            ->with('hourly')
+            ->with('day')
             ->willReturn($series);
 
         $this->chartFactory
@@ -119,11 +119,11 @@ class RspamdStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/rspamd/_throughput.html.twig',
-                $this->callback(fn (array $context) => 'hourly' === $context['type'] && $context['chart'] === $chart)
+                $this->callback(fn (array $context) => 'day' === $context['type'] && $context['chart'] === $chart)
             )
             ->willReturn('rendered html');
 
-        $request = new Request(['type' => 'hourly']);
+        $request = new Request(['type' => 'day']);
         $response = $this->controller->throughput($request);
 
         self::assertSame(200, $response->getStatusCode());
@@ -131,13 +131,13 @@ class RspamdStatsControllerTest extends TestCase
 
     public function testThroughputWithInvalidType(): void
     {
-        $series = TimeSeriesDto::empty('hourly');
+        $series = TimeSeriesDto::empty('day');
         $chart = $this->createMock(Chart::class);
 
         $this->statsService
             ->expects($this->once())
             ->method('getThroughputSeries')
-            ->with('hourly') // Invalid type falls back to hourly
+            ->with('day') // Invalid type falls back to day
             ->willReturn($series);
 
         $this->chartFactory

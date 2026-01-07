@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\Rspamd;
 
-use App\Service\Rspamd\DTO\HealthDto;
 use App\Service\Rspamd\RspamdClientException;
 use App\Service\Rspamd\RspamdControllerClient;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -121,9 +120,10 @@ class RspamdControllerClientTest extends TestCase
 
     public function testGraphSuccess(): void
     {
+        // New format: array of arrays with {x: timestamp, y: value} objects
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
-        $response->method('getContent')->willReturn('[{"ts": 1609459200, "spam": 10}]');
+        $response->method('getContent')->willReturn('[[{"x": 1609459200, "y": 10}]]');
 
         $this->httpClient
             ->expects($this->once())
@@ -132,7 +132,7 @@ class RspamdControllerClientTest extends TestCase
                 'GET',
                 'http://rspamd:11334/graph',
                 $this->callback(function (array $options) {
-                    return isset($options['query']['type']) && 'hourly' === $options['query']['type'];
+                    return isset($options['query']['type']) && 'day' === $options['query']['type'];
                 })
             )
             ->willReturn($response);
@@ -144,10 +144,11 @@ class RspamdControllerClientTest extends TestCase
             2500
         );
 
-        $result = $client->graph('hourly');
+        $result = $client->graph('day');
 
         self::assertIsArray($result);
         self::assertCount(1, $result);
+        self::assertIsArray($result[0]);
     }
 
     public function testAuthenticationFailure(): void

@@ -13,7 +13,6 @@ namespace Tests\Unit\Service\Rspamd;
 use App\Service\Rspamd\DTO\ActionDistributionDto;
 use App\Service\Rspamd\DTO\HealthDto;
 use App\Service\Rspamd\DTO\KpiValueDto;
-use App\Service\Rspamd\DTO\TimeSeriesDto;
 use App\Service\Rspamd\RspamdClientException;
 use App\Service\Rspamd\RspamdControllerClient;
 use App\Service\Rspamd\RspamdMetricsParser;
@@ -145,21 +144,28 @@ class RspamdStatsServiceTest extends TestCase
 
     public function testGetThroughputSeriesValidType(): void
     {
+        // New format: array of arrays with {x: timestamp, y: value} objects
         $graphData = [
-            ['ts' => 1609459200, 'spam' => 10, 'ham' => 100],
-            ['ts' => 1609462800, 'spam' => 20, 'ham' => 200],
+            [
+                ['x' => 1609459200, 'y' => 10],
+                ['x' => 1609462800, 'y' => 20],
+            ],
+            [
+                ['x' => 1609459200, 'y' => 100],
+                ['x' => 1609462800, 'y' => 200],
+            ],
         ];
 
         $this->client
             ->expects($this->once())
             ->method('graph')
-            ->with('hourly')
+            ->with('day')
             ->willReturn($graphData);
 
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->with('rspamd_throughput_hourly', $this->anything())
+            ->with('rspamd_throughput_day', $this->anything())
             ->willReturnCallback(function (string $key, callable $callback) {
                 $item = $this->createMock(ItemInterface::class);
                 $item->expects($this->once())->method('expiresAfter');
@@ -167,10 +173,12 @@ class RspamdStatsServiceTest extends TestCase
                 return $callback($item);
             });
 
-        $series = $this->service->getThroughputSeries('hourly');
+        $series = $this->service->getThroughputSeries('day');
 
-        self::assertSame('hourly', $series->type);
+        self::assertSame('day', $series->type);
         self::assertFalse($series->isEmpty());
+        self::assertArrayHasKey('series_0', $series->datasets);
+        self::assertArrayHasKey('series_1', $series->datasets);
     }
 
     public function testGetThroughputSeriesInvalidType(): void

@@ -63,7 +63,14 @@
 {% endblock %}
 
 {% block main %}
-    <div class="rspamd-dashboard">
+    <div class="rspamd-dashboard"
+         data-controller="rspamd-dashboard"
+         data-rspamd-dashboard-throughput-url-value="{{ path('admin_observability_rspamd_throughput', { type: '{type}' }) }}"
+         data-rspamd-dashboard-actions-pie-url-value="{{ path('admin_observability_rspamd_actions_pie') }}"
+         data-rspamd-dashboard-thresholds-url-value="{{ path('admin_observability_rspamd_thresholds') }}"
+         data-rspamd-dashboard-counters-url-value="{{ path('admin_observability_rspamd_counters', { limit: 20 }) }}"
+         data-rspamd-dashboard-history-url-value="{{ path('admin_observability_rspamd_history', { limit: 50 }) }}"
+         data-rspamd-dashboard-default-type-value="day">
         {# Health Status Banner #}
         <div class="row mb-4">
             <div class="col-12">
@@ -114,21 +121,24 @@
                                     <i class="fa fa-chart-line me-2"></i>Throughput
                                 </h6>
                                 <div class="type-selector btn-group" role="group">
-                                    {% for validType in ['hourly', 'daily', 'weekly', 'monthly'] %}
-                                        <a href="{{ path('admin_observability_rspamd_throughput', { type: validType }) }}"
-                                           class="btn btn-outline-secondary btn-sm{% if validType == 'hourly' %} active{% endif %}">
+                                    {% for validType in ['day', 'week', 'month', 'year'] %}
+                                        <button type="button"
+                                                data-rspamd-dashboard-target="typeButton"
+                                                data-type="{{ validType }}"
+                                                data-action="click->rspamd-dashboard#selectType"
+                                                class="btn btn-outline-secondary btn-sm{% if validType == 'day' %} active{% endif %}">
                                             {{ validType|capitalize }}
-                                        </a>
+                                        </button>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
                         <div class="card-body">
-                            <div id="throughput-container">
+                            <div data-rspamd-dashboard-target="throughputContainer">
                                 {% include 'admin/observability/rspamd/_throughput.html.twig' with {
-                                    type: 'hourly',
+                                    type: 'day',
                                     chart: null,
-                                    validTypes: ['hourly', 'daily', 'weekly', 'monthly'],
+                                    validTypes: ['day', 'week', 'month', 'year'],
                                     embedded: true
                                 } only %}
                             </div>
@@ -145,11 +155,13 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            {% include 'admin/observability/rspamd/_actions_pie.html.twig' with {
-                                distribution: summary.actionDistribution,
-                                chart: null,
-                                embedded: true
-                            } only %}
+                            <div data-rspamd-dashboard-target="actionsPieContainer">
+                                {% include 'admin/observability/rspamd/_actions_pie.html.twig' with {
+                                    distribution: summary.actionDistribution,
+                                    chart: null,
+                                    embedded: true
+                                } only %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -166,7 +178,9 @@
                             </h6>
                         </div>
                         <div class="card-body">
-                            {% include 'admin/observability/rspamd/_thresholds.html.twig' with { thresholds: null, embedded: true } only %}
+                            <div data-rspamd-dashboard-target="thresholdsContainer">
+                                {% include 'admin/observability/rspamd/_thresholds.html.twig' with { thresholds: null, embedded: true } only %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,7 +197,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            {% include 'admin/observability/rspamd/_counters.html.twig' with { counters: null, limit: 20, embedded: true } only %}
+                            <div data-rspamd-dashboard-target="countersContainer">
+                                {% include 'admin/observability/rspamd/_counters.html.twig' with { counters: null, limit: 20, embedded: true } only %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -202,7 +218,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            {% include 'admin/observability/rspamd/_history.html.twig' with { history: null, limit: 50, embedded: true } only %}
+                            <div data-rspamd-dashboard-target="historyContainer">
+                                {% include 'admin/observability/rspamd/_history.html.twig' with { history: null, limit: 50, embedded: true } only %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -227,4 +245,8 @@
             </div>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
 {% endblock %}

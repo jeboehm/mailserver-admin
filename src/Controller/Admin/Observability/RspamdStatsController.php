@@ -69,10 +69,10 @@ final readonly class RspamdStatsController
     #[AdminRoute('/_throughput', name: '_throughput')]
     public function throughput(Request $request): Response
     {
-        $type = $request->query->getString('type', TimeSeriesDto::TYPE_HOURLY);
+        $type = $request->query->getString('type', TimeSeriesDto::TYPE_DAY);
 
         if (!TimeSeriesDto::isValidType($type)) {
-            $type = TimeSeriesDto::TYPE_HOURLY;
+            $type = TimeSeriesDto::TYPE_DAY;
         }
 
         $series = $this->statsService->getThroughputSeries($type);
@@ -87,6 +87,7 @@ final readonly class RspamdStatsController
             'type' => $type,
             'chart' => $chart,
             'validTypes' => TimeSeriesDto::VALID_TYPES,
+            'embedded' => true,
         ]));
     }
 
@@ -107,6 +108,7 @@ final readonly class RspamdStatsController
         return new Response($this->twig->render('admin/observability/rspamd/_actions_pie.html.twig', [
             'distribution' => $distribution,
             'chart' => $chart,
+            'embedded' => true,
         ]));
     }
 
@@ -120,6 +122,7 @@ final readonly class RspamdStatsController
 
         return new Response($this->twig->render('admin/observability/rspamd/_thresholds.html.twig', [
             'thresholds' => $thresholds,
+            'embedded' => true,
         ]));
     }
 
@@ -137,6 +140,7 @@ final readonly class RspamdStatsController
         return new Response($this->twig->render('admin/observability/rspamd/_counters.html.twig', [
             'counters' => $counters,
             'limit' => $limit,
+            'embedded' => true,
         ]));
     }
 
@@ -154,6 +158,7 @@ final readonly class RspamdStatsController
         return new Response($this->twig->render('admin/observability/rspamd/_history.html.twig', [
             'history' => $history,
             'limit' => $limit,
+            'embedded' => true,
         ]));
     }
 }

@@ -109,7 +109,7 @@ final readonly class RspamdControllerClient
      *
      * @return array<string, mixed>
      */
-    public function graph(string $type = 'hourly'): array
+    public function graph(string $type = 'day'): array
     {
         return $this->requestJson('GET', '/graph', ['type' => $type]);
     }
@@ -246,11 +246,7 @@ final readonly class RspamdControllerClient
 
             throw RspamdClientException::connectionFailed($url, $e);
         } catch (HttpExceptionInterface $e) {
-            throw RspamdClientException::upstreamError(
-                $e->getResponse()->getStatusCode(),
-                $e->getMessage(),
-                $e
-            );
+            throw RspamdClientException::upstreamError($e->getResponse()->getStatusCode(), $e->getMessage(), $e);
         }
     }
 
@@ -264,8 +260,6 @@ final readonly class RspamdControllerClient
             }
         }
 
-        throw new \InvalidArgumentException(
-            \sprintf('Endpoint "%s" is not in the allowed read-only list', $endpoint)
-        );
+        throw new \InvalidArgumentException(\sprintf('Endpoint "%s" is not in the allowed read-only list', $endpoint));
     }
 }

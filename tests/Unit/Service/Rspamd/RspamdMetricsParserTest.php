@@ -25,15 +25,15 @@ class RspamdMetricsParserTest extends TestCase
     public function testParseAllSimpleMetrics(): void
     {
         $metricsText = <<<'METRICS'
-# HELP rspamd_scanned_total Total messages scanned
-# TYPE rspamd_scanned_total counter
-rspamd_scanned_total 12345
-# HELP rspamd_learned_total Total learned messages
-# TYPE rspamd_learned_total counter
-rspamd_learned_total 100
-rspamd_spam_total 500
-rspamd_ham_total 11000
-METRICS;
+            # HELP rspamd_scanned_total Total messages scanned
+            # TYPE rspamd_scanned_total counter
+            rspamd_scanned_total 12345
+            # HELP rspamd_learned_total Total learned messages
+            # TYPE rspamd_learned_total counter
+            rspamd_learned_total 100
+            rspamd_spam_total 500
+            rspamd_ham_total 11000
+            METRICS;
 
         $result = $this->parser->parseAll($metricsText);
 
@@ -46,10 +46,10 @@ METRICS;
     public function testParseAllWithLabels(): void
     {
         $metricsText = <<<'METRICS'
-rspamd_actions_total{action="reject"} 100
-rspamd_actions_total{action="no action"} 5000
-rspamd_actions_total{action="add header"} 200
-METRICS;
+            rspamd_actions_total{action="reject"} 100
+            rspamd_actions_total{action="no action"} 5000
+            rspamd_actions_total{action="add header"} 200
+            METRICS;
 
         $result = $this->parser->parseAll($metricsText);
 
@@ -61,9 +61,9 @@ METRICS;
     public function testParseAllWithFloats(): void
     {
         $metricsText = <<<'METRICS'
-rspamd_stat_avg_scan_time 0.05
-rspamd_stat_memory_bytes 1.5e+08
-METRICS;
+            rspamd_stat_avg_scan_time 0.05
+            rspamd_stat_memory_bytes 1.5e+08
+            METRICS;
 
         $result = $this->parser->parseAll($metricsText);
 
@@ -74,12 +74,12 @@ METRICS;
     public function testExtractKpis(): void
     {
         $metricsText = <<<'METRICS'
-rspamd_scanned_total 12345
-rspamd_spam_total 500
-rspamd_ham_total 11000
-rspamd_learned_total 100
-rspamd_connections_total 5000
-METRICS;
+            rspamd_scanned_total 12345
+            rspamd_spam_total 500
+            rspamd_ham_total 11000
+            rspamd_learned_total 100
+            rspamd_connections_total 5000
+            METRICS;
 
         $kpis = $this->parser->extractKpis($metricsText);
 
@@ -99,8 +99,8 @@ METRICS;
     public function testExtractKpisWithMissingMetrics(): void
     {
         $metricsText = <<<'METRICS'
-rspamd_scanned_total 12345
-METRICS;
+            rspamd_scanned_total 12345
+            METRICS;
 
         $kpis = $this->parser->extractKpis($metricsText);
 
@@ -112,11 +112,11 @@ METRICS;
     public function testExtractActionDistribution(): void
     {
         $metricsText = <<<'METRICS'
-rspamd_actions_total{action="reject"} 100
-rspamd_actions_total{action="no action"} 5000
-rspamd_actions_total{action="add header"} 200
-rspamd_actions_total{action="greylist"} 50
-METRICS;
+            rspamd_actions_total{action="reject"} 100
+            rspamd_actions_total{action="no action"} 5000
+            rspamd_actions_total{action="add header"} 200
+            rspamd_actions_total{action="greylist"} 50
+            METRICS;
 
         $distribution = $this->parser->extractActionDistribution($metricsText);
 
@@ -139,9 +139,9 @@ METRICS;
     public function testParseAllWithCommentsOnly(): void
     {
         $metricsText = <<<'METRICS'
-# This is a comment
-# Another comment
-METRICS;
+            # This is a comment
+            # Another comment
+            METRICS;
 
         $result = $this->parser->parseAll($metricsText);
 

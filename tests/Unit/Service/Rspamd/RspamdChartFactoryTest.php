@@ -32,7 +32,7 @@ class RspamdChartFactoryTest extends TestCase
     public function testThroughputLineChart(): void
     {
         $series = new TimeSeriesDto(
-            TimeSeriesDto::TYPE_HOURLY,
+            TimeSeriesDto::TYPE_DAY,
             ['00:00', '01:00', '02:00'],
             [
                 'spam' => [10, 20, 30],

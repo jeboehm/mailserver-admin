@@ -33,7 +33,6 @@ final readonly class RspamdStatsService
 
     public function __construct(
         private RspamdControllerClient $client,
-        private RspamdMetricsParser $metricsParser,
         private CacheInterface $cacheApp,
         #[Autowire('%env(default:rspamd_cache_ttl_default:int:RSPAMD_CACHE_TTL_SECONDS)%')]
         private int $cacheTtl,
@@ -107,7 +106,7 @@ final readonly class RspamdStatsService
                     $data = $this->client->graph($type);
 
                     return $this->parseGraphData($data, $type);
-                } catch (RspamdClientException) {
+                } catch (RspamdClientException $e) {
                     return TimeSeriesDto::empty($type);
                 }
             }
@@ -204,24 +203,16 @@ final readonly class RspamdStatsService
     private function fetchKpis(): array
     {
         try {
-            $metricsText = $this->client->metrics();
+            $stat = $this->client->stat();
 
-            return $this->metricsParser->extractKpis($metricsText);
+            return $this->parseStatToKpis($stat);
         } catch (RspamdClientException) {
-            // Try fallback to /stat endpoint
-            try {
-                $stat = $this->client->stat();
-
-                return $this->parseStatToKpis($stat);
-            } catch (RspamdClientException) {
-                return $this->getEmptyKpis();
-            }
+            return $this->getEmptyKpis();
         }
     }
 
     private function fetchActionDistribution(): ActionDistributionDto
     {
-        // Try /pie endpoint first
         try {
             $pieData = $this->client->pie();
 
@@ -229,17 +220,10 @@ final readonly class RspamdStatsService
                 return $this->parsePieData($pieData);
             }
         } catch (RspamdClientException) {
-            // Fall through to metrics fallback
+            // Return empty if /pie endpoint fails
         }
 
-        // Fallback to metrics
-        try {
-            $metricsText = $this->client->metrics();
-
-            return $this->metricsParser->extractActionDistribution($metricsText);
-        } catch (RspamdClientException) {
-            return ActionDistributionDto::empty();
-        }
+        return ActionDistributionDto::empty();
     }
 
     /**
@@ -305,9 +289,74 @@ final readonly class RspamdStatsService
         $labels = [];
         $datasets = [];
 
-        // Rspamd graph data structure varies by version
-        // Common format: array of objects with timestamp and action counts
-        if (isset($data[0]) && \is_array($data[0])) {
+        // Check if data is in new format: array of arrays with {x: timestamp, y: value} objects
+        if (isset($data[0]) && \is_array($data[0]) && isset($data[0][0]) && \is_array($data[0][0])) {
+            // New format: [[{x: timestamp, y: value}, ...], [{x: timestamp, y: value}, ...], ...]
+            $allTimestamps = [];
+
+            // Collect all unique timestamps from all series
+            foreach ($data as $series) {
+                if (!\is_array($series)) {
+                    continue;
+                }
+
+                foreach ($series as $point) {
+                    if (\is_array($point) && isset($point['x']) && \is_numeric($point['x'])) {
+                        $timestamp = (int) $point['x'];
+                        $allTimestamps[$timestamp] = true;
+                    }
+                }
+            }
+
+            // Sort timestamps and create labels
+            ksort($allTimestamps);
+            $timestampKeys = array_keys($allTimestamps);
+
+            // Limit labels to prevent performance issues with too many data points
+            // Chart.js can handle many points, but we'll sample if there are too many
+            $maxLabels = 200;
+            if (\count($timestampKeys) > $maxLabels) {
+                // Sample evenly across the range
+                $step = \count($timestampKeys) / $maxLabels;
+                $sampledKeys = [];
+                for ($i = 0; $i < $maxLabels; ++$i) {
+                    $index = (int) ($i * $step);
+                    $sampledKeys[] = $timestampKeys[$index];
+                }
+                $timestampKeys = $sampledKeys;
+            }
+
+            foreach ($timestampKeys as $timestamp) {
+                $labels[] = $this->formatTimestamp($timestamp, $type);
+            }
+
+            // Extract data for each series
+            foreach ($data as $seriesIndex => $series) {
+                if (!\is_array($series)) {
+                    continue;
+                }
+
+                $seriesName = 'series_' . $seriesIndex;
+                $datasets[$seriesName] = [];
+
+                // Create a map of timestamp => value for this series
+                $seriesData = [];
+                foreach ($series as $point) {
+                    if (\is_array($point) && isset($point['x']) && \is_numeric($point['x'])) {
+                        $timestamp = (int) $point['x'];
+                        $value = $point['y'] ?? null;
+                        // Convert null to 0, or keep numeric value
+                        $seriesData[$timestamp] = null === $value ? 0.0 : (float) $value;
+                    }
+                }
+
+                // Map series data to labels order (using same sampled timestamps)
+                foreach ($timestampKeys as $timestamp) {
+                    $datasets[$seriesName][] = $seriesData[$timestamp] ?? 0.0;
+                }
+            }
+        } elseif (isset($data[0]) && \is_array($data[0])) {
+            // Legacy format: array of objects with timestamp and action counts
             foreach ($data as $row) {
                 if (!isset($row['ts']) && !isset($row['time'])) {
                     continue;
@@ -455,14 +504,36 @@ final readonly class RspamdStatsService
                     : new \DateTimeImmutable((string) $timestamp);
 
                 $symbols = [];
-                if (isset($row['symbols']) && \is_array($row['symbols'])) {
-                    foreach ($row['symbols'] as $symbol) {
-                        if (\is_string($symbol)) {
-                            $symbols[] = $symbol;
-                        } elseif (\is_array($symbol) && isset($symbol['name'])) {
-                            $symbols[] = (string) $symbol['name'];
+                if (isset($row['symbols'])) {
+                    // Symbols can be an object (key-value pairs) or an array
+                    if (\is_array($row['symbols'])) {
+                        foreach ($row['symbols'] as $key => $symbol) {
+                            if (\is_string($key)) {
+                                // Object format: key is symbol name
+                                $symbols[] = $key;
+                            } elseif (\is_string($symbol)) {
+                                // Array format: direct string values
+                                $symbols[] = $symbol;
+                            } elseif (\is_array($symbol) && isset($symbol['name'])) {
+                                // Array format: objects with 'name' property
+                                $symbols[] = (string) $symbol['name'];
+                            }
                         }
                     }
+                }
+
+                // Handle rcpt_smtp as array (join multiple recipients)
+                $recipient = '';
+                if (isset($row['rcpt_smtp'])) {
+                    if (\is_array($row['rcpt_smtp'])) {
+                        $recipient = implode(', ', array_filter($row['rcpt_smtp'], 'is_string'));
+                    } else {
+                        $recipient = (string) $row['rcpt_smtp'];
+                    }
+                } elseif (isset($row['recipient'])) {
+                    $recipient = \is_array($row['recipient'])
+                        ? implode(', ', array_filter($row['recipient'], 'is_string'))
+                        : (string) $row['recipient'];
                 }
 
                 $result[] = new HistoryRowDto(
@@ -472,13 +543,13 @@ final readonly class RspamdStatsService
                     (float) ($row['score'] ?? 0),
                     (float) ($row['required_score'] ?? 0),
                     (string) ($row['sender_smtp'] ?? $row['sender'] ?? ''),
-                    (string) ($row['rcpt_smtp'] ?? $row['recipient'] ?? ''),
+                    $recipient,
                     (string) ($row['ip'] ?? ''),
                     (int) ($row['size'] ?? 0),
                     $symbols,
                     isset($row['subject']) ? (string) $row['subject'] : null
                 );
-            } catch (\Exception) {
+            } catch (\Exception $e) {
                 // Skip malformed rows
                 continue;
             }
@@ -492,10 +563,10 @@ final readonly class RspamdStatsService
         $date = (new \DateTimeImmutable())->setTimestamp($timestamp);
 
         return match ($type) {
-            TimeSeriesDto::TYPE_HOURLY => $date->format('H:i'),
-            TimeSeriesDto::TYPE_DAILY => $date->format('D H:00'),
-            TimeSeriesDto::TYPE_WEEKLY => $date->format('D'),
-            TimeSeriesDto::TYPE_MONTHLY => $date->format('M d'),
+            TimeSeriesDto::TYPE_DAY => $date->format('H:i'),
+            TimeSeriesDto::TYPE_WEEK => $date->format('D H:i'),
+            TimeSeriesDto::TYPE_MONTH => $date->format('M d'),
+            TimeSeriesDto::TYPE_YEAR => $date->format('M Y'),
             default => $date->format('Y-m-d H:i'),
         };
     }

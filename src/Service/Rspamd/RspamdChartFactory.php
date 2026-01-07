@@ -97,6 +97,10 @@ final readonly class RspamdChartFactory
                     'title' => [
                         'display' => false,
                     ],
+                    'ticks' => [
+                        'maxRotation' => 45,
+                        'minRotation' => 0,
+                    ],
                 ],
                 'y' => [
                     'display' => true,
