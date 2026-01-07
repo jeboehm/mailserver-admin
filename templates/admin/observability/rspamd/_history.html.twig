@@ -1,0 +1,91 @@
+{# Recent history table fragment #}
+{% if not embedded|default(false) %}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-transparent border-0">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="fa fa-history me-2"></i>Recent History
+            </h6>
+            <small class="text-muted">Last {{ limit|default(50) }} messages</small>
+        </div>
+    </div>
+    <div class="card-body">
+{% endif %}
+
+        {% if history is defined and history is not null and history|length > 0 %}
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm table-hover mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th>Time</th>
+                            <th>Action</th>
+                            <th>Score</th>
+                            <th>Sender</th>
+                            <th>Recipient</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in history %}
+                            <tr>
+                                <td>
+                                    <small>{{ row.time|date('Y-m-d H:i:s') }}</small>
+                                </td>
+                                <td>
+                                    {% if row.action == 'reject' %}
+                                        <span class="badge bg-danger">{{ row.action }}</span>
+                                    {% elseif row.action == 'rewrite subject' %}
+                                        <span class="badge bg-warning text-dark">rewrite</span>
+                                    {% elseif row.action == 'add header' %}
+                                        <span class="badge bg-warning text-dark">header</span>
+                                    {% elseif row.action == 'greylist' %}
+                                        <span class="badge bg-secondary">greylist</span>
+                                    {% elseif row.action == 'soft reject' %}
+                                        <span class="badge bg-info">soft</span>
+                                    {% elseif row.action == 'no action' %}
+                                        <span class="badge bg-success">pass</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">{{ row.action }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set scoreClass = 'text-muted' %}
+                                    {% if row.score >= row.requiredScore %}
+                                        {% set scoreClass = 'text-danger fw-bold' %}
+                                    {% elseif row.score >= row.requiredScore * 0.7 %}
+                                        {% set scoreClass = 'text-warning' %}
+                                    {% elseif row.score < 0 %}
+                                        {% set scoreClass = 'text-success' %}
+                                    {% endif %}
+                                    <span class="{{ scoreClass }}">{{ row.score|number_format(2) }}</span>
+                                    <small class="text-muted">/ {{ row.requiredScore|number_format(1) }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-break" style="max-width: 150px; display: inline-block;">
+                                        {{ row.sender|default('-')|u.truncate(25, '...') }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small class="text-break" style="max-width: 150px; display: inline-block;">
+                                        {{ row.recipient|default('-')|u.truncate(25, '...') }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small><code>{{ row.ip|default('-') }}</code></small>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="fa fa-history fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0">No history data available</p>
+            </div>
+        {% endif %}
+
+{% if not embedded|default(false) %}
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,252 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Rspamd Statistics{% endblock %}
+{% block page_title %}Rspamd Statistics{% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        .rspamd-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .kpi-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .health-ok {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: #1e7e34;
+        }
+        .health-warning {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #d39e00;
+        }
+        .health-critical {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #c82333;
+        }
+        .type-selector .btn {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        .type-selector .btn.active {
+            background-color: var(--bs-primary);
+            color: white;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <div class="rspamd-dashboard"
+         data-controller="rspamd-dashboard"
+         data-rspamd-dashboard-throughput-url-value="{{ path('admin_observability_rspamd_throughput', { type: '{type}' }) }}"
+         data-rspamd-dashboard-actions-pie-url-value="{{ path('admin_observability_rspamd_actions_pie') }}"
+         data-rspamd-dashboard-thresholds-url-value="{{ path('admin_observability_rspamd_thresholds') }}"
+         data-rspamd-dashboard-counters-url-value="{{ path('admin_observability_rspamd_counters', { limit: 20 }) }}"
+         data-rspamd-dashboard-history-url-value="{{ path('admin_observability_rspamd_history', { limit: 50 }) }}"
+         data-rspamd-dashboard-default-type-value="day">
+        {# Health Status Banner #}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div>
+                            <h5 class="card-title mb-1">
+                                <i class="fa fa-filter me-2"></i>Rspamd Controller
+                            </h5>
+                            <small class="text-muted">Last updated: {{ summary.generatedAt|date('Y-m-d H:i:s') }}</small>
+                        </div>
+                        <div>
+                            {% include 'admin/observability/rspamd/_health_badge.html.twig' with { health: summary.health } only %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# KPI Cards #}
+        {% if summary.health.isOk %}
+            <div class="row g-3 mb-4">
+                {% for key, kpi in summary.kpis %}
+                    <div class="col-6 col-md-4 col-lg">
+                        <div class="card shadow-sm border-0 kpi-card h-100">
+                            <div class="card-body text-center">
+                                {% if kpi.icon %}
+                                    <i class="fa {{ kpi.icon }} fa-2x mb-2 text-primary"></i>
+                                {% endif %}
+                                <div class="h4 mb-0">
+                                    {{ kpi.formattedValue }}
+                                </div>
+                                <small class="text-muted">{{ kpi.label }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# Charts Row #}
+            <div class="row g-4 mb-4">
+                {# Throughput Chart #}
+                <div class="col-lg-8">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <div class="section-header">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-chart-line me-2"></i>Throughput
+                                </h6>
+                                <div class="type-selector btn-group" role="group">
+                                    {% for validType in ['day', 'week', 'month', 'year'] %}
+                                        <button type="button"
+                                                data-rspamd-dashboard-target="typeButton"
+                                                data-type="{{ validType }}"
+                                                data-action="click->rspamd-dashboard#selectType"
+                                                class="btn btn-outline-secondary btn-sm{% if validType == 'day' %} active{% endif %}">
+                                            {{ validType|capitalize }}
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div data-rspamd-dashboard-target="throughputContainer">
+                                {% include 'admin/observability/rspamd/_throughput.html.twig' with {
+                                    type: 'day',
+                                    chart: null,
+                                    validTypes: ['day', 'week', 'month', 'year'],
+                                    embedded: true
+                                } only %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Action Distribution Chart #}
+                <div class="col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">
+                                <i class="fa fa-chart-pie me-2"></i>Action Distribution
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div data-rspamd-dashboard-target="actionsPieContainer">
+                                {% include 'admin/observability/rspamd/_actions_pie.html.twig' with {
+                                    distribution: summary.actionDistribution,
+                                    chart: null,
+                                    embedded: true
+                                } only %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Tables Row #}
+            <div class="row g-4 mb-4">
+                {# Action Thresholds #}
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">
+                                <i class="fa fa-sliders-h me-2"></i>Action Thresholds
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div data-rspamd-dashboard-target="thresholdsContainer">
+                                {% include 'admin/observability/rspamd/_thresholds.html.twig' with { thresholds: null, embedded: true } only %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Top Symbols #}
+                <div class="col-md-8">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <div class="section-header">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-list-ol me-2"></i>Top Symbols
+                                </h6>
+                                <small class="text-muted">Top 20 by hits</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div data-rspamd-dashboard-target="countersContainer">
+                                {% include 'admin/observability/rspamd/_counters.html.twig' with { counters: null, limit: 20, embedded: true } only %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# History Table #}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-transparent border-0">
+                            <div class="section-header">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-history me-2"></i>Recent History
+                                </h6>
+                                <small class="text-muted">Last 50 messages</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div data-rspamd-dashboard-target="historyContainer">
+                                {% include 'admin/observability/rspamd/_history.html.twig' with { history: null, limit: 50, embedded: true } only %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {# Error State #}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center py-5">
+                            <i class="fa fa-exclamation-triangle fa-4x text-warning mb-4"></i>
+                            <h4>Unable to load Rspamd statistics</h4>
+                            <p class="text-muted mb-4">
+                                {{ summary.health.message }}
+                            </p>
+                            <a href="{{ path('admin_observability_rspamd_index') }}" class="btn btn-primary">
+                                <i class="fa fa-refresh me-2"></i>Retry
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+{% endblock %}

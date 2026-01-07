@@ -1,0 +1,46 @@
+{# Action distribution pie chart fragment #}
+{% if not embedded|default(false) %}
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-transparent border-0">
+        <h6 class="mb-0">
+            <i class="fa fa-chart-pie me-2"></i>Action Distribution
+        </h6>
+    </div>
+    <div class="card-body">
+{% endif %}
+
+        <div class="chart-container" style="height: 280px;">
+            {% if chart is defined and chart is not null %}
+                {{ render_chart(chart) }}
+            {% elseif distribution is defined and not distribution.isEmpty %}
+                {# Fallback: Show data as list if no chart #}
+                <ul class="list-unstyled mb-0">
+                    {% for action, count in distribution.actions %}
+                        <li class="d-flex justify-content-between py-1">
+                            <span>{{ action|capitalize }}</span>
+                            <strong>{{ count|number_format }}</strong>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                    <div class="text-center">
+                        <i class="fa fa-chart-pie fa-3x mb-3 opacity-50"></i>
+                        <p class="mb-0">No action data available</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if distribution is defined and not distribution.isEmpty %}
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Total: {{ distribution.total|number_format }} messages
+                </small>
+            </div>
+        {% endif %}
+
+{% if not embedded|default(false) %}
+    </div>
+</div>
+{% endif %}
