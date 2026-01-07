@@ -47,6 +47,8 @@ readonly class DoveadmHttpClient
         private ?string $basicPassword,
         #[Autowire('%env(default::int:DOVEADM_TIMEOUT_MS)%')]
         private ?int $timeoutMs,
+        #[Autowire('%env(default::bool:DOVEADM_VERIFY_SSL)%')]
+        private bool $verifySsl = true,
     ) {
     }
 
@@ -136,6 +138,8 @@ readonly class DoveadmHttpClient
                 'headers' => $this->buildHeaders(),
                 'json' => $payload,
                 'timeout' => ($this->timeoutMs ?? self::DEFAULT_TIMEOUT_MS) / 1000,
+                'verify_host' => $this->verifySsl,
+                'verify_peer' => $this->verifySsl,
             ]);
 
             $statusCode = $response->getStatusCode();

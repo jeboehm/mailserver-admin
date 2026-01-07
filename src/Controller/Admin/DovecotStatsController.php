@@ -228,7 +228,7 @@ final readonly class DovecotStatsController
     /**
      * API: Refresh stats sample.
      */
-    #[AdminRoute('/_refresh', name: 'refresh', methods: ['POST'])]
+    #[AdminRoute('/_refresh', name: 'refresh')]
     public function refresh(): Response
     {
         try {
