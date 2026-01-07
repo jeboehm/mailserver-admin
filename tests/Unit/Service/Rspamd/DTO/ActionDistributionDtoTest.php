@@ -38,4 +38,23 @@ class ActionDistributionDtoTest extends TestCase
         self::assertSame([], $dto->getLabels());
         self::assertSame([], $dto->getValues());
     }
+
+    public function testColors(): void
+    {
+        $dto = new ActionDistributionDto(
+            [
+                'Clean' => 100,
+                'Rejected' => 10,
+            ],
+            [
+                'Clean' => '#66cc00',
+                'Rejected' => '#FF0000',
+            ]
+        );
+
+        self::assertSame('#66cc00', $dto->getColor('Clean'));
+        self::assertSame('#FF0000', $dto->getColor('Rejected'));
+        self::assertNull($dto->getColor('NonExistent'));
+        self::assertSame(['#66cc00', '#FF0000'], $dto->getColors());
+    }
 }

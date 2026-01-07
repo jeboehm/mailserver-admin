@@ -164,11 +164,20 @@ final readonly class RspamdChartFactory
 
         $labels = $distribution->getLabels();
         $values = $distribution->getValues();
+        $apiColors = $distribution->getColors();
 
-        $backgroundColors = array_map(
-            fn (string $label) => self::COLORS[strtolower($label)] ?? $this->getRandomColor(),
-            $labels
-        );
+        $backgroundColors = [];
+        foreach ($labels as $index => $label) {
+            // Use color from API if available, otherwise try to map from COLORS, otherwise random
+            $color = $apiColors[$index] ?? null;
+            if (null === $color) {
+                $color = self::COLORS[strtolower($label)] ?? $this->getRandomColor();
+            } else {
+                // Convert hex to rgba if needed (Chart.js supports hex, but rgba with alpha is better)
+                $color = $this->hexToRgba($color);
+            }
+            $backgroundColors[] = $color;
+        }
 
         $borderColors = array_map(
             static fn (string $color) => str_replace('0.8)', '1)', $color),
@@ -194,11 +203,6 @@ final readonly class RspamdChartFactory
                 'legend' => [
                     'display' => true,
                     'position' => 'right',
-                ],
-                'tooltip' => [
-                    'callbacks' => [
-                        // Will be handled by Chart.js defaults
-                    ],
                 ],
             ],
         ]);
@@ -256,5 +260,36 @@ final readonly class RspamdChartFactory
         $colors = self::DATASET_COLORS;
 
         return $colors[array_rand($colors)];
+    }
+
+    /**
+     * Convert hex color to rgba format with 0.8 alpha.
+     */
+    private function hexToRgba(string $hex): string
+    {
+        // Remove # if present
+        $hex = ltrim($hex, '#');
+
+        // Handle 3-digit hex
+        if (3 === \strlen($hex)) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        // If already rgba, return as is
+        if (str_starts_with($hex, 'rgba') || str_starts_with($hex, 'rgb')) {
+            return $hex;
+        }
+
+        // Convert hex to rgb
+        if (6 === \strlen($hex) && ctype_xdigit($hex)) {
+            $r = hexdec(substr($hex, 0, 2));
+            $g = hexdec(substr($hex, 2, 2));
+            $b = hexdec(substr($hex, 4, 2));
+
+            return sprintf('rgba(%d, %d, %d, 0.8)', $r, $g, $b);
+        }
+
+        // Fallback: return original if conversion fails
+        return $hex;
     }
 }

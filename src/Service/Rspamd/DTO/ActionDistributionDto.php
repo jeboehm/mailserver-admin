@@ -16,16 +16,18 @@ namespace App\Service\Rspamd\DTO;
 final readonly class ActionDistributionDto
 {
     /**
-     * @param array<string, int> $actions Action name => count
+     * @param array<string, int>    $actions Action name => count
+     * @param array<string, string> $colors  Action name => color (hex or rgba)
      */
     public function __construct(
         public array $actions,
+        public array $colors = [],
     ) {
     }
 
     public static function empty(): self
     {
-        return new self([]);
+        return new self([], []);
     }
 
     public function isEmpty(): bool
@@ -52,5 +54,28 @@ final readonly class ActionDistributionDto
     public function getValues(): array
     {
         return array_values($this->actions);
+    }
+
+    /**
+     * Get color for a specific action label.
+     */
+    public function getColor(string $label): ?string
+    {
+        return $this->colors[$label] ?? null;
+    }
+
+    /**
+     * Get colors in the same order as labels.
+     *
+     * @return list<string|null>
+     */
+    public function getColors(): array
+    {
+        $result = [];
+        foreach ($this->getLabels() as $label) {
+            $result[] = $this->getColor($label);
+        }
+
+        return $result;
     }
 }

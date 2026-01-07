@@ -31,6 +31,19 @@ final readonly class RspamdStatsService
     private const int GRAPH_CACHE_TTL = 30;
     private const int HISTORY_CACHE_TTL = 5;
 
+    /**
+     * Map Rspamd graph series indices to action names.
+     * Rspamd /graph endpoint returns series in a fixed order.
+     */
+    private const array GRAPH_SERIES_ACTIONS = [
+        0 => 'reject',
+        1 => 'soft reject',
+        2 => 'rewrite subject',
+        3 => 'add header',
+        4 => 'greylist',
+        5 => 'no action',
+    ];
+
     public function __construct(
         private RspamdControllerClient $client,
         private CacheInterface $cacheApp,
@@ -282,19 +295,6 @@ final readonly class RspamdStatsService
     }
 
     /**
-     * Map Rspamd graph series indices to action names.
-     * Rspamd /graph endpoint returns series in a fixed order.
-     */
-    private const array GRAPH_SERIES_ACTIONS = [
-        0 => 'reject',
-        1 => 'soft reject',
-        2 => 'rewrite subject',
-        3 => 'add header',
-        4 => 'greylist',
-        5 => 'no action',
-    ];
-
-    /**
      * @param array<string, mixed> $data
      */
     private function parseGraphData(array $data, string $type): TimeSeriesDto
@@ -401,14 +401,19 @@ final readonly class RspamdStatsService
     private function parsePieData(array $pieData): ActionDistributionDto
     {
         $actions = [];
+        $colors = [];
 
         foreach ($pieData as $item) {
             if (\is_array($item)) {
-                $action = $item['action'] ?? $item['name'] ?? null;
-                $value = $item['value'] ?? $item['count'] ?? 0;
+                $action = $item['action'] ?? $item['label'] ?? $item['name'] ?? null;
+                $value = $item['value'] ?? $item['data'] ?? $item['count'] ?? 0;
+                $color = $item['color'] ?? null;
 
                 if (null !== $action && \is_string($action)) {
                     $actions[$action] = (int) $value;
+                    if (null !== $color && \is_string($color)) {
+                        $colors[$action] = $color;
+                    }
                 }
             } elseif (\is_string($item)) {
                 // Handle format where key is action name and value is count
@@ -423,7 +428,7 @@ final readonly class RspamdStatsService
             }
         }
 
-        return new ActionDistributionDto($actions);
+        return new ActionDistributionDto($actions, $colors);
     }
 
     /**
