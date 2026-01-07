@@ -55,10 +55,44 @@ final readonly class RspamdChartFactory
         $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
 
         $datasets = [];
-        $colorIndex = 0;
 
+        // Define order for consistent display (matching Rspamd web interface)
+        $actionOrder = [
+            'reject',
+            'soft reject',
+            'rewrite subject',
+            'add header',
+            'greylist',
+            'no action',
+        ];
+
+        // Process datasets in the defined order
+        foreach ($actionOrder as $actionName) {
+            if (!isset($series->datasets[$actionName])) {
+                continue;
+            }
+
+            $values = $series->datasets[$actionName];
+            $color = self::COLORS[strtolower($actionName)] ?? self::DATASET_COLORS[0];
+            $borderColor = str_replace('0.8)', '1)', $color);
+
+            $datasets[] = [
+                'label' => $this->formatActionLabel($actionName),
+                'data' => $values,
+                'borderColor' => $borderColor,
+                'backgroundColor' => $color,
+                'fill' => true,
+                'tension' => 0.3,
+            ];
+        }
+
+        // Include any remaining datasets not in the standard order
         foreach ($series->datasets as $name => $values) {
-            $color = self::DATASET_COLORS[$colorIndex % \count(self::DATASET_COLORS)];
+            if (\in_array($name, $actionOrder, true)) {
+                continue;
+            }
+
+            $color = self::COLORS[strtolower($name)] ?? self::DATASET_COLORS[0];
             $borderColor = str_replace('0.8)', '1)', $color);
 
             $datasets[] = [
@@ -69,8 +103,6 @@ final readonly class RspamdChartFactory
                 'fill' => true,
                 'tension' => 0.3,
             ];
-
-            ++$colorIndex;
         }
 
         $chart->setData([
@@ -106,7 +138,7 @@ final readonly class RspamdChartFactory
                     'display' => true,
                     'title' => [
                         'display' => true,
-                        'text' => 'Messages',
+                        'text' => 'Message rate, msg/min',
                     ],
                     'beginAtZero' => true,
                 ],

@@ -177,8 +177,8 @@ class RspamdStatsServiceTest extends TestCase
 
         self::assertSame('day', $series->type);
         self::assertFalse($series->isEmpty());
-        self::assertArrayHasKey('series_0', $series->datasets);
-        self::assertArrayHasKey('series_1', $series->datasets);
+        self::assertArrayHasKey('reject', $series->datasets);
+        self::assertArrayHasKey('soft reject', $series->datasets);
     }
 
     public function testGetThroughputSeriesInvalidType(): void

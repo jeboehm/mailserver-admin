@@ -282,6 +282,19 @@ final readonly class RspamdStatsService
     }
 
     /**
+     * Map Rspamd graph series indices to action names.
+     * Rspamd /graph endpoint returns series in a fixed order.
+     */
+    private const array GRAPH_SERIES_ACTIONS = [
+        0 => 'reject',
+        1 => 'soft reject',
+        2 => 'rewrite subject',
+        3 => 'add header',
+        4 => 'greylist',
+        5 => 'no action',
+    ];
+
+    /**
      * @param array<string, mixed> $data
      */
     private function parseGraphData(array $data, string $type): TimeSeriesDto
@@ -336,8 +349,9 @@ final readonly class RspamdStatsService
                     continue;
                 }
 
-                $seriesName = 'series_' . $seriesIndex;
-                $datasets[$seriesName] = [];
+                // Map series index to action name
+                $actionName = self::GRAPH_SERIES_ACTIONS[$seriesIndex] ?? 'series_' . $seriesIndex;
+                $datasets[$actionName] = [];
 
                 // Create a map of timestamp => value for this series
                 $seriesData = [];
@@ -352,7 +366,7 @@ final readonly class RspamdStatsService
 
                 // Map series data to labels order (using same sampled timestamps)
                 foreach ($timestampKeys as $timestamp) {
-                    $datasets[$seriesName][] = $seriesData[$timestamp] ?? 0.0;
+                    $datasets[$actionName][] = $seriesData[$timestamp] ?? 0.0;
                 }
             }
         } elseif (isset($data[0]) && \is_array($data[0])) {

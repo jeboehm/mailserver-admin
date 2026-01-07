@@ -20,12 +20,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
-/**
- * Controller for Rspamd statistics dashboard.
- *
- * Provides both a full page view and HTML fragment endpoints
- * for partial updates (suitable for Turbo Frames or AJAX).
- */
 #[AdminRoute('/observability/rspamd', name: 'observability_rspamd')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 final readonly class RspamdStatsController
