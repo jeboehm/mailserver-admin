@@ -36,7 +36,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-scripts
+        run: composer install --no-progress --no-scripts -a
       - name: PHP CS Fixer
         run: vendor/bin/php-cs-fixer check --diff
       - name: rector
@@ -91,7 +91,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
       - name: Install Composer dependencies
-        run: composer install --no-progress --no-scripts
+        run: composer install --no-progress -a
       - name: Prepare database
         run: |
           bin/console doctrine:schema:create
