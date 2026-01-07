@@ -100,8 +100,6 @@ class DovecotStatsControllerTest extends TestCase
         $health = DoveadmHealthDto::ok(new \DateTimeImmutable());
         $sample = $this->createSample();
         $lastSampleTime = new \DateTimeImmutable();
-        $cacheHitRate = 85.5;
-        $resetDateTime = new \DateTimeImmutable();
 
         $this->httpClient
             ->expects($this->once())
@@ -113,12 +111,6 @@ class DovecotStatsControllerTest extends TestCase
             ->method('getLatestSample')
             ->willReturn($sample);
 
-        $this->rateCalculator
-            ->expects($this->once())
-            ->method('calculateCacheHitRate')
-            ->with($sample)
-            ->willReturn($cacheHitRate);
-
         $this->sampler
             ->expects($this->once())
             ->method('getLastSampleTime')
@@ -129,16 +121,12 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/dovecot_stats/_summary.html.twig',
-                $this->callback(function (array $context) use ($health, $cacheHitRate) {
+                $this->callback(function (array $context) use ($health) {
                     return isset($context['health'])
                         && $context['health'] instanceof DoveadmHealthDto
                         && $context['health']->isHealthy() === $health->isHealthy()
                         && isset($context['sample'])
                         && $context['sample'] instanceof StatsDumpDto
-                        && isset($context['cacheHitRate'])
-                        && $context['cacheHitRate'] === $cacheHitRate
-                        && isset($context['resetDateTime'])
-                        && $context['resetDateTime'] instanceof \DateTimeImmutable
                         && isset($context['lastSampleTime'])
                         && $context['lastSampleTime'] instanceof \DateTimeImmutable;
                 })
@@ -469,8 +457,6 @@ class DovecotStatsControllerTest extends TestCase
     {
         return new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
-            lastUpdateSeconds: time(),
-            resetTimestamp: time() - 3600,
             counters: [],
         );
     }
@@ -479,8 +465,6 @@ class DovecotStatsControllerTest extends TestCase
     {
         return new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
-            lastUpdateSeconds: time(),
-            resetTimestamp: time() - 3600,
             counters: $counters,
         );
     }

@@ -133,18 +133,6 @@ readonly class DovecotStatsSampler
     {
         $samples = $this->loadSamples();
 
-        // Check for reset: if reset_timestamp changed, start fresh
-        if (!empty($samples)) {
-            $lastSample = $samples[count($samples) - 1];
-
-            if (null !== $sample->resetTimestamp
-                && null !== $lastSample->resetTimestamp
-                && $sample->resetTimestamp !== $lastSample->resetTimestamp) {
-                // Dovecot stats reset detected, clearing sample history
-                $samples = [];
-            }
-        }
-
         // Add new sample
         $samples[] = $sample;
 

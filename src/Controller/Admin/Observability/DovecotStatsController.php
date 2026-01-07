@@ -53,17 +53,10 @@ final readonly class DovecotStatsController
     {
         $health = $this->httpClient->checkHealth();
         $latestSample = null;
-        $cacheHitRate = null;
-        $resetDateTime = null;
 
         if ($health->isHealthy()) {
             try {
                 $latestSample = $this->sampler->getLatestSample();
-
-                if (null !== $latestSample) {
-                    $cacheHitRate = $this->rateCalculator->calculateCacheHitRate($latestSample);
-                    $resetDateTime = $latestSample->getResetDateTime();
-                }
             } catch (DoveadmException) {
                 // Silently handle - health already reflects the status
             }
@@ -72,8 +65,6 @@ final readonly class DovecotStatsController
         return new Response($this->twig->render('admin/dovecot_stats/_summary.html.twig', [
             'health' => $health,
             'sample' => $latestSample,
-            'cacheHitRate' => $cacheHitRate,
-            'resetDateTime' => $resetDateTime,
             'lastSampleTime' => $this->sampler->getLastSampleTime(),
         ]));
     }

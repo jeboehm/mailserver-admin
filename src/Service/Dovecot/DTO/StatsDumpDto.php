@@ -16,15 +16,11 @@ namespace App\Service\Dovecot\DTO;
 final readonly class StatsDumpDto
 {
     /**
-     * @param \DateTimeImmutable       $fetchedAt         When this sample was fetched
-     * @param float|null               $lastUpdateSeconds The last_update value from Dovecot (seconds since epoch)
-     * @param int|null                 $resetTimestamp    The reset_timestamp value (seconds since epoch)
-     * @param array<string, int|float> $counters          All parsed numeric counters from the response
+     * @param \DateTimeImmutable       $fetchedAt When this sample was fetched
+     * @param array<string, int|float> $counters  All parsed numeric counters from the response
      */
     public function __construct(
         public \DateTimeImmutable $fetchedAt,
-        public ?float $lastUpdateSeconds,
-        public ?int $resetTimestamp,
         public array $counters,
     ) {
     }
@@ -53,15 +49,6 @@ final readonly class StatsDumpDto
         return isset($this->counters[$name]);
     }
 
-    public function getResetDateTime(): ?\DateTimeImmutable
-    {
-        if (null === $this->resetTimestamp) {
-            return null;
-        }
-
-        return (new \DateTimeImmutable())->setTimestamp($this->resetTimestamp);
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -69,8 +56,6 @@ final readonly class StatsDumpDto
     {
         return [
             'fetchedAt' => $this->fetchedAt->format(\DateTimeInterface::ATOM),
-            'lastUpdateSeconds' => $this->lastUpdateSeconds,
-            'resetTimestamp' => $this->resetTimestamp,
             'counters' => $this->counters,
         ];
     }
@@ -82,8 +67,6 @@ final readonly class StatsDumpDto
     {
         return new self(
             fetchedAt: new \DateTimeImmutable($data['fetchedAt']),
-            lastUpdateSeconds: $data['lastUpdateSeconds'],
-            resetTimestamp: $data['resetTimestamp'],
             counters: $data['counters'],
         );
     }

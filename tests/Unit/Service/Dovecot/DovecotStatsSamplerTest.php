@@ -394,8 +394,6 @@ final class DovecotStatsSamplerTest extends TestCase
 
         return new StatsDumpDto(
             fetchedAt: $fetchedAt,
-            lastUpdateSeconds: $fetchedAt->getTimestamp(),
-            resetTimestamp: $resetTimestamp ?? $fetchedAt->getTimestamp(),
             counters: [
                 'num_logins' => 10 + $offset,
                 'auth_successes' => 100 + $offset,

@@ -215,27 +215,6 @@ readonly class DovecotRateCalculator
     }
 
     /**
-     * Calculate cache hit rate as a percentage.
-     */
-    public function calculateCacheHitRate(StatsDumpDto $sample): ?float
-    {
-        $hits = $sample->getCounterAsInt('auth_cache_hits');
-        $misses = $sample->getCounterAsInt('auth_cache_misses');
-
-        if (null === $hits || null === $misses) {
-            return null;
-        }
-
-        $total = $hits + $misses;
-
-        if (0 === $total) {
-            return null;
-        }
-
-        return ($hits / $total) * 100;
-    }
-
-    /**
      * Calculate the rate between two samples for a counter.
      *
      * @return float|null The rate, or null if cannot be calculated

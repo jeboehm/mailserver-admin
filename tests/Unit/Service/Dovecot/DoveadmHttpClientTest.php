@@ -219,49 +219,6 @@ final class DoveadmHttpClientTest extends TestCase
         self::assertSame(100, $stats->getCounter('auth_successes'));
     }
 
-    public function testStatsDumpParsesFlatFormat(): void
-    {
-        $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
-
-                $response = [
-                    [
-                        'doveadmResponse',
-                        [
-                            [
-                                'num_logins' => '42',
-                                'auth_successes' => '100',
-                                'last_update' => '1704106800.123',
-                                'reset_timestamp' => '1704103200',
-                            ],
-                        ],
-                        $tag,
-                    ],
-                ];
-
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
-            },
-        ]);
-
-        $client = new DoveadmHttpClient(
-            $httpClient,
-            self::HTTP_URL,
-            self::API_KEY,
-            null,
-            true,
-        );
-
-        $stats = $client->statsDump();
-
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
-        self::assertSame(42, $stats->getCounter('num_logins'));
-        self::assertSame(100, $stats->getCounter('auth_successes'));
-        self::assertSame(1704106800.123, $stats->lastUpdateSeconds);
-        self::assertSame(1704103200, $stats->resetTimestamp);
-    }
-
     public function testStatsDumpWithSocketPath(): void
     {
         $httpClient = new MockHttpClient([

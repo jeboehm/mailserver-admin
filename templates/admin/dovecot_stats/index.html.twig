@@ -67,92 +67,45 @@
                 </p>
                 <ul class="mt-2 mb-0">
                     <li><code>DOVEADM_HTTP_URL</code> - URL to the Doveadm HTTP API (e.g., <code>http://dovecot:8080/doveadm/v1</code>)</li>
-                    <li><code>DOVEADM_API_KEY_B64</code> - Base64-encoded API key for authentication</li>
-                    <li>Or: <code>DOVEADM_BASIC_USER</code> and <code>DOVEADM_BASIC_PASSWORD</code> for Basic authentication</li>
+                    <li><code>DOVEADM_API_KEY</code> - API key for authentication</li>
                 </ul>
             </div>
         {% else %}
-            {# Summary Fragment #}
-            <div id="dovecot-summary" data-fragment-url="{{ path('admin_dovecot_stats_summary_fragment') }}">
-                <div class="d-flex justify-content-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+            <div
+                data-controller="dovecot-dashboard"
+                data-dovecot-dashboard-summary-url-value="{{ path('admin_dovecot_stats_summary_fragment') }}"
+                data-dovecot-dashboard-charts-url-value="{{ path('admin_dovecot_stats_charts_fragment') }}"
+                data-dovecot-dashboard-raw-url-value="{{ path('admin_dovecot_stats_raw_fragment') }}"
+                data-dovecot-dashboard-refresh-url-value="{{ path('admin_dovecot_stats_refresh') }}"
+                data-dovecot-dashboard-refresh-interval-value="30000"
+            >
+                {# Summary Fragment #}
+                <div data-dovecot-dashboard-target="summaryContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {# Charts Fragment #}
-            <div id="dovecot-charts" data-fragment-url="{{ path('admin_dovecot_stats_charts_fragment') }}">
-                <div class="d-flex justify-content-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading charts...</span>
+                {# Charts Fragment #}
+                <div data-dovecot-dashboard-target="chartsContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading charts...</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {# Raw Data Fragment #}
-            <div id="dovecot-raw" data-fragment-url="{{ path('admin_dovecot_stats_raw_fragment') }}">
-                <div class="d-flex justify-content-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading details...</span>
+                {# Raw Data Fragment #}
+                <div data-dovecot-dashboard-target="rawContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading details...</span>
+                        </div>
                     </div>
                 </div>
             </div>
         {% endif %}
     </div>
-
-    {% if isConfigured %}
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Load all fragments
-                const fragments = document.querySelectorAll('[data-fragment-url]');
-                fragments.forEach(function(container) {
-                    const url = container.dataset.fragmentUrl;
-                    fetch(url)
-                        .then(response => response.text())
-                        .then(html => {
-                            container.innerHTML = html;
-                        })
-                        .catch(error => {
-                            container.innerHTML = '<div class="alert alert-danger">Failed to load: ' + error.message + '</div>';
-                        });
-                });
-
-                // Auto-refresh every 30 seconds
-                setInterval(function() {
-                    const summaryContainer = document.getElementById('dovecot-summary');
-                    if (summaryContainer && summaryContainer.dataset.fragmentUrl) {
-                        fetch(summaryContainer.dataset.fragmentUrl)
-                            .then(response => response.text())
-                            .then(html => {
-                                summaryContainer.innerHTML = html;
-                            });
-                    }
-                }, 30000);
-            });
-
-            function refreshDovecotStats() {
-                fetch('{{ path('admin_dovecot_stats_refresh') }}', { method: 'POST' })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Reload all fragments
-                            const fragments = document.querySelectorAll('[data-fragment-url]');
-                            fragments.forEach(function(container) {
-                                fetch(container.dataset.fragmentUrl)
-                                    .then(response => response.text())
-                                    .then(html => {
-                                        container.innerHTML = html;
-                                    });
-                            });
-                        } else {
-                            alert('Refresh failed: ' + data.error);
-                        }
-                    })
-                    .catch(error => {
-                        alert('Refresh failed: ' + error.message);
-                    });
-            }
-        </script>
-    {% endif %}
 {% endblock %}

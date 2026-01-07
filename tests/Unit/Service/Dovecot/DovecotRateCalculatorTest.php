@@ -29,8 +29,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
         ];
@@ -56,14 +54,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'), // 60 seconds later
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 70], // 60 more logins
             ),
         ];
@@ -82,14 +76,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'), // 60 seconds later
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 70], // 60 more logins
             ),
         ];
@@ -106,14 +96,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['other' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['other' => 20],
             ),
         ];
@@ -128,14 +114,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 100],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 50], // Counter decreased (reset)
             ),
         ];
@@ -152,14 +134,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'), // Same time
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 20],
             ),
         ];
@@ -175,8 +153,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'auth_successes' => 100,
                     'auth_failures' => 10,
@@ -184,8 +160,6 @@ final class DovecotRateCalculatorTest extends TestCase
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'auth_successes' => 160, // 60 more
                     'auth_failures' => 20, // 10 more
@@ -213,8 +187,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'auth_successes' => 100,
                     'auth_failures' => 10,
@@ -222,8 +194,6 @@ final class DovecotRateCalculatorTest extends TestCase
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'auth_successes' => 160,
                     'auth_failures' => 20,
@@ -244,8 +214,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'disk_input' => 1000,
                     'disk_output' => 2000,
@@ -254,8 +222,6 @@ final class DovecotRateCalculatorTest extends TestCase
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'disk_input' => 7000, // 6000 bytes more
                     'disk_output' => 8000, // 6000 bytes more
@@ -277,14 +243,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 70],
             ),
         ];
@@ -302,14 +264,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['mail_deliveries' => 100],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['mail_deliveries' => 160],
             ),
         ];
@@ -326,8 +284,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'idx_read' => 100,
                     'idx_write' => 200,
@@ -337,8 +293,6 @@ final class DovecotRateCalculatorTest extends TestCase
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'idx_read' => 160,
                     'idx_write' => 260,
@@ -362,8 +316,6 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'fts_read' => 100,
                     'fts_write' => 200,
@@ -373,8 +325,6 @@ final class DovecotRateCalculatorTest extends TestCase
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'fts_read' => 160,
                     'fts_write' => 260,
@@ -398,14 +348,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: [
                     'num_logins' => 70,
                     'connected_sessions' => 5,
@@ -427,75 +373,19 @@ final class DovecotRateCalculatorTest extends TestCase
         self::assertNull($result['num_logins']);
     }
 
-    public function testCalculateCacheHitRate(): void
-    {
-        $sample = new StatsDumpDto(
-            fetchedAt: new \DateTimeImmutable(),
-            lastUpdateSeconds: null,
-            resetTimestamp: null,
-            counters: [
-                'auth_cache_hits' => 80,
-                'auth_cache_misses' => 20,
-            ],
-        );
-
-        $rate = $this->calculator->calculateCacheHitRate($sample);
-
-        self::assertNotNull($rate);
-        // 80 hits / 100 total = 80%
-        self::assertEqualsWithDelta(80.0, $rate, 0.001);
-    }
-
-    public function testCalculateCacheHitRateReturnsNullWhenMissingCounters(): void
-    {
-        $sample = new StatsDumpDto(
-            fetchedAt: new \DateTimeImmutable(),
-            lastUpdateSeconds: null,
-            resetTimestamp: null,
-            counters: ['auth_cache_hits' => 80],
-        );
-
-        $rate = $this->calculator->calculateCacheHitRate($sample);
-
-        self::assertNull($rate);
-    }
-
-    public function testCalculateCacheHitRateReturnsNullWhenZeroTotal(): void
-    {
-        $sample = new StatsDumpDto(
-            fetchedAt: new \DateTimeImmutable(),
-            lastUpdateSeconds: null,
-            resetTimestamp: null,
-            counters: [
-                'auth_cache_hits' => 0,
-                'auth_cache_misses' => 0,
-            ],
-        );
-
-        $rate = $this->calculator->calculateCacheHitRate($sample);
-
-        self::assertNull($rate);
-    }
-
     public function testCalculateRateSeriesWithMultipleSamples(): void
     {
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 10],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 70], // +60
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:02:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['num_logins' => 130], // +60
             ),
         ];
@@ -514,14 +404,10 @@ final class DovecotRateCalculatorTest extends TestCase
         $samples = [
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['user_cpu' => 10.5],
             ),
             new StatsDumpDto(
                 fetchedAt: new \DateTimeImmutable('2024-01-01 10:01:00'),
-                lastUpdateSeconds: null,
-                resetTimestamp: null,
                 counters: ['user_cpu' => 70.8],
             ),
         ];

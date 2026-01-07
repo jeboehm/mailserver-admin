@@ -136,12 +136,6 @@
             </div>
         </div>
     </div>
-
-    <div class="text-muted small mb-4">
-        <i class="fa fa-info-circle me-1"></i>
-        Counters are cumulative since reset at {{ sample.getResetDateTime()|date('Y-m-d H:i:s') }}.
-        Sample fetched at {{ sample.fetchedAt|date('H:i:s') }}.
-    </div>
 {% endif %}
 
 {% macro render_counter_table(counters) %}
