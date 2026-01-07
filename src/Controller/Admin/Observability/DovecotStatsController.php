@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Controller\Admin;
+namespace App\Controller\Admin\Observability;
 
 use App\Exception\Dovecot\DoveadmException;
 use App\Service\Dovecot\DoveadmHttpClient;
