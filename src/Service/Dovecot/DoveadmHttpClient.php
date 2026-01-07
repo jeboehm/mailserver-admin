@@ -35,12 +35,14 @@ readonly class DoveadmHttpClient
     private const array ALLOWED_URL_SCHEMES = ['http', 'https'];
     private const int DEFAULT_TIMEOUT_MS = 2500;
 
+    private ?string $apiKeyB64;
+
     public function __construct(
         private HttpClientInterface $httpClient,
         #[Autowire('%env(default::string:DOVEADM_HTTP_URL)%')]
         private ?string $httpUrl,
-        #[Autowire('%env(default::string:DOVEADM_API_KEY_B64)%')]
-        private ?string $apiKeyB64,
+        #[Autowire('%env(default::string:DOVEADM_API_KEY)%')]
+        ?string $apiKey,
         #[Autowire('%env(default::string:DOVEADM_BASIC_USER)%')]
         private ?string $basicUser,
         #[Autowire('%env(default::string:DOVEADM_BASIC_PASSWORD)%')]
@@ -50,6 +52,7 @@ readonly class DoveadmHttpClient
         #[Autowire('%env(default::bool:DOVEADM_VERIFY_SSL)%')]
         private bool $verifySsl = true,
     ) {
+        $this->apiKeyB64 = $apiKey ? base64_encode($apiKey) : null;
     }
 
     /**
