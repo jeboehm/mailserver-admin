@@ -10,13 +10,13 @@ declare(strict_types=1);
 
 namespace App\Service\Dovecot;
 
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
 use App\Service\Dovecot\DTO\RateSeriesDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 
 /**
  * Calculates rates from cumulative Dovecot counters.
  *
- * Since Dovecot's oldStatsDump returns cumulative counters,
+ * Since Dovecot's statsDump returns cumulative counters,
  * this service computes derived rates (deltas over time) for charting.
  */
 readonly class DovecotRateCalculator
@@ -61,10 +61,10 @@ readonly class DovecotRateCalculator
     /**
      * Calculate rate series for a single counter.
      *
-     * @param list<OldStatsDumpDto> $samples     The ordered list of samples
-     * @param string                $counterName The counter to calculate rates for
-     * @param string                $unit        The unit label for display
-     * @param float                 $multiplier  Multiplier for the rate (e.g., 60 for per-minute)
+     * @param list<StatsDumpDto> $samples     The ordered list of samples
+     * @param string             $counterName The counter to calculate rates for
+     * @param string             $unit        The unit label for display
+     * @param float              $multiplier  Multiplier for the rate (e.g., 60 for per-minute)
      */
     public function calculateRateSeries(
         array $samples,
@@ -102,10 +102,10 @@ readonly class DovecotRateCalculator
     /**
      * Calculate rates for multiple counters.
      *
-     * @param list<OldStatsDumpDto> $samples      The ordered list of samples
-     * @param list<string>          $counterNames The counters to calculate rates for
-     * @param string                $unit         The unit label for display
-     * @param float                 $multiplier   Multiplier for the rate
+     * @param list<StatsDumpDto> $samples      The ordered list of samples
+     * @param list<string>       $counterNames The counters to calculate rates for
+     * @param string             $unit         The unit label for display
+     * @param float              $multiplier   Multiplier for the rate
      *
      * @return array<string, RateSeriesDto>
      */
@@ -132,7 +132,7 @@ readonly class DovecotRateCalculator
     /**
      * Calculate authentication rates (per minute).
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      *
      * @return array<string, RateSeriesDto>
      */
@@ -149,7 +149,7 @@ readonly class DovecotRateCalculator
     /**
      * Calculate IO throughput rates (bytes per minute).
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      *
      * @return array<string, RateSeriesDto>
      */
@@ -166,7 +166,7 @@ readonly class DovecotRateCalculator
     /**
      * Calculate login rates (per minute).
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      */
     public function calculateLoginRates(array $samples): RateSeriesDto
     {
@@ -176,7 +176,7 @@ readonly class DovecotRateCalculator
     /**
      * Calculate index operation rates (per minute).
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      *
      * @return array<string, RateSeriesDto>
      */
@@ -193,7 +193,7 @@ readonly class DovecotRateCalculator
     /**
      * Calculate FTS operation rates (per minute).
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      *
      * @return array<string, RateSeriesDto>
      */
@@ -208,13 +208,54 @@ readonly class DovecotRateCalculator
     }
 
     /**
+     * Get the current value of gauge-like counters (e.g., connected sessions).
+     *
+     * @param list<StatsDumpDto> $samples
+     * @param list<string>       $counterNames
+     *
+     * @return array<string, int|float|null>
+     */
+    public function getCurrentValues(array $samples, array $counterNames): array
+    {
+        $result = [];
+        $latestSample = empty($samples) ? null : $samples[count($samples) - 1];
+
+        foreach ($counterNames as $counterName) {
+            $result[$counterName] = $latestSample?->getCounter($counterName);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Calculate cache hit rate as a percentage.
+     */
+    public function calculateCacheHitRate(StatsDumpDto $sample): ?float
+    {
+        $hits = $sample->getCounterAsInt('auth_cache_hits');
+        $misses = $sample->getCounterAsInt('auth_cache_misses');
+
+        if (null === $hits || null === $misses) {
+            return null;
+        }
+
+        $total = $hits + $misses;
+
+        if (0 === $total) {
+            return null;
+        }
+
+        return ($hits / $total) * 100;
+    }
+
+    /**
      * Calculate the rate between two samples for a counter.
      *
      * @return float|null The rate, or null if cannot be calculated
      */
     private function calculateRate(
-        OldStatsDumpDto $prev,
-        OldStatsDumpDto $current,
+        StatsDumpDto $prev,
+        StatsDumpDto $current,
         string $counterName,
         float $multiplier,
     ): ?float {
@@ -242,46 +283,5 @@ readonly class DovecotRateCalculator
 
         // Calculate rate per second, then apply multiplier
         return ($valueDelta / $timeDelta) * $multiplier;
-    }
-
-    /**
-     * Get the current value of gauge-like counters (e.g., connected sessions).
-     *
-     * @param list<OldStatsDumpDto> $samples
-     * @param list<string>          $counterNames
-     *
-     * @return array<string, int|float|null>
-     */
-    public function getCurrentValues(array $samples, array $counterNames): array
-    {
-        $result = [];
-        $latestSample = empty($samples) ? null : $samples[count($samples) - 1];
-
-        foreach ($counterNames as $counterName) {
-            $result[$counterName] = $latestSample?->getCounter($counterName);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Calculate cache hit rate as a percentage.
-     */
-    public function calculateCacheHitRate(OldStatsDumpDto $sample): ?float
-    {
-        $hits = $sample->getCounterAsInt('auth_cache_hits');
-        $misses = $sample->getCounterAsInt('auth_cache_misses');
-
-        if (null === $hits || null === $misses) {
-            return null;
-        }
-
-        $total = $hits + $misses;
-
-        if (0 === $total) {
-            return null;
-        }
-
-        return ($hits / $total) * 100;
     }
 }

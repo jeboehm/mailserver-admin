@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\Dovecot;
 
 use App\Service\Dovecot\DovecotRateCalculator;
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 
 class DovecotRateCalculatorTest extends TestCase
@@ -278,9 +278,9 @@ class DovecotRateCalculatorTest extends TestCase
     /**
      * @param array<string, int|float> $counters
      */
-    private function createSample(array $counters, string $dateTime, ?int $resetTimestamp = null): OldStatsDumpDto
+    private function createSample(array $counters, string $dateTime, ?int $resetTimestamp = null): StatsDumpDto
     {
-        return new OldStatsDumpDto(
+        return new StatsDumpDto(
             type: 'global',
             fetchedAt: new \DateTimeImmutable($dateTime),
             lastUpdateSeconds: null,

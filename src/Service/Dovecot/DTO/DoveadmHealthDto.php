@@ -65,6 +65,6 @@ final readonly class DoveadmHealthDto
 
     public function isHealthy(): bool
     {
-        return $this->status === HealthStatus::OK;
+        return HealthStatus::OK === $this->status;
     }
 }

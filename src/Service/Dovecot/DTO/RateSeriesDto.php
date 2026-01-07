@@ -16,10 +16,10 @@ namespace App\Service\Dovecot\DTO;
 final readonly class RateSeriesDto
 {
     /**
-     * @param string                  $counterName The name of the counter these rates are derived from
-     * @param string                  $unit        The unit label (e.g., "per minute", "bytes/min")
+     * @param string                   $counterName The name of the counter these rates are derived from
+     * @param string                   $unit        The unit label (e.g., "per minute", "bytes/min")
      * @param list<\DateTimeImmutable> $timestamps  The timestamps for each rate point
-     * @param list<float>             $rates       The calculated rates at each point
+     * @param list<float>              $rates       The calculated rates at each point
      */
     public function __construct(
         public string $counterName,

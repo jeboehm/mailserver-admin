@@ -12,7 +12,7 @@ namespace Tests\Unit\Service\Dovecot;
 
 use App\Service\Dovecot\DoveadmHttpClient;
 use App\Service\Dovecot\DovecotStatsSampler;
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -74,7 +74,7 @@ class DovecotStatsSamplerTest extends TestCase
     {
         $httpClient = $this->createMock(DoveadmHttpClient::class);
         $httpClient->method('isConfigured')->willReturn(false);
-        $httpClient->expects(self::never())->method('oldStatsDump');
+        $httpClient->expects(self::never())->method('statsDump');
 
         $cache = $this->createMock(CacheInterface::class);
         $cache->method('get')
@@ -97,7 +97,7 @@ class DovecotStatsSamplerTest extends TestCase
 
     public function testForceFetchSampleFetchesAndStores(): void
     {
-        $expectedSample = new OldStatsDumpDto(
+        $expectedSample = new StatsDumpDto(
             type: 'global',
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
@@ -108,7 +108,7 @@ class DovecotStatsSamplerTest extends TestCase
         $httpClient = $this->createMock(DoveadmHttpClient::class);
         $httpClient->method('isConfigured')->willReturn(true);
         $httpClient->expects(self::once())
-            ->method('oldStatsDump')
+            ->method('statsDump')
             ->willReturn($expectedSample);
 
         $cachedData = [];
@@ -144,7 +144,7 @@ class DovecotStatsSamplerTest extends TestCase
 
     public function testResetDetectionLogsAndClearsSamples(): void
     {
-        $existingSample = new OldStatsDumpDto(
+        $existingSample = new StatsDumpDto(
             type: 'global',
             fetchedAt: new \DateTimeImmutable('-1 minute'),
             lastUpdateSeconds: null,
@@ -152,7 +152,7 @@ class DovecotStatsSamplerTest extends TestCase
             counters: ['num_logins' => 100],
         );
 
-        $newSampleWithReset = new OldStatsDumpDto(
+        $newSampleWithReset = new StatsDumpDto(
             type: 'global',
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
@@ -162,7 +162,7 @@ class DovecotStatsSamplerTest extends TestCase
 
         $httpClient = $this->createMock(DoveadmHttpClient::class);
         $httpClient->method('isConfigured')->willReturn(true);
-        $httpClient->method('oldStatsDump')->willReturn($newSampleWithReset);
+        $httpClient->method('statsDump')->willReturn($newSampleWithReset);
 
         $cachedSamples = [$existingSample->toArray()];
         $cache = $this->createMock(CacheInterface::class);

@@ -11,19 +11,17 @@ declare(strict_types=1);
 namespace App\Service\Dovecot\DTO;
 
 /**
- * Represents a single stats dump sample from Dovecot's oldStatsDump command.
+ * Represents a single stats dump sample from Dovecot's statsDump command.
  */
-final readonly class OldStatsDumpDto
+final readonly class StatsDumpDto
 {
     /**
-     * @param string                  $type            The stats type (e.g., "global")
-     * @param \DateTimeImmutable      $fetchedAt       When this sample was fetched
-     * @param float|null              $lastUpdateSeconds The last_update value from Dovecot (seconds since epoch)
-     * @param int|null                $resetTimestamp  The reset_timestamp value (seconds since epoch)
-     * @param array<string, int|float> $counters       All parsed numeric counters from the response
+     * @param \DateTimeImmutable       $fetchedAt         When this sample was fetched
+     * @param float|null               $lastUpdateSeconds The last_update value from Dovecot (seconds since epoch)
+     * @param int|null                 $resetTimestamp    The reset_timestamp value (seconds since epoch)
+     * @param array<string, int|float> $counters          All parsed numeric counters from the response
      */
     public function __construct(
-        public string $type,
         public \DateTimeImmutable $fetchedAt,
         public ?float $lastUpdateSeconds,
         public ?int $resetTimestamp,
@@ -70,7 +68,6 @@ final readonly class OldStatsDumpDto
     public function toArray(): array
     {
         return [
-            'type' => $this->type,
             'fetchedAt' => $this->fetchedAt->format(\DateTimeInterface::ATOM),
             'lastUpdateSeconds' => $this->lastUpdateSeconds,
             'resetTimestamp' => $this->resetTimestamp,
@@ -84,7 +81,6 @@ final readonly class OldStatsDumpDto
     public static function fromArray(array $data): self
     {
         return new self(
-            type: $data['type'],
             fetchedAt: new \DateTimeImmutable($data['fetchedAt']),
             lastUpdateSeconds: $data['lastUpdateSeconds'],
             resetTimestamp: $data['resetTimestamp'],

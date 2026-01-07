@@ -165,8 +165,8 @@ final readonly class DovecotStatsController
                     $indexCounters[$name] = $value;
                 } elseif (str_starts_with($name, 'fts_')) {
                     $ftsCounters[$name] = $value;
-                } elseif (str_starts_with($name, 'user_') || str_starts_with($name, 'sys_') ||
-                         in_array($name, ['clock_time', 'min_faults', 'maj_faults', 'vol_cs', 'invol_cs'], true)) {
+                } elseif (str_starts_with($name, 'user_') || str_starts_with($name, 'sys_')
+                         || in_array($name, ['clock_time', 'min_faults', 'maj_faults', 'vol_cs', 'invol_cs'], true)) {
                     $systemCounters[$name] = $value;
                 } else {
                     $otherCounters[$name] = $value;

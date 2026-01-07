@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace App\Service\Dovecot;
 
 use App\Exception\Dovecot\DoveadmException;
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -47,7 +47,7 @@ readonly class DovecotStatsSampler
      *
      * @param bool $allowFetch If true, will fetch a new sample if the interval has passed
      *
-     * @return list<OldStatsDumpDto>
+     * @return list<StatsDumpDto>
      */
     public function getSamples(bool $allowFetch = true): array
     {
@@ -61,7 +61,7 @@ readonly class DovecotStatsSampler
     /**
      * Get the most recent sample, or null if none available.
      */
-    public function getLatestSample(): ?OldStatsDumpDto
+    public function getLatestSample(): ?StatsDumpDto
     {
         $samples = $this->getSamples();
 
@@ -73,7 +73,7 @@ readonly class DovecotStatsSampler
      *
      * @throws DoveadmException
      */
-    public function forceFetchSample(): OldStatsDumpDto
+    public function forceFetchSample(): StatsDumpDto
     {
         return $this->fetchAndStoreSample();
     }
@@ -128,9 +128,9 @@ readonly class DovecotStatsSampler
      *
      * @throws DoveadmException
      */
-    private function fetchAndStoreSample(): OldStatsDumpDto
+    private function fetchAndStoreSample(): StatsDumpDto
     {
-        $sample = $this->httpClient->oldStatsDump();
+        $sample = $this->httpClient->statsDump();
 
         $this->storeSample($sample);
 
@@ -140,7 +140,7 @@ readonly class DovecotStatsSampler
     /**
      * Store a sample in the cache, maintaining the ring buffer.
      */
-    private function storeSample(OldStatsDumpDto $sample): void
+    private function storeSample(StatsDumpDto $sample): void
     {
         $samples = $this->loadSamples();
 
@@ -170,7 +170,7 @@ readonly class DovecotStatsSampler
 
         $samples = array_values(array_filter(
             $samples,
-            static fn (OldStatsDumpDto $s) => $s->fetchedAt >= $cutoff
+            static fn (StatsDumpDto $s) => $s->fetchedAt >= $cutoff
         ));
 
         $this->saveSamples($samples);
@@ -180,7 +180,7 @@ readonly class DovecotStatsSampler
     /**
      * Load samples from cache.
      *
-     * @return list<OldStatsDumpDto>
+     * @return list<StatsDumpDto>
      */
     private function loadSamples(): array
     {
@@ -197,7 +197,7 @@ readonly class DovecotStatsSampler
 
         // Deserialize arrays back to DTOs
         return array_map(
-            static fn (array $data) => OldStatsDumpDto::fromArray($data),
+            static fn (array $data) => StatsDumpDto::fromArray($data),
             $serialized
         );
     }
@@ -205,7 +205,7 @@ readonly class DovecotStatsSampler
     /**
      * Save samples to cache.
      *
-     * @param list<OldStatsDumpDto> $samples
+     * @param list<StatsDumpDto> $samples
      */
     private function saveSamples(array $samples): void
     {
@@ -213,7 +213,7 @@ readonly class DovecotStatsSampler
 
         // Serialize samples for storage
         $serialized = array_map(
-            static fn (OldStatsDumpDto $s) => $s->toArray(),
+            static fn (StatsDumpDto $s) => $s->toArray(),
             $samples
         );
 

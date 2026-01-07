@@ -45,7 +45,7 @@ class DoveadmHttpClientTest extends TestCase
         self::assertStringContainsString('not configured', $health->message);
     }
 
-    public function testOldStatsDumpParsesSuccessfulResponse(): void
+    public function testStatsDumpParsesSuccessfulResponse(): void
     {
         $responseBody = json_encode([
             [
@@ -72,9 +72,8 @@ class DoveadmHttpClientTest extends TestCase
             httpUrl: 'http://dovecot:8080/doveadm/v1',
         );
 
-        $result = $client->oldStatsDump('global');
+        $result = $client->statsDump();
 
-        self::assertSame('global', $result->type);
         self::assertSame(42, $result->getCounterAsInt('num_logins'));
         self::assertSame(5, $result->getCounterAsInt('num_connected_sessions'));
         self::assertSame(100, $result->getCounterAsInt('auth_successes'));
@@ -83,7 +82,7 @@ class DoveadmHttpClientTest extends TestCase
         self::assertSame(1609455600, $result->resetTimestamp);
     }
 
-    public function testOldStatsDumpHandlesStringCounters(): void
+    public function testStatsDumpHandlesStringCounters(): void
     {
         $responseBody = json_encode([
             [
@@ -109,7 +108,7 @@ class DoveadmHttpClientTest extends TestCase
             httpUrl: 'http://dovecot:8080/doveadm/v1',
         );
 
-        $result = $client->oldStatsDump();
+        $result = $client->statsDump();
 
         // Integer values
         self::assertSame(1073741824, $result->getCounterAsInt('disk_input'));
@@ -120,7 +119,7 @@ class DoveadmHttpClientTest extends TestCase
         self::assertEqualsWithDelta(78.90, $result->getCounterAsFloat('sys_cpu'), 0.001);
     }
 
-    public function testOldStatsDumpThrowsOnAuthenticationFailure(): void
+    public function testStatsDumpThrowsOnAuthenticationFailure(): void
     {
         $mockResponse = new MockResponse('', ['http_code' => 401]);
         $httpClient = new MockHttpClient([$mockResponse]);
@@ -131,10 +130,10 @@ class DoveadmHttpClientTest extends TestCase
         );
 
         $this->expectException(DoveadmAuthenticationException::class);
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
-    public function testOldStatsDumpThrowsOnConnectionFailure(): void
+    public function testStatsDumpThrowsOnConnectionFailure(): void
     {
         $mockResponse = new MockResponse('', ['error' => 'Connection refused']);
         $httpClient = new MockHttpClient([$mockResponse]);
@@ -145,10 +144,10 @@ class DoveadmHttpClientTest extends TestCase
         );
 
         $this->expectException(DoveadmConnectionException::class);
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
-    public function testOldStatsDumpThrowsOnInvalidResponse(): void
+    public function testStatsDumpThrowsOnInvalidResponse(): void
     {
         $mockResponse = new MockResponse('not json', ['http_code' => 200]);
         $httpClient = new MockHttpClient([$mockResponse]);
@@ -159,10 +158,10 @@ class DoveadmHttpClientTest extends TestCase
         );
 
         $this->expectException(DoveadmResponseException::class);
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
-    public function testOldStatsDumpThrowsOnMissingTagInResponse(): void
+    public function testStatsDumpThrowsOnMissingTagInResponse(): void
     {
         $responseBody = json_encode([
             ['doveadmResponse', [['num_logins' => '0']], 'wrong_tag'],
@@ -178,10 +177,10 @@ class DoveadmHttpClientTest extends TestCase
 
         $this->expectException(DoveadmResponseException::class);
         $this->expectExceptionMessage('No matching response');
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
-    public function testOldStatsDumpHandlesErrorResponse(): void
+    public function testStatsDumpHandlesErrorResponse(): void
     {
         $responseBody = json_encode([
             ['error', ['exitCode' => 'command not found'], 'stats_test'],
@@ -197,17 +196,17 @@ class DoveadmHttpClientTest extends TestCase
 
         $this->expectException(DoveadmResponseException::class);
         $this->expectExceptionMessage('Doveadm error');
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
     #[DataProvider('invalidUrlProvider')]
-    public function testOldStatsDumpValidatesUrl(string $url, string $expectedMessage): void
+    public function testStatsDumpValidatesUrl(string $url, string $expectedMessage): void
     {
         $client = $this->createClient(httpUrl: $url);
 
         $this->expectException(DoveadmConnectionException::class);
         $this->expectExceptionMessage($expectedMessage);
-        $client->oldStatsDump();
+        $client->statsDump();
     }
 
     /**
@@ -239,7 +238,7 @@ class DoveadmHttpClientTest extends TestCase
             apiKeyB64: 'dGVzdGtleQ==',
         );
 
-        $client->oldStatsDump();
+        $client->statsDump();
 
         self::assertContains('Authorization: X-Dovecot-API dGVzdGtleQ==', $requestHeaders);
     }
@@ -264,7 +263,7 @@ class DoveadmHttpClientTest extends TestCase
             basicPassword: 'secret',
         );
 
-        $client->oldStatsDump();
+        $client->statsDump();
 
         $expectedAuth = 'Authorization: Basic ' . base64_encode('admin:secret');
         self::assertContains($expectedAuth, $requestHeaders);
@@ -291,7 +290,7 @@ class DoveadmHttpClientTest extends TestCase
             basicPassword: 'secret',
         );
 
-        $client->oldStatsDump();
+        $client->statsDump();
 
         $hasApiKey = false;
         $hasBasic = false;
@@ -327,7 +326,7 @@ class DoveadmHttpClientTest extends TestCase
             httpUrl: 'http://dovecot:8080/doveadm/v1',
         );
 
-        $client->oldStatsDump('global', 'last_update 12345');
+        $client->statsDump();
 
         $payload = json_decode($requestBody, true, flags: JSON_THROW_ON_ERROR);
 
@@ -335,9 +334,8 @@ class DoveadmHttpClientTest extends TestCase
         self::assertCount(1, $payload);
 
         $command = $payload[0];
-        self::assertSame('oldStatsDump', $command[0]);
-        self::assertSame('global', $command[1]['type']);
-        self::assertSame('last_update 12345', $command[1]['filter']);
+        self::assertSame('statsDump', $command[0]);
+        self::assertSame(false, $command[1]['reset']);
         self::assertIsString($command[2]); // tag
     }
 

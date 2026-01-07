@@ -14,7 +14,7 @@ use App\Exception\Dovecot\DoveadmAuthenticationException;
 use App\Exception\Dovecot\DoveadmConnectionException;
 use App\Exception\Dovecot\DoveadmResponseException;
 use App\Service\Dovecot\DTO\DoveadmHealthDto;
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
@@ -26,9 +26,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * HTTP client for the Doveadm HTTP API.
  *
  * Sends commands to the Doveadm HTTP API and parses responses.
- * Supports both X-Dovecot-API key authentication and Basic authentication.
  *
- * @see https://doc.dovecot.org/admin_manual/doveadm_http_api/
+ * @see https://doc.dovecot.org/2.4.2/core/admin/doveadm.html#http-api
  */
 readonly class DoveadmHttpClient
 {
@@ -43,10 +42,6 @@ readonly class DoveadmHttpClient
         private ?string $httpUrl,
         #[Autowire('%env(default::string:DOVEADM_API_KEY)%')]
         ?string $apiKey,
-        #[Autowire('%env(default::string:DOVEADM_BASIC_USER)%')]
-        private ?string $basicUser,
-        #[Autowire('%env(default::string:DOVEADM_BASIC_PASSWORD)%')]
-        private ?string $basicPassword,
         #[Autowire('%env(default::int:DOVEADM_TIMEOUT_MS)%')]
         private ?int $timeoutMs,
         #[Autowire('%env(default::bool:DOVEADM_VERIFY_SSL)%')]
@@ -73,7 +68,7 @@ readonly class DoveadmHttpClient
         }
 
         try {
-            $this->oldStatsDump();
+            $this->statsDump();
 
             return DoveadmHealthDto::ok(new \DateTimeImmutable());
         } catch (DoveadmConnectionException $e) {
@@ -86,41 +81,134 @@ readonly class DoveadmHttpClient
     }
 
     /**
-     * Execute the oldStatsDump command.
+     * Get the list of available Doveadm commands with full details.
      *
-     * @param string      $type       The stats type (e.g., "global")
-     * @param string|null $filter     Optional filter expression
+     * @param bool $doveadmOnly If true, request only doveadm API commands (default: true)
+     *
+     * @throws DoveadmConnectionException     When the API cannot be reached
+     * @throws DoveadmAuthenticationException When authentication fails
+     * @throws DoveadmResponseException       When the response format is unexpected
+     *
+     * @return array<int, array{command: string, parameters: array<int, array{name: string, type: string}>}> List of commands with parameters
+     */
+    public function listCommandsWithDetails(bool $doveadmOnly = true): array
+    {
+        $this->validateUrl();
+
+        $url = $doveadmOnly ? $this->buildApiUrl() : rtrim($this->httpUrl ?? '', '/');
+
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'headers' => $this->buildHeaders(includeContentType: false),
+                'timeout' => ($this->timeoutMs ?? self::DEFAULT_TIMEOUT_MS) / 1000,
+                'verify_host' => $this->verifySsl,
+                'verify_peer' => $this->verifySsl,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+
+            if (401 === $statusCode || 403 === $statusCode) {
+                throw new DoveadmAuthenticationException('Authentication failed with status code ' . $statusCode);
+            }
+
+            if (404 === $statusCode) {
+                throw new DoveadmResponseException('Endpoint not found (HTTP 404)');
+            }
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                throw new DoveadmResponseException('Unexpected status code: ' . $statusCode);
+            }
+
+            $data = $response->toArray();
+
+            // The response should be an array of command objects
+            if (!is_array($data)) {
+                throw new DoveadmResponseException('Expected array response, got: ' . gettype($data));
+            }
+
+            // Validate and return the full command structure
+            $commands = [];
+            foreach ($data as $item) {
+                if (!is_array($item) || !isset($item['command']) || !is_string($item['command'])) {
+                    continue;
+                }
+
+                $commands[] = [
+                    'command' => $item['command'],
+                    'parameters' => is_array($item['parameters'] ?? null) ? $item['parameters'] : [],
+                ];
+            }
+
+            return $commands;
+        } catch (TransportExceptionInterface $e) {
+            throw new DoveadmConnectionException('Connection failed: ' . $e->getMessage(), 0, $e);
+        } catch (ClientExceptionInterface $e) {
+            $statusCode = $e->getResponse()->getStatusCode();
+            if (401 === $statusCode || 403 === $statusCode) {
+                throw new DoveadmAuthenticationException('Authentication failed', 0, $e);
+            }
+            if (404 === $statusCode) {
+                throw new DoveadmResponseException('Endpoint not found (HTTP 404)', 0, $e);
+            }
+            throw new DoveadmResponseException('Client error: ' . $e->getMessage(), 0, $e);
+        } catch (ServerExceptionInterface $e) {
+            throw new DoveadmResponseException('Server error: ' . $e->getMessage(), 0, $e);
+        } catch (RedirectionExceptionInterface $e) {
+            throw new DoveadmResponseException('Unexpected redirect: ' . $e->getMessage(), 0, $e);
+        } catch (\JsonException $e) {
+            throw new DoveadmResponseException('Invalid JSON response: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Get the list of available Doveadm commands.
+     *
+     * @param bool $doveadmOnly If true, request only doveadm API commands (default: true)
+     *
+     * @throws DoveadmConnectionException     When the API cannot be reached
+     * @throws DoveadmAuthenticationException When authentication fails
+     * @throws DoveadmResponseException       When the response format is unexpected
+     *
+     * @return array<string> List of available command names
+     */
+    public function listCommands(bool $doveadmOnly = true): array
+    {
+        $commandsWithDetails = $this->listCommandsWithDetails($doveadmOnly);
+
+        // Extract just the command names
+        return array_map(fn (array $cmd) => $cmd['command'], $commandsWithDetails);
+    }
+
+    /**
+     * Execute the statsDump command.
+     *
      * @param string|null $socketPath Optional socket path
      *
-     * @throws DoveadmConnectionException  When the API cannot be reached
+     * @throws DoveadmConnectionException     When the API cannot be reached
      * @throws DoveadmAuthenticationException When authentication fails
-     * @throws DoveadmResponseException    When the response format is unexpected
+     * @throws DoveadmResponseException       When the response format is unexpected
      */
-    public function oldStatsDump(
-        string $type = 'global',
-        ?string $filter = null,
+    public function statsDump(
         ?string $socketPath = null,
-    ): OldStatsDumpDto {
-        $parameters = ['type' => $type];
-
-        if (null !== $filter) {
-            $parameters['filter'] = $filter;
-        }
+    ): StatsDumpDto {
+        $parameters = [
+            'reset' => false,
+        ];
 
         if (null !== $socketPath) {
             $parameters['socketPath'] = $socketPath;
         }
 
         $tag = 'stats_' . bin2hex(random_bytes(4));
-        $response = $this->executeCommand('oldStatsDump', $parameters, $tag);
+        $response = $this->executeCommand('statsDump', $parameters, $tag);
 
-        return $this->parseOldStatsDumpResponse($response, $type);
+        return $this->parseStatsDumpResponse($response);
     }
 
     /**
      * Execute a Doveadm command.
      *
-     * @param string               $command    The command name (e.g., "oldStatsDump")
+     * @param string               $command    The command name (e.g., "statsDump")
      * @param array<string, mixed> $parameters The command parameters
      * @param string               $tag        A unique tag to identify the response
      *
@@ -128,16 +216,17 @@ readonly class DoveadmHttpClient
      * @throws DoveadmAuthenticationException
      * @throws DoveadmResponseException
      *
-     * @return array<string, mixed> The command result
+     * @return array<int|string, mixed> The command result (format depends on command)
      */
     private function executeCommand(string $command, array $parameters, string $tag): array
     {
         $this->validateUrl();
 
         $payload = [[$command, $parameters, $tag]];
+        $url = $this->buildApiUrl();
 
         try {
-            $response = $this->httpClient->request('POST', $this->httpUrl, [
+            $response = $this->httpClient->request('POST', $url, [
                 'headers' => $this->buildHeaders(),
                 'json' => $payload,
                 'timeout' => ($this->timeoutMs ?? self::DEFAULT_TIMEOUT_MS) / 1000,
@@ -151,6 +240,10 @@ readonly class DoveadmHttpClient
                 throw new DoveadmAuthenticationException('Authentication failed with status code ' . $statusCode);
             }
 
+            if (404 === $statusCode) {
+                throw new DoveadmResponseException('Unknown doveadm command: ' . $command . ' (HTTP 404)');
+            }
+
             if ($statusCode < 200 || $statusCode >= 300) {
                 throw new DoveadmResponseException('Unexpected status code: ' . $statusCode);
             }
@@ -161,8 +254,12 @@ readonly class DoveadmHttpClient
         } catch (TransportExceptionInterface $e) {
             throw new DoveadmConnectionException('Connection failed: ' . $e->getMessage(), 0, $e);
         } catch (ClientExceptionInterface $e) {
-            if (401 === $e->getResponse()->getStatusCode() || 403 === $e->getResponse()->getStatusCode()) {
+            $statusCode = $e->getResponse()->getStatusCode();
+            if (401 === $statusCode || 403 === $statusCode) {
                 throw new DoveadmAuthenticationException('Authentication failed', 0, $e);
+            }
+            if (404 === $statusCode) {
+                throw new DoveadmResponseException('Unknown doveadm command: ' . $command . ' (HTTP 404)', 0, $e);
             }
             throw new DoveadmResponseException('Client error: ' . $e->getMessage(), 0, $e);
         } catch (ServerExceptionInterface $e) {
@@ -177,21 +274,22 @@ readonly class DoveadmHttpClient
     /**
      * Build the request headers including authentication.
      *
+     * @param bool $includeContentType Whether to include Content-Type header (for POST requests)
+     *
      * @return array<string, string>
      */
-    private function buildHeaders(): array
+    private function buildHeaders(bool $includeContentType = true): array
     {
         $headers = [
-            'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ];
 
-        // Prefer API key authentication over Basic auth
+        if ($includeContentType) {
+            $headers['Content-Type'] = 'application/json';
+        }
+
         if (!empty($this->apiKeyB64)) {
             $headers['Authorization'] = 'X-Dovecot-API ' . $this->apiKeyB64;
-        } elseif (!empty($this->basicUser) && !empty($this->basicPassword)) {
-            $credentials = base64_encode($this->basicUser . ':' . $this->basicPassword);
-            $headers['Authorization'] = 'Basic ' . $credentials;
         }
 
         return $headers;
@@ -220,6 +318,39 @@ readonly class DoveadmHttpClient
     }
 
     /**
+     * Build the full API URL with /doveadm/v1 path.
+     *
+     * According to the Dovecot documentation, all commands must be sent to /doveadm/v1.
+     * This method ensures the path is appended if not already present.
+     *
+     * @throws DoveadmConnectionException
+     */
+    private function buildApiUrl(): string
+    {
+        if (empty($this->httpUrl)) {
+            throw new DoveadmConnectionException('DOVEADM_HTTP_URL is not configured');
+        }
+
+        $parsed = parse_url($this->httpUrl);
+
+        if (false === $parsed) {
+            throw new DoveadmConnectionException('Invalid DOVEADM_HTTP_URL format');
+        }
+
+        // Remove trailing slash from base URL
+        $baseUrl = rtrim($this->httpUrl, '/');
+
+        // Check if /doveadm/v1 is already in the path
+        $path = $parsed['path'] ?? '';
+        if (str_ends_with($path, '/doveadm/v1')) {
+            return $baseUrl;
+        }
+
+        // Append /doveadm/v1 if not present
+        return $baseUrl . '/doveadm/v1';
+    }
+
+    /**
      * Extract the result from the Doveadm response by tag.
      *
      * The response format is an array of tuples:
@@ -230,7 +361,7 @@ readonly class DoveadmHttpClient
      *
      * @throws DoveadmResponseException
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed> The result data (array of objects for statsDump, or single object/array for other commands)
      */
     private function extractResult(array $data, string $tag): array
     {
@@ -255,8 +386,9 @@ readonly class DoveadmHttpClient
                     throw new DoveadmResponseException('Expected array result in doveadmResponse');
                 }
 
-                // The result is typically an array with one element containing the stats
-                return $result[0] ?? $result;
+                // The result is an array of metric objects for statsDump
+                // or a single object/array for other commands
+                return $result;
             }
         }
 
@@ -264,46 +396,64 @@ readonly class DoveadmHttpClient
     }
 
     /**
-     * Parse the oldStatsDump response into a DTO.
+     * Parse the statsDump response into a DTO.
      *
-     * @param array<string, mixed> $response The raw response data
-     * @param string               $type     The stats type requested
+     * The response format is an array of metric objects:
+     * [
+     *   {"metric_name":"auth_successes","field":"duration","count":0,"sum":0,...},
+     *   {"metric_name":"imap_commands","field":"duration","count":0,...},
+     *   ...
+     * ]
+     *
+     * @param array<int, array<string, mixed>> $response The raw response data (array of metric objects)
      *
      * @throws DoveadmResponseException
      */
-    private function parseOldStatsDumpResponse(array $response, string $type): OldStatsDumpDto
+    private function parseStatsDumpResponse(array $response): StatsDumpDto
     {
         $counters = [];
         $lastUpdateSeconds = null;
         $resetTimestamp = null;
 
-        foreach ($response as $key => $value) {
-            // Skip non-string keys
-            if (!is_string($key)) {
+        // Process each metric object in the response
+        foreach ($response as $metric) {
+            if (!is_array($metric)) {
                 continue;
             }
 
-            // Parse special fields
-            if ('last_update' === $key) {
-                $lastUpdateSeconds = $this->parseNumericValue($value);
+            $metricName = $metric['metric_name'] ?? null;
+            $field = $metric['field'] ?? null;
+
+            if (!is_string($metricName) || !is_string($field)) {
                 continue;
             }
 
-            if ('reset_timestamp' === $key) {
-                $resetTimestamp = (int) $this->parseNumericValue($value);
-                continue;
+            // Create a composite key: metric_name.field
+            $counterKey = $metricName . '.' . $field;
+
+            // Extract all numeric values from the metric
+            // We'll store the 'count' as the primary counter value
+            // and other stats as separate counters with suffixes
+            $count = $this->parseNumericValue($metric['count'] ?? null);
+            if (null !== $count) {
+                $counters[$counterKey] = $count;
             }
 
-            // Parse all other values as counters if they're numeric
-            $numericValue = $this->parseNumericValue($value);
-
-            if (null !== $numericValue) {
-                $counters[$key] = $numericValue;
+            // Store additional statistics with suffixes
+            $statsFields = ['sum', 'min', 'max', 'avg', 'median', 'stddev', '%95'];
+            foreach ($statsFields as $statField) {
+                if (isset($metric[$statField])) {
+                    $statValue = $this->parseNumericValue($metric[$statField]);
+                    if (null !== $statValue) {
+                        // Use a safe key format (replace % with pct)
+                        $safeStatField = str_replace('%', 'pct', $statField);
+                        $counters[$counterKey . '.' . $safeStatField] = $statValue;
+                    }
+                }
             }
         }
 
-        return new OldStatsDumpDto(
-            type: $type,
+        return new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: $lastUpdateSeconds,
             resetTimestamp: $resetTimestamp,

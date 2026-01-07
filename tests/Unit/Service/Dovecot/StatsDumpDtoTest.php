@@ -10,15 +10,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\Dovecot;
 
-use App\Service\Dovecot\DTO\OldStatsDumpDto;
+use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 
-class OldStatsDumpDtoTest extends TestCase
+class StatsDumpDtoTest extends TestCase
 {
     public function testGetCounterReturnsValue(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -34,8 +33,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testGetCounterReturnsNullForMissing(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -47,8 +45,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testGetCounterAsInt(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -65,8 +62,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testGetCounterAsFloat(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -83,8 +79,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testHasCounter(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -97,8 +92,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testGetResetDateTime(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: 1609459200, // 2021-01-01 00:00:00 UTC
@@ -113,8 +107,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testGetResetDateTimeReturnsNullWhenNotSet(): void
     {
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable(),
             lastUpdateSeconds: null,
             resetTimestamp: null,
@@ -127,8 +120,7 @@ class OldStatsDumpDtoTest extends TestCase
     public function testToArray(): void
     {
         $fetchedAt = new \DateTimeImmutable('2024-01-01 10:00:00');
-        $dto = new OldStatsDumpDto(
-            type: 'global',
+        $dto = new StatsDumpDto(
             fetchedAt: $fetchedAt,
             lastUpdateSeconds: 1704106800.123,
             resetTimestamp: 1704103200,
@@ -140,7 +132,6 @@ class OldStatsDumpDtoTest extends TestCase
 
         $array = $dto->toArray();
 
-        self::assertSame('global', $array['type']);
         self::assertSame($fetchedAt->format(\DateTimeInterface::ATOM), $array['fetchedAt']);
         self::assertSame(1704106800.123, $array['lastUpdateSeconds']);
         self::assertSame(1704103200, $array['resetTimestamp']);
@@ -150,7 +141,6 @@ class OldStatsDumpDtoTest extends TestCase
     public function testFromArray(): void
     {
         $data = [
-            'type' => 'global',
             'fetchedAt' => '2024-01-01T10:00:00+00:00',
             'lastUpdateSeconds' => 1704106800.123,
             'resetTimestamp' => 1704103200,
@@ -160,9 +150,8 @@ class OldStatsDumpDtoTest extends TestCase
             ],
         ];
 
-        $dto = OldStatsDumpDto::fromArray($data);
+        $dto = StatsDumpDto::fromArray($data);
 
-        self::assertSame('global', $dto->type);
         self::assertSame('2024-01-01T10:00:00+00:00', $dto->fetchedAt->format(\DateTimeInterface::ATOM));
         self::assertSame(1704106800.123, $dto->lastUpdateSeconds);
         self::assertSame(1704103200, $dto->resetTimestamp);
@@ -172,8 +161,7 @@ class OldStatsDumpDtoTest extends TestCase
 
     public function testRoundTrip(): void
     {
-        $original = new OldStatsDumpDto(
-            type: 'global',
+        $original = new StatsDumpDto(
             fetchedAt: new \DateTimeImmutable('2024-01-01 10:00:00'),
             lastUpdateSeconds: 1704106800.123,
             resetTimestamp: 1704103200,
@@ -185,9 +173,8 @@ class OldStatsDumpDtoTest extends TestCase
         );
 
         $array = $original->toArray();
-        $restored = OldStatsDumpDto::fromArray($array);
+        $restored = StatsDumpDto::fromArray($array);
 
-        self::assertSame($original->type, $restored->type);
         self::assertSame($original->lastUpdateSeconds, $restored->lastUpdateSeconds);
         self::assertSame($original->resetTimestamp, $restored->resetTimestamp);
         self::assertEquals($original->counters, $restored->counters);
