@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace App\Service\Dovecot\DTO;
 
-use App\Service\Dovecot\DTO\HealthStatus;
-
 /**
  * Represents the health status of the Doveadm HTTP API connection.
  */

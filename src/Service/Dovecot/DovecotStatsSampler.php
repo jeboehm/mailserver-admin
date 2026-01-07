@@ -12,7 +12,6 @@ namespace App\Service\Dovecot;
 
 use App\Exception\Dovecot\DoveadmException;
 use App\Service\Dovecot\DTO\StatsDumpDto;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -34,7 +33,6 @@ readonly class DovecotStatsSampler
     public function __construct(
         private DoveadmHttpClient $httpClient,
         private CacheInterface $cacheApp,
-        private ?LoggerInterface $logger,
         #[Autowire('%env(default::int:DOVECOT_STATS_SAMPLE_INTERVAL_SECONDS)%')]
         private ?int $sampleIntervalSeconds,
         #[Autowire('%env(default::int:DOVECOT_STATS_SNAPSHOT_TTL)%')]
@@ -79,15 +77,6 @@ readonly class DovecotStatsSampler
     }
 
     /**
-     * Clear all stored samples.
-     */
-    public function clearSamples(): void
-    {
-        $this->cacheApp->delete(self::CACHE_KEY_SAMPLES);
-        $this->cacheApp->delete(self::CACHE_KEY_LAST_SAMPLE_TIME);
-    }
-
-    /**
      * Get the time of the last sample, or null if none.
      */
     public function getLastSampleTime(): ?\DateTimeImmutable
@@ -95,9 +84,9 @@ readonly class DovecotStatsSampler
         return $this->cacheApp->get(
             self::CACHE_KEY_LAST_SAMPLE_TIME,
             function (ItemInterface $item): ?\DateTimeImmutable {
-                $item->expiresAfter(new \DateInterval('PT1S')); // Trigger refetch
+                $item->expiresAfter(new \DateInterval('PT10S')); // Trigger refetch
 
-                return null;
+                return new \DateTimeImmutable();
             }
         );
     }
@@ -151,7 +140,7 @@ readonly class DovecotStatsSampler
             if (null !== $sample->resetTimestamp
                 && null !== $lastSample->resetTimestamp
                 && $sample->resetTimestamp !== $lastSample->resetTimestamp) {
-                $this->logger?->info('Dovecot stats reset detected, clearing sample history');
+                // Dovecot stats reset detected, clearing sample history
                 $samples = [];
             }
         }

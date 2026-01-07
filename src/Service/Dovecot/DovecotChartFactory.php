@@ -92,6 +92,32 @@ readonly class DovecotChartFactory
     }
 
     /**
+     * Create a mail deliveries rate chart.
+     */
+    public function createMailDeliveriesChart(RateSeriesDto $series): Chart
+    {
+        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
+
+        $chart->setData([
+            'labels' => $series->getLabels(),
+            'datasets' => [
+                [
+                    'label' => 'Mail Deliveries',
+                    'data' => $series->rates,
+                    'borderColor' => self::COLORS['success'],
+                    'backgroundColor' => self::COLORS['success_bg'],
+                    'fill' => true,
+                    'tension' => 0.3,
+                ],
+            ],
+        ]);
+
+        $chart->setOptions($this->getDefaultLineOptions('Mail Deliveries (/min)'));
+
+        return $chart;
+    }
+
+    /**
      * Get default options for line charts.
      *
      * @return array<string, mixed>
@@ -134,31 +160,5 @@ readonly class DovecotChartFactory
         }
 
         return $options;
-    }
-
-    /**
-     * Create a mail deliveries rate chart.
-     */
-    public function createMailDeliveriesChart(RateSeriesDto $series): Chart
-    {
-        $chart = $this->chartBuilder->createChart(Chart::TYPE_LINE);
-
-        $chart->setData([
-            'labels' => $series->getLabels(),
-            'datasets' => [
-                [
-                    'label' => 'Mail Deliveries',
-                    'data' => $series->rates,
-                    'borderColor' => self::COLORS['success'],
-                    'backgroundColor' => self::COLORS['success_bg'],
-                    'fill' => true,
-                    'tension' => 0.3,
-                ],
-            ],
-        ]);
-
-        $chart->setOptions($this->getDefaultLineOptions('Mail Deliveries (/min)'));
-
-        return $chart;
     }
 }

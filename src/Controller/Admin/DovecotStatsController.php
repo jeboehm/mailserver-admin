@@ -17,17 +17,10 @@ use App\Service\Dovecot\DovecotRateCalculator;
 use App\Service\Dovecot\DovecotStatsSampler;
 use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
-/**
- * Controller for the Dovecot observability page.
- *
- * Provides a dashboard view of Dovecot statistics from the Doveadm HTTP API,
- * including health status, KPI tiles, rate charts, and detailed counter tables.
- */
 #[AdminRoute('/observability/dovecot', name: 'dovecot_stats')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 final readonly class DovecotStatsController
@@ -163,45 +156,6 @@ final readonly class DovecotStatsController
             'systemCounters' => $systemCounters,
             'otherCounters' => $otherCounters,
         ]));
-    }
-
-    /**
-     * API: Export diagnostics as JSON.
-     */
-    #[AdminRoute('/_export', name: 'export')]
-    public function export(Request $request): Response
-    {
-        $latestSample = $this->sampler->getLatestSample();
-
-        if (null === $latestSample) {
-            return new Response(
-                json_encode(['error' => 'No sample data available'], JSON_THROW_ON_ERROR),
-                Response::HTTP_NOT_FOUND,
-                ['Content-Type' => 'application/json']
-            );
-        }
-
-        // Remove any potentially sensitive data (none expected in stats, but be safe)
-        $exportData = [
-            'type' => $latestSample->type,
-            'fetchedAt' => $latestSample->fetchedAt->format(\DateTimeInterface::ATOM),
-            'resetTimestamp' => $latestSample->resetTimestamp,
-            'counters' => $latestSample->counters,
-        ];
-
-        $json = json_encode($exportData, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-
-        $response = new Response($json, Response::HTTP_OK, [
-            'Content-Type' => 'application/json',
-        ]);
-
-        // Add download disposition if requested
-        if ($request->query->has('download')) {
-            $filename = 'dovecot-stats-' . $latestSample->fetchedAt->format('Y-m-d-His') . '.json';
-            $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-        }
-
-        return $response;
     }
 
     /**
