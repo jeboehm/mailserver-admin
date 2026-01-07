@@ -11,346 +11,388 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\Rspamd;
 
 use App\Service\Rspamd\DTO\ActionDistributionDto;
-use App\Service\Rspamd\DTO\HealthDto;
-use App\Service\Rspamd\DTO\KpiValueDto;
-use App\Service\Rspamd\RspamdClientException;
+use App\Service\Rspamd\DTO\ActionThresholdDto;
+use App\Service\Rspamd\DTO\HistoryRowDto;
+use App\Service\Rspamd\DTO\RspamdSummaryDto;
+use App\Service\Rspamd\DTO\SymbolCounterDto;
+use App\Service\Rspamd\DTO\TimeSeriesDto;
 use App\Service\Rspamd\RspamdControllerClient;
-use App\Service\Rspamd\RspamdMetricsParser;
 use App\Service\Rspamd\RspamdStatsService;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
-class RspamdStatsServiceTest extends TestCase
+final class RspamdStatsServiceTest extends TestCase
 {
-    private MockObject|RspamdControllerClient $client;
-    private MockObject|RspamdMetricsParser $parser;
-    private MockObject|CacheInterface $cache;
-    private RspamdStatsService $service;
+    private CacheInterface $cache;
 
     protected function setUp(): void
     {
-        $this->client = $this->createMock(RspamdControllerClient::class);
-        $this->parser = $this->createMock(RspamdMetricsParser::class);
-        $this->cache = $this->createMock(CacheInterface::class);
-
-        $this->service = new RspamdStatsService(
-            $this->client,
-            $this->parser,
-            $this->cache,
-            10
-        );
+        $this->cache = new ArrayAdapter();
     }
 
-    public function testGetSummarySuccess(): void
+    public function testGetSummaryReturnsSummaryWithHealthAndKpis(): void
     {
-        $healthDto = HealthDto::ok('All good');
-        $kpis = [
-            'scanned' => new KpiValueDto('Scanned', 1000),
+        $statData = [
+            'scanned' => 100,
+            'spam_count' => 5,
+            'ham_count' => 95,
+            'learned' => 2,
+            'connections' => 50,
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('ping')
-            ->willReturn($healthDto);
+        $pieData = [
+            ['action' => 'reject', 'value' => 5],
+            ['action' => 'no action', 'value' => 95],
+        ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('metrics')
-            ->willReturn('rspamd_scanned_total 1000');
+        // Create a client that returns pong for ping, stat data for stat, and pie data for pie
+        $httpClient = new MockHttpClient([
+            new MockResponse('pong', ['http_code' => 200]), // ping
+            new MockResponse(json_encode($statData), ['http_code' => 200]), // stat
+            new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
+        ]);
 
-        $this->parser
-            ->expects($this->once())
-            ->method('extractKpis')
-            ->willReturn($kpis);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $summary = $service->getSummary();
 
-        $this->client
-            ->expects($this->once())
-            ->method('pie')
-            ->willReturn([['action' => 'no action', 'value' => 1000]]);
-
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_summary', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter')->with(10);
-
-                return $callback($item);
-            });
-
-        $summary = $this->service->getSummary();
-
+        self::assertInstanceOf(RspamdSummaryDto::class, $summary);
         self::assertTrue($summary->health->isOk());
         self::assertArrayHasKey('scanned', $summary->kpis);
-        self::assertFalse($summary->actionDistribution->isEmpty());
+        self::assertArrayHasKey('spam', $summary->kpis);
+        self::assertArrayHasKey('ham', $summary->kpis);
+        self::assertArrayHasKey('learned', $summary->kpis);
+        self::assertArrayHasKey('connections', $summary->kpis);
     }
 
-    public function testGetSummaryWhenRspamdDown(): void
+    public function testGetSummaryReturnsEmptyKpisWhenHealthNotOk(): void
     {
-        $healthDto = HealthDto::critical('Connection failed');
+        // Create a client that returns an error for ping
+        $httpClient = new MockHttpClient([
+            new MockResponse('Error', ['http_code' => 500]), // ping fails
+        ]);
 
-        $this->client
-            ->expects($this->once())
-            ->method('ping')
-            ->willReturn($healthDto);
-
-        $this->client
-            ->expects($this->never())
-            ->method('metrics');
-
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
-
-                return $callback($item);
-            });
-
-        $summary = $this->service->getSummary();
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $summary = $service->getSummary();
 
         self::assertTrue($summary->health->isCritical());
-        self::assertSame('Connection failed', $summary->health->message);
+        self::assertInstanceOf(ActionDistributionDto::class, $summary->actionDistribution);
+        self::assertTrue($summary->actionDistribution->isEmpty());
     }
 
-    public function testGetHealth(): void
+    public function testGetHealthReturnsCachedHealth(): void
     {
-        $healthDto = HealthDto::ok('Healthy');
+        // Create a client that returns pong
+        $httpClient = new MockHttpClient([
+            new MockResponse('pong', ['http_code' => 200]), // ping - only called once due to cache
+        ]);
 
-        $this->client
-            ->expects($this->once())
-            ->method('ping')
-            ->willReturn($healthDto);
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $result1 = $service->getHealth();
+        $result2 = $service->getHealth(); // Should be cached
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_health', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
-
-                return $callback($item);
-            });
-
-        $health = $this->service->getHealth();
-
-        self::assertTrue($health->isOk());
+        self::assertEquals($result1, $result2);
+        self::assertTrue($result1->isOk());
     }
 
-    public function testGetThroughputSeriesValidType(): void
+    public function testGetThroughputSeriesReturnsTimeSeries(): void
     {
-        // New format: array of arrays with {x: timestamp, y: value} objects
         $graphData = [
             [
-                ['x' => 1609459200, 'y' => 10],
-                ['x' => 1609462800, 'y' => 20],
-            ],
-            [
-                ['x' => 1609459200, 'y' => 100],
-                ['x' => 1609462800, 'y' => 200],
+                ['x' => 1234567890, 'y' => 10],
+                ['x' => 1234567900, 'y' => 20],
             ],
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('graph')
-            ->with('day')
-            ->willReturn($graphData);
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($graphData), ['http_code' => 200]),
+        ]);
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_throughput_day', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $series = $service->getThroughputSeries('day');
 
-                return $callback($item);
-            });
-
-        $series = $this->service->getThroughputSeries('day');
-
-        self::assertSame('day', $series->type);
-        self::assertFalse($series->isEmpty());
-        self::assertArrayHasKey('reject', $series->datasets);
-        self::assertArrayHasKey('soft reject', $series->datasets);
+        self::assertInstanceOf(TimeSeriesDto::class, $series);
+        self::assertEquals('day', $series->type);
+        self::assertNotEmpty($series->labels);
     }
 
-    public function testGetThroughputSeriesInvalidType(): void
+    public function testGetThroughputSeriesReturnsEmptyOnInvalidType(): void
     {
-        $series = $this->service->getThroughputSeries('invalid');
+        $httpClient = new MockHttpClient();
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $series = $service->getThroughputSeries('invalid');
 
-        self::assertSame('invalid', $series->type);
+        self::assertInstanceOf(TimeSeriesDto::class, $series);
+        self::assertEquals('invalid', $series->type);
+        self::assertEmpty($series->labels);
+        self::assertEmpty($series->datasets);
+    }
+
+    public function testGetThroughputSeriesReturnsEmptyOnException(): void
+    {
+        // Create a client that throws a connection error
+        $httpClient = new MockHttpClient([
+            function () {
+                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+            },
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $series = $service->getThroughputSeries('day');
+
+        self::assertInstanceOf(TimeSeriesDto::class, $series);
         self::assertTrue($series->isEmpty());
     }
 
-    public function testGetActionDistribution(): void
+    public function testGetActionDistributionReturnsDistribution(): void
     {
         $pieData = [
-            ['action' => 'reject', 'value' => 100],
-            ['action' => 'no action', 'value' => 5000],
+            ['action' => 'reject', 'value' => 10, 'color' => '#FF0000'],
+            ['action' => 'no action', 'value' => 90],
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('pie')
-            ->willReturn($pieData);
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($pieData), ['http_code' => 200]),
+        ]);
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_action_distribution', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $distribution = $service->getActionDistribution();
 
-                return $callback($item);
-            });
-
-        $distribution = $this->service->getActionDistribution();
-
+        self::assertInstanceOf(ActionDistributionDto::class, $distribution);
         self::assertFalse($distribution->isEmpty());
+        self::assertEquals(10, $distribution->actions['reject']);
+        self::assertEquals(90, $distribution->actions['no action']);
     }
 
-    public function testGetActionDistributionFallbackToMetrics(): void
+    public function testGetActionDistributionReturnsEmptyOnException(): void
     {
-        $this->client
-            ->expects($this->once())
-            ->method('pie')
-            ->willThrowException(RspamdClientException::connectionFailed('test'));
+        $httpClient = new MockHttpClient([
+            function () {
+                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+            },
+        ]);
 
-        $this->client
-            ->expects($this->once())
-            ->method('metrics')
-            ->willReturn('rspamd_actions_total{action="reject"} 100');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $distribution = $service->getActionDistribution();
 
-        $this->parser
-            ->expects($this->once())
-            ->method('extractActionDistribution')
-            ->willReturn(new ActionDistributionDto(['reject' => 100]));
-
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
-
-                return $callback($item);
-            });
-
-        $distribution = $this->service->getActionDistribution();
-
-        self::assertFalse($distribution->isEmpty());
-        self::assertSame(100, $distribution->actions['reject']);
+        self::assertInstanceOf(ActionDistributionDto::class, $distribution);
+        self::assertTrue($distribution->isEmpty());
     }
 
-    public function testGetActionThresholds(): void
+    public function testGetActionThresholdsReturnsThresholds(): void
     {
         $actionsData = [
             ['action' => 'reject', 'value' => 15.0],
             ['action' => 'add header', 'value' => 6.0],
+            ['action' => 'greylist', 'value' => 4.0],
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('actions')
-            ->willReturn($actionsData);
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($actionsData), ['http_code' => 200]),
+        ]);
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_action_thresholds', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $thresholds = $service->getActionThresholds();
 
-                return $callback($item);
-            });
-
-        $thresholds = $this->service->getActionThresholds();
-
-        self::assertCount(2, $thresholds);
-        // Should be sorted by threshold descending
-        self::assertSame('reject', $thresholds[0]->action);
-        self::assertSame(15.0, $thresholds[0]->threshold);
+        self::assertIsArray($thresholds);
+        self::assertCount(3, $thresholds);
+        self::assertInstanceOf(ActionThresholdDto::class, $thresholds[0]);
+        self::assertEquals('reject', $thresholds[0]->action);
+        self::assertEquals(15.0, $thresholds[0]->threshold);
     }
 
-    public function testGetTopSymbols(): void
+    public function testGetActionThresholdsReturnsEmptyOnException(): void
+    {
+        $httpClient = new MockHttpClient([
+            function () {
+                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+            },
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $thresholds = $service->getActionThresholds();
+
+        self::assertIsArray($thresholds);
+        self::assertEmpty($thresholds);
+    }
+
+    public function testGetTopSymbolsReturnsCounters(): void
     {
         $countersData = [
-            ['name' => 'SYMBOL_A', 'hits' => 1000, 'weight' => 5.0, 'frequency' => 0.8],
-            ['name' => 'SYMBOL_B', 'hits' => 500, 'weight' => -1.0, 'frequency' => 0.4],
+            ['symbol' => 'SYMBOL1', 'hits' => 100, 'weight' => 5.0, 'frequency' => 0.5],
+            ['symbol' => 'SYMBOL2', 'hits' => 50, 'weight' => 3.0, 'frequency' => 0.3],
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('counters')
-            ->willReturn($countersData);
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($countersData), ['http_code' => 200]),
+        ]);
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_top_symbols_20', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $counters = $service->getTopSymbols(10);
 
-                return $callback($item);
-            });
-
-        $symbols = $this->service->getTopSymbols(20);
-
-        self::assertCount(2, $symbols);
-        // Should be sorted by hits descending
-        self::assertSame('SYMBOL_A', $symbols[0]->name);
-        self::assertSame(1000, $symbols[0]->hits);
+        self::assertIsArray($counters);
+        self::assertCount(2, $counters);
+        self::assertInstanceOf(SymbolCounterDto::class, $counters[0]);
+        self::assertEquals('SYMBOL1', $counters[0]->name);
+        self::assertEquals(100, $counters[0]->hits);
     }
 
-    public function testGetHistory(): void
+    public function testGetTopSymbolsRespectsLimit(): void
+    {
+        $countersData = [];
+        for ($i = 0; $i < 50; ++$i) {
+            $countersData[] = ['symbol' => "SYMBOL{$i}", 'hits' => 100 - $i, 'weight' => 0, 'frequency' => 0];
+        }
+
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($countersData), ['http_code' => 200]),
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $counters = $service->getTopSymbols(10);
+
+        self::assertCount(10, $counters);
+    }
+
+    public function testGetTopSymbolsReturnsEmptyOnException(): void
+    {
+        $httpClient = new MockHttpClient([
+            function () {
+                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+            },
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $counters = $service->getTopSymbols(10);
+
+        self::assertIsArray($counters);
+        self::assertEmpty($counters);
+    }
+
+    public function testGetHistoryReturnsHistoryRows(): void
     {
         $historyData = [
             'rows' => [
                 [
-                    'time' => 1609459200,
-                    'action' => 'no action',
-                    'score' => 1.5,
+                    'time' => 1234567890,
+                    'action' => 'reject',
+                    'score' => 15.5,
                     'required_score' => 15.0,
-                    'sender_smtp' => 'sender@example.com',
+                    'sender' => 'test@example.com',
                     'rcpt_smtp' => 'recipient@example.com',
                     'ip' => '192.168.1.1',
                     'size' => 1024,
-                    'symbols' => ['SYMBOL_A'],
+                    'symbols' => ['SYMBOL1', 'SYMBOL2'],
                 ],
             ],
         ];
 
-        $this->client
-            ->expects($this->once())
-            ->method('history')
-            ->with(50)
-            ->willReturn($historyData);
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($historyData), ['http_code' => 200]),
+        ]);
 
-        $this->cache
-            ->expects($this->once())
-            ->method('get')
-            ->with('rspamd_history_50', $this->anything())
-            ->willReturnCallback(function (string $key, callable $callback) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())->method('expiresAfter');
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $history = $service->getHistory(50);
 
-                return $callback($item);
-            });
-
-        $history = $this->service->getHistory(50);
-
+        self::assertIsArray($history);
         self::assertCount(1, $history);
-        self::assertSame('no action', $history[0]->action);
-        self::assertSame(1.5, $history[0]->score);
+        self::assertInstanceOf(HistoryRowDto::class, $history[0]);
+        self::assertEquals('reject', $history[0]->action);
+        self::assertEquals(15.5, $history[0]->score);
+    }
+
+    public function testGetHistoryReturnsEmptyOnException(): void
+    {
+        $httpClient = new MockHttpClient([
+            function () {
+                throw new \Symfony\Component\HttpClient\Exception\TransportException('Connection failed');
+            },
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $history = $service->getHistory(50);
+
+        self::assertIsArray($history);
+        self::assertEmpty($history);
+    }
+
+    public function testGetSummaryUsesCache(): void
+    {
+        $statData = ['scanned' => 100, 'spam_count' => 5, 'ham_count' => 95, 'learned' => 2, 'connections' => 50];
+        $pieData = [['action' => 'reject', 'value' => 5]];
+
+        // Only one set of responses needed due to caching
+        $httpClient = new MockHttpClient([
+            new MockResponse('pong', ['http_code' => 200]), // ping
+            new MockResponse(json_encode($statData), ['http_code' => 200]), // stat
+            new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $summary1 = $service->getSummary();
+        $summary2 = $service->getSummary(); // Should use cache
+
+        self::assertEquals($summary1, $summary2);
+    }
+
+    public function testParseLegacyGraphFormat(): void
+    {
+        $legacyGraphData = [
+            ['ts' => 1234567890, 'reject' => 5, 'no action' => 10],
+            ['ts' => 1234567900, 'reject' => 3, 'no action' => 12],
+        ];
+
+        $httpClient = new MockHttpClient([
+            new MockResponse(json_encode($legacyGraphData), ['http_code' => 200]),
+        ]);
+
+        $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 'test-password', 2500);
+        $service = $this->createServiceWithClient($client);
+        $series = $service->getThroughputSeries('day');
+
+        self::assertInstanceOf(TimeSeriesDto::class, $series);
+        self::assertNotEmpty($series->labels);
+        self::assertArrayHasKey('reject', $series->datasets);
+        self::assertArrayHasKey('no action', $series->datasets);
+    }
+
+    private function createClientWithMockResponse(string $endpoint, mixed $responseData, int $statusCode = 200): RspamdControllerClient
+    {
+        $httpClient = new MockHttpClient([
+            new MockResponse(
+                \is_string($responseData) ? $responseData : json_encode($responseData),
+                ['http_code' => $statusCode]
+            ),
+        ]);
+
+        return new RspamdControllerClient(
+            $httpClient,
+            'http://localhost:11334',
+            'test-password',
+            2500
+        );
+    }
+
+    private function createServiceWithClient(RspamdControllerClient $client, int $cacheTtl = 10): RspamdStatsService
+    {
+        return new RspamdStatsService($client, $this->cache, $cacheTtl);
     }
 }

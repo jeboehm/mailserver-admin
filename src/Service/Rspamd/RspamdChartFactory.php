@@ -20,7 +20,6 @@ use Symfony\UX\Chartjs\Model\Chart;
  */
 final readonly class RspamdChartFactory
 {
-
     public function __construct(
         private ChartBuilderInterface $chartBuilder,
     ) {

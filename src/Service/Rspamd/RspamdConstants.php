@@ -16,7 +16,7 @@ namespace App\Service\Rspamd;
 final class RspamdConstants
 {
     /**
-     * KPI definitions: key => [label, icon]
+     * KPI definitions: key => [label, icon].
      */
     public const array KPI_DEFINITIONS = [
         'scanned' => ['Messages scanned', 'fa-envelope'],
@@ -77,16 +77,6 @@ final class RspamdConstants
     ];
 
     /**
-     * Prometheus metric names.
-     */
-    public const string METRIC_SCANNED = 'rspamd_scanned_total';
-    public const string METRIC_LEARNED = 'rspamd_learned_total';
-    public const string METRIC_ACTIONS = 'rspamd_actions_total';
-    public const string METRIC_SPAM = 'rspamd_spam_total';
-    public const string METRIC_HAM = 'rspamd_ham_total';
-    public const string METRIC_CONNECTIONS = 'rspamd_connections_total';
-
-    /**
      * Map stat keys to KPI keys.
      */
     public const array STAT_TO_KPI_MAP = [
@@ -102,4 +92,3 @@ final class RspamdConstants
         // Prevent instantiation
     }
 }
-

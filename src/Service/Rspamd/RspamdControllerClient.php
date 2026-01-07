@@ -27,7 +27,6 @@ final readonly class RspamdControllerClient
         '/ready',
         '/healthy',
         '/stat',
-        '/metrics',
         '/graph',
         '/pie',
         '/counters',
@@ -82,16 +81,6 @@ final readonly class RspamdControllerClient
 
             return HealthDto::critical($e->getMessage(), null, $latencyMs);
         }
-    }
-
-    /**
-     * Get Prometheus-format metrics from /metrics.
-     */
-    public function metrics(): string
-    {
-        $response = $this->request('GET', '/metrics');
-
-        return $response['_content'] ?? '';
     }
 
     /**

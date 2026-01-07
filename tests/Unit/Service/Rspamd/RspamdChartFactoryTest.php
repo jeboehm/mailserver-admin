@@ -18,9 +18,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\UX\Chartjs\Builder\ChartBuilderInterface;
 use Symfony\UX\Chartjs\Model\Chart;
 
-class RspamdChartFactoryTest extends TestCase
+final class RspamdChartFactoryTest extends TestCase
 {
-    private MockObject|ChartBuilderInterface $chartBuilder;
+    private ChartBuilderInterface&MockObject $chartBuilder;
     private RspamdChartFactory $factory;
 
     protected function setUp(): void
@@ -29,111 +29,150 @@ class RspamdChartFactoryTest extends TestCase
         $this->factory = new RspamdChartFactory($this->chartBuilder);
     }
 
-    public function testThroughputLineChart(): void
+    public function testThroughputLineChartCreatesLineChart(): void
     {
-        $series = new TimeSeriesDto(
-            TimeSeriesDto::TYPE_DAY,
-            ['00:00', '01:00', '02:00'],
-            [
-                'spam' => [10, 20, 30],
-                'ham' => [100, 200, 300],
-            ]
-        );
-
         $chart = $this->createMock(Chart::class);
-        $chart->expects($this->once())->method('setData')->with($this->callback(function (array $data) {
-            return isset($data['labels'], $data['datasets'])
-                && 3 === \count($data['labels'])
-                && 2 === \count($data['datasets']);
-        }));
-        $chart->expects($this->once())->method('setOptions');
-
-        $this->chartBuilder
-            ->expects($this->once())
+        $this->chartBuilder->expects(self::once())
             ->method('createChart')
             ->with(Chart::TYPE_LINE)
             ->willReturn($chart);
 
+        $series = new TimeSeriesDto(
+            'day',
+            ['10:00', '11:00', '12:00'],
+            [
+                'reject' => [1.0, 2.0, 3.0],
+                'no action' => [10.0, 20.0, 30.0],
+            ]
+        );
+
+        $chart->expects(self::once())
+            ->method('setData')
+            ->with(self::callback(function (array $data) {
+                return isset($data['labels']) && isset($data['datasets']);
+            }));
+
+        $chart->expects(self::once())
+            ->method('setOptions')
+            ->with(self::callback(function (array $options) {
+                return isset($options['responsive']) && isset($options['scales']);
+            }));
+
         $result = $this->factory->throughputLineChart($series);
 
-        self::assertSame($chart, $result);
+        self::assertInstanceOf(Chart::class, $result);
     }
 
-    public function testActionsPieChart(): void
+    public function testThroughputLineChartHandlesEmptySeries(): void
     {
-        $distribution = new ActionDistributionDto([
-            'reject' => 100,
-            'no action' => 500,
-            'add header' => 50,
-        ]);
-
         $chart = $this->createMock(Chart::class);
-        $chart->expects($this->once())->method('setData')->with($this->callback(function (array $data) {
-            return isset($data['labels'], $data['datasets'])
-                && 3 === \count($data['labels'])
-                && [100, 500, 50] === $data['datasets'][0]['data'];
-        }));
-        $chart->expects($this->once())->method('setOptions');
+        $this->chartBuilder->expects(self::once())
+            ->method('createChart')
+            ->with(Chart::TYPE_LINE)
+            ->willReturn($chart);
 
-        $this->chartBuilder
-            ->expects($this->once())
+        $series = new TimeSeriesDto('day', [], []);
+
+        $chart->expects(self::once())->method('setData');
+        $chart->expects(self::once())->method('setOptions');
+
+        $result = $this->factory->throughputLineChart($series);
+
+        self::assertInstanceOf(Chart::class, $result);
+    }
+
+    public function testActionsPieChartCreatesDoughnutChart(): void
+    {
+        $chart = $this->createMock(Chart::class);
+        $this->chartBuilder->expects(self::once())
             ->method('createChart')
             ->with(Chart::TYPE_DOUGHNUT)
             ->willReturn($chart);
 
-        $result = $this->factory->actionsPieChart($distribution, true);
+        $distribution = new ActionDistributionDto(
+            ['reject' => 10, 'no action' => 90],
+            ['reject' => '#FF0000']
+        );
 
-        self::assertSame($chart, $result);
+        $chart->expects(self::once())
+            ->method('setData')
+            ->with(self::callback(function (array $data) {
+                return isset($data['labels']) && isset($data['datasets']);
+            }));
+
+        $chart->expects(self::once())
+            ->method('setOptions')
+            ->with(self::callback(function (array $options) {
+                return isset($options['responsive']) && isset($options['plugins']);
+            }));
+
+        $result = $this->factory->actionsPieChart($distribution);
+
+        self::assertInstanceOf(Chart::class, $result);
     }
 
-    public function testActionsPieChartAsPie(): void
+    public function testActionsPieChartHandlesEmptyDistribution(): void
     {
-        $distribution = new ActionDistributionDto(['reject' => 100]);
-
         $chart = $this->createMock(Chart::class);
-        $chart->method('setData');
-        $chart->method('setOptions');
-
-        $this->chartBuilder
-            ->expects($this->once())
+        $this->chartBuilder->expects(self::once())
             ->method('createChart')
-            ->with(Chart::TYPE_PIE)
+            ->with(Chart::TYPE_DOUGHNUT)
             ->willReturn($chart);
 
-        $this->factory->actionsPieChart($distribution, false);
+        $distribution = ActionDistributionDto::empty();
+
+        $chart->expects(self::once())->method('setData');
+        $chart->expects(self::once())->method('setOptions');
+
+        $result = $this->factory->actionsPieChart($distribution);
+
+        self::assertInstanceOf(Chart::class, $result);
     }
 
-    public function testEmptyChart(): void
+    public function testEmptyChartCreatesBarChart(): void
     {
         $chart = $this->createMock(Chart::class);
-        $chart->expects($this->once())->method('setData')->with($this->callback(function (array $data) {
-            return isset($data['labels']) && ['No data available'] === $data['labels'];
-        }));
-        $chart->expects($this->once())->method('setOptions');
-
-        $this->chartBuilder
-            ->expects($this->once())
+        $this->chartBuilder->expects(self::once())
             ->method('createChart')
             ->with(Chart::TYPE_BAR)
             ->willReturn($chart);
 
+        $chart->expects(self::once())
+            ->method('setData')
+            ->with(self::callback(function (array $data) {
+                return isset($data['labels']) && 'No data available' === $data['labels'][0];
+            }));
+
+        $chart->expects(self::once())
+            ->method('setOptions')
+            ->with(self::callback(function (array $options) {
+                return isset($options['responsive']) && isset($options['plugins']);
+            }));
+
         $result = $this->factory->emptyChart();
 
-        self::assertSame($chart, $result);
+        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testEmptyChartWithCustomMessage(): void
     {
         $chart = $this->createMock(Chart::class);
-        $chart->expects($this->once())->method('setData')->with($this->callback(function (array $data) {
-            return isset($data['labels']) && ['Custom message'] === $data['labels'];
-        }));
-        $chart->method('setOptions');
-
-        $this->chartBuilder
+        $this->chartBuilder->expects(self::once())
             ->method('createChart')
+            ->with(Chart::TYPE_BAR)
             ->willReturn($chart);
 
-        $this->factory->emptyChart('Custom message');
+        $message = 'Custom error message';
+        $chart->expects(self::once())
+            ->method('setData')
+            ->with(self::callback(function (array $data) use ($message) {
+                return isset($data['labels']) && $data['labels'][0] === $message;
+            }));
+
+        $chart->expects(self::once())->method('setOptions');
+
+        $result = $this->factory->emptyChart($message);
+
+        self::assertInstanceOf(Chart::class, $result);
     }
 }

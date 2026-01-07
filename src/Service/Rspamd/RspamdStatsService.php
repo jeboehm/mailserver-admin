@@ -301,7 +301,7 @@ final readonly class RspamdStatsService
     }
 
     /**
-     * Parse new graph format: [[{x: timestamp, y: value}, ...], ...]
+     * Parse new graph format: [[{x: timestamp, y: value}, ...], ...].
      *
      * @param array<string, mixed> $data
      */
