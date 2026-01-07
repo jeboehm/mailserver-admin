@@ -60,42 +60,6 @@
                 </div>
             </div>
         {% endif %}
-
-        {# Index Operations Chart #}
-        {% if indexChart %}
-            <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-transparent border-0">
-                        <h6 class="mb-0">
-                            <i class="fa fa-list-ol me-2"></i>Index Operations
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            {{ render_chart(indexChart) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
-
-        {# FTS Operations Chart #}
-        {% if ftsChart %}
-            <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-transparent border-0">
-                        <h6 class="mb-0">
-                            <i class="fa fa-search me-2"></i>FTS Operations
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            {{ render_chart(ftsChart) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
     </div>
 
     <div class="text-muted small mb-4">

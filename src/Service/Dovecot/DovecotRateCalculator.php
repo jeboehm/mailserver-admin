@@ -21,29 +21,6 @@ use App\Service\Dovecot\DTO\StatsDumpDto;
  */
 readonly class DovecotRateCalculator
 {
-    /**
-     * Common counter groups for easy access.
-     */
-    public const array AUTH_COUNTERS = [
-        'auth_successes',
-        'auth_failures',
-        'auth_cache_hits',
-        'auth_cache_misses',
-    ];
-
-    public const array IO_COUNTERS = [
-        'disk_input',
-        'disk_output',
-        'mail_read_bytes',
-        'mail_read_count',
-    ];
-
-    public const array SESSION_COUNTERS = [
-        'num_logins',
-        'num_cmds',
-        'num_connected_sessions',
-    ];
-
     public const array INDEX_COUNTERS = [
         'idx_read',
         'idx_write',

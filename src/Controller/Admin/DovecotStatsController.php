@@ -95,8 +95,6 @@ final readonly class DovecotStatsController
 
         $authChart = null;
         $mailDeliveriesChart = null;
-        $indexChart = null;
-        $ftsChart = null;
         $hasData = !empty($samples) && count($samples) >= 2;
 
         if ($hasData) {
@@ -104,21 +102,7 @@ final readonly class DovecotStatsController
             $authChart = $this->chartFactory->createAuthRatesChart($authRates);
 
             $mailDeliveryRates = $this->rateCalculator->calculateMailDeliveryRates($samples);
-            if (!$mailDeliveryRates->isEmpty()) {
-                $mailDeliveriesChart = $this->chartFactory->createMailDeliveriesChart($mailDeliveryRates);
-            }
-
-            $indexRates = $this->rateCalculator->calculateIndexRates($samples);
-
-            if (!empty(array_filter($indexRates, static fn ($r) => !$r->isEmpty()))) {
-                $indexChart = $this->chartFactory->createIndexOpsChart($indexRates);
-            }
-
-            $ftsRates = $this->rateCalculator->calculateFtsRates($samples);
-
-            if (!empty(array_filter($ftsRates, static fn ($r) => !$r->isEmpty()))) {
-                $ftsChart = $this->chartFactory->createFtsOpsChart($ftsRates);
-            }
+            $mailDeliveriesChart = $this->chartFactory->createMailDeliveriesChart($mailDeliveryRates);
         }
 
         return new Response($this->twig->render('admin/dovecot_stats/_charts.html.twig', [
@@ -126,8 +110,6 @@ final readonly class DovecotStatsController
             'sampleCount' => count($samples),
             'authChart' => $authChart,
             'mailDeliveriesChart' => $mailDeliveriesChart,
-            'indexChart' => $indexChart,
-            'ftsChart' => $ftsChart,
         ]));
     }
 
