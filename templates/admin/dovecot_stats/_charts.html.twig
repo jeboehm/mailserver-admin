@@ -1,37 +1,41 @@
 {# Charts fragment: Rate charts #}
 
 {% if not hasData %}
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            <div class="text-center py-4 text-muted">
-                <i class="fa fa-chart-line fa-3x mb-3"></i>
-                <h5>Charts Not Available Yet</h5>
-                <p class="mb-0">
-                    {% if sampleCount == 0 %}
-                        Waiting for the first statistics sample...
-                    {% elseif sampleCount == 1 %}
-                        Rate charts require at least 2 samples. Current: {{ sampleCount }} sample.
-                        <br>Wait for the next refresh or click "Refresh" to fetch another sample.
-                    {% else %}
-                        Insufficient data points for meaningful charts.
-                    {% endif %}
-                </p>
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa fa-chart-line fa-3x mb-3"></i>
+                        <h5>Charts Not Available Yet</h5>
+                        <p class="mb-0">
+                            {% if sampleCount == 0 %}
+                                Waiting for the first statistics sample...
+                            {% elseif sampleCount == 1 %}
+                                Rate charts require at least 2 samples. Current: {{ sampleCount }} sample.
+                                <br>Wait for the next refresh or click "Refresh" to fetch another sample.
+                            {% else %}
+                                Insufficient data points for meaningful charts.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 {% else %}
-    <div class="row g-4">
+    <div class="row g-4 mb-4">
         {# Auth Rates Chart #}
         {% if authChart %}
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-0">
                         <h6 class="mb-0">
-                            <i class="fa fa-key text-primary me-2"></i>Authentication Rate
+                            <i class="fa fa-key me-2"></i>Authentication Rate
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div style="height: 250px;">
+                        <div class="chart-container">
                             {{ render_chart(authChart) }}
                         </div>
                     </div>
@@ -42,14 +46,14 @@
         {# Mail Deliveries Chart #}
         {% if mailDeliveriesChart %}
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-0">
                         <h6 class="mb-0">
-                            <i class="fa fa-envelope text-success me-2"></i>Mail Deliveries
+                            <i class="fa fa-envelope me-2"></i>Mail Deliveries
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div style="height: 250px;">
+                        <div class="chart-container">
                             {{ render_chart(mailDeliveriesChart) }}
                         </div>
                     </div>
@@ -60,14 +64,14 @@
         {# Index Operations Chart #}
         {% if indexChart %}
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-0">
                         <h6 class="mb-0">
-                            <i class="fa fa-list-ol text-warning me-2"></i>Index Operations
+                            <i class="fa fa-list-ol me-2"></i>Index Operations
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div style="height: 250px;">
+                        <div class="chart-container">
                             {{ render_chart(indexChart) }}
                         </div>
                     </div>
@@ -78,14 +82,14 @@
         {# FTS Operations Chart #}
         {% if ftsChart %}
             <div class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-white">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-transparent border-0">
                         <h6 class="mb-0">
-                            <i class="fa fa-search text-secondary me-2"></i>FTS Operations
+                            <i class="fa fa-search me-2"></i>FTS Operations
                         </h6>
                     </div>
                     <div class="card-body">
-                        <div style="height: 250px;">
+                        <div class="chart-container">
                             {{ render_chart(ftsChart) }}
                         </div>
                     </div>
@@ -94,7 +98,7 @@
         {% endif %}
     </div>
 
-    <div class="text-muted small mt-3">
+    <div class="text-muted small mb-4">
         <i class="fa fa-info-circle me-1"></i>
         Charts show rates calculated from {{ sampleCount }} samples. Rates are computed as deltas between consecutive samples.
     </div>

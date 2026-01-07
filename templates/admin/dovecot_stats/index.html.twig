@@ -3,8 +3,59 @@
 {% block content_title %}Dovecot Statistics{% endblock %}
 {% block page_title %}Dovecot Statistics{% endblock %}
 
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        .dovecot-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .kpi-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .health-ok {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: #1e7e34;
+        }
+        .health-warning {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #d39e00;
+        }
+        .health-critical {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #c82333;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+{% endblock %}
+
 {% block main %}
-    <div class="dovecot-stats-page">
+    <div class="dovecot-dashboard">
         {% if not isConfigured %}
             <div class="alert alert-warning">
                 <h5 class="alert-heading">
@@ -22,7 +73,7 @@
             </div>
         {% else %}
             {# Summary Fragment #}
-            <div id="dovecot-summary" class="mb-4" data-fragment-url="{{ path('admin_dovecot_stats_summary_fragment') }}">
+            <div id="dovecot-summary" data-fragment-url="{{ path('admin_dovecot_stats_summary_fragment') }}">
                 <div class="d-flex justify-content-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
@@ -31,7 +82,7 @@
             </div>
 
             {# Charts Fragment #}
-            <div id="dovecot-charts" class="mb-4" data-fragment-url="{{ path('admin_dovecot_stats_charts_fragment') }}">
+            <div id="dovecot-charts" data-fragment-url="{{ path('admin_dovecot_stats_charts_fragment') }}">
                 <div class="d-flex justify-content-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading charts...</span>
@@ -40,7 +91,7 @@
             </div>
 
             {# Raw Data Fragment #}
-            <div id="dovecot-raw" class="mb-4" data-fragment-url="{{ path('admin_dovecot_stats_raw_fragment') }}">
+            <div id="dovecot-raw" data-fragment-url="{{ path('admin_dovecot_stats_raw_fragment') }}">
                 <div class="d-flex justify-content-center py-5">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading details...</span>
@@ -100,22 +151,6 @@
                     })
                     .catch(error => {
                         alert('Refresh failed: ' + error.message);
-                    });
-            }
-
-            function copyDiagnostics() {
-                fetch('{{ path('admin_dovecot_stats_export') }}')
-                    .then(response => response.text())
-                    .then(text => {
-                        navigator.clipboard.writeText(text).then(function() {
-                            const btn = document.getElementById('copy-diagnostics-btn');
-                            const originalText = btn.innerHTML;
-                            btn.innerHTML = '<i class="fa fa-check me-1"></i>Copied!';
-                            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
-                        });
-                    })
-                    .catch(error => {
-                        alert('Copy failed: ' + error.message);
                     });
             }
         </script>
