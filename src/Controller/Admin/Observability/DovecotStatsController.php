@@ -40,7 +40,7 @@ final readonly class DovecotStatsController
     #[AdminRoute('/', name: 'index')]
     public function index(): Response
     {
-        return new Response($this->twig->render('admin/dovecot_stats/index.html.twig', [
+        return new Response($this->twig->render('admin/observability/dovecot_stats/index.html.twig', [
             'isConfigured' => $this->httpClient->isConfigured(),
         ]));
     }
@@ -62,7 +62,7 @@ final readonly class DovecotStatsController
             }
         }
 
-        return new Response($this->twig->render('admin/dovecot_stats/_summary.html.twig', [
+        return new Response($this->twig->render('admin/observability/dovecot_stats/_summary.html.twig', [
             'health' => $health,
             'sample' => $latestSample,
             'lastSampleTime' => $this->sampler->getLastSampleTime(),
@@ -89,7 +89,7 @@ final readonly class DovecotStatsController
             $mailDeliveriesChart = $this->chartFactory->createMailDeliveriesChart($mailDeliveryRates);
         }
 
-        return new Response($this->twig->render('admin/dovecot_stats/_charts.html.twig', [
+        return new Response($this->twig->render('admin/observability/dovecot_stats/_charts.html.twig', [
             'hasData' => $hasData,
             'sampleCount' => count($samples),
             'authChart' => $authChart,
@@ -137,7 +137,7 @@ final readonly class DovecotStatsController
             }
         }
 
-        return new Response($this->twig->render('admin/dovecot_stats/_raw.html.twig', [
+        return new Response($this->twig->render('admin/observability/dovecot_stats/_raw.html.twig', [
             'sample' => $latestSample,
             'authCounters' => $authCounters,
             'sessionCounters' => $sessionCounters,

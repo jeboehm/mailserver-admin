@@ -63,7 +63,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/index.html.twig',
+                'admin/observability/dovecot_stats/index.html.twig',
                 $this->callback(fn (array $context) => isset($context['isConfigured']) && true === $context['isConfigured'])
             )
             ->willReturn('rendered html');
@@ -85,7 +85,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/index.html.twig',
+                'admin/observability/dovecot_stats/index.html.twig',
                 $this->callback(fn (array $context) => isset($context['isConfigured']) && false === $context['isConfigured'])
             )
             ->willReturn('rendered html');
@@ -120,7 +120,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_summary.html.twig',
+                'admin/observability/dovecot_stats/_summary.html.twig',
                 $this->callback(function (array $context) use ($health) {
                     return isset($context['health'])
                         && $context['health'] instanceof DoveadmHealthDto
@@ -161,7 +161,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_summary.html.twig',
+                'admin/observability/dovecot_stats/_summary.html.twig',
                 $this->anything()
             )
             ->willReturn('rendered html');
@@ -194,7 +194,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_summary.html.twig',
+                'admin/observability/dovecot_stats/_summary.html.twig',
                 $this->anything()
             )
             ->willReturn('rendered html');
@@ -251,7 +251,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_charts.html.twig',
+                'admin/observability/dovecot_stats/_charts.html.twig',
                 $this->callback(function (array $context) {
                     return isset($context['hasData'])
                         && true === $context['hasData']
@@ -290,7 +290,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_charts.html.twig',
+                'admin/observability/dovecot_stats/_charts.html.twig',
                 $this->anything()
             )
             ->willReturn('rendered html');
@@ -317,7 +317,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_charts.html.twig',
+                'admin/observability/dovecot_stats/_charts.html.twig',
                 $this->callback(function (array $context) {
                     return isset($context['hasData'])
                         && false === $context['hasData']
@@ -357,7 +357,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_raw.html.twig',
+                'admin/observability/dovecot_stats/_raw.html.twig',
                 $this->callback(function (array $context) {
                     return isset($context['sample'])
                         && $context['sample'] instanceof StatsDumpDto
@@ -404,7 +404,7 @@ class DovecotStatsControllerTest extends TestCase
             ->expects($this->once())
             ->method('render')
             ->with(
-                'admin/dovecot_stats/_raw.html.twig',
+                'admin/observability/dovecot_stats/_raw.html.twig',
                 $this->anything()
             )
             ->willReturn('rendered html');
