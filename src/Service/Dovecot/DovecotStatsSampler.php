@@ -143,7 +143,7 @@ readonly class DovecotStatsSampler
 
         // Remove samples older than TTL
         $ttlMinutes = $this->snapshotTtlMinutes ?? self::DEFAULT_SNAPSHOT_TTL_MINUTES;
-        $cutoff = (new \DateTimeImmutable())->modify('-' . $ttlMinutes . ' minutes');
+        $cutoff = new \DateTimeImmutable()->modify('-' . $ttlMinutes . ' minutes');
 
         $samples = array_values(array_filter(
             $samples,

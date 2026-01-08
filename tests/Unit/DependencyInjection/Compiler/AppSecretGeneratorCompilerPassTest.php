@@ -111,7 +111,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
         $this->containerBuilderMock->method('setParameter')->willReturnCallback(function () {});
 
         // Make the directory read-only so file creation fails
-        chmod($this->tempDir, 0555);
+        chmod($this->tempDir, 0o555);
 
         try {
             $this->expectException(\RuntimeException::class);
@@ -120,7 +120,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
             $this->compilerPass->process($this->containerBuilderMock);
         } finally {
             // Restore permissions so tearDown can clean up
-            chmod($this->tempDir, 0777);
+            chmod($this->tempDir, 0o777);
         }
     }
 }

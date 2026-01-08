@@ -8,6 +8,8 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
+use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
+
 $config = new PhpCsFixer\Config();
 $header = <<<EOF
 This file is part of the mailserver-admin package.
@@ -17,11 +19,12 @@ file that was distributed with this source code.
 EOF;
 
 return $config
+    ->setParallelConfig(ParallelConfigFactory::detect())
     ->setRiskyAllowed(true)
     ->setRules([
                    '@PSR2' => true,
                    '@Symfony' => true,
-                   '@PHP80Migration' => true,
+                   '@autoPHPMigration' => true,
                    'header_comment' => ['header' => $header, 'separate' => 'bottom', 'comment_type' => 'PHPDoc'],
                    'no_useless_else' => true,
                    'no_useless_return' => true,
@@ -40,5 +43,4 @@ return $config
             ->in(__DIR__ . '/tests')
             ->in(__DIR__ . '/src')
             ->in(__DIR__ . '/migrations')
-    )
-    ->setRiskyAllowed(true);
+    );
