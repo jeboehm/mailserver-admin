@@ -34,17 +34,18 @@ jobs:
         with:
           php-version: 8.5
       - name: Get Composer Cache Directory
-        if: ${{ steps.changelog.outputs.skipped == 'false' }}
         id: composer-cache
         run: |
           echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
       - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            assets/vendor/
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/composer.lock') }}-${{ hashFiles('**/importmap.php') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-cache-
       - name: Install Composer dependencies
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         env:
@@ -74,6 +75,7 @@ jobs:
             renovate.json \
             symfony.lock \
             tests/ \
+            tls/ \
             var/
           mkdir -p var/cache/prod var/log
           chmod 777 var/cache/prod var/log

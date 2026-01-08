@@ -7,10 +7,54 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
+env:
+  PHP_EXTENSIONS: mbstring, xml, ctype, iconv, intl, mysql
+  DATABASE_URL: mysql://root:symfony@127.0.0.1:3306/symfony
+  REDIS_HOST: localhost
+  APP_ENV: test
 jobs:
+  build:
+    name: Build dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        with:
+          php-version: "8.4"
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: xdebug
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
+        with:
+          path: |
+            ${{ steps.composer-cache.outputs.dir }}
+            assets/vendor/
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/composer.lock') }}-${{ hashFiles('**/importmap.php') }}
+          restore-keys: |
+            ${{ runner.os }}-cache-
+      - name: Prepare build artifact
+        run: |
+          composer install --no-progress -a
+          composer run create-tls
+          bin/console asset-map:compile
+      - name: Create build artifacts archive
+        run: |
+          tar -czf build-artifacts.tar.gz assets/vendor/ tls/ var/ vendor/
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-artifacts
+          path: build-artifacts.tar.gz
+          retention-days: 1
   static-analysis:
     name: Static code analysis
     runs-on: ubuntu-latest
+    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -23,20 +67,17 @@ jobs:
         uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, xml, ctype, iconv, intl, mysql
+          extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: xdebug
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-      - name: Install Composer dependencies
-        run: composer install --no-progress --no-scripts -a
+          name: build-artifacts
+          path: .
+      - name: Extract build artifacts
+        run: tar -xzf build-artifacts.tar.gz
+      - name: Cleanup archive
+        run: rm build-artifacts.tar.gz
       - name: PHP CS Fixer
         run: vendor/bin/php-cs-fixer check --diff
       - name: rector
@@ -46,6 +87,7 @@ jobs:
   phpunit:
     name: PHPUnit (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
+    needs: build
     services:
       mysql:
         image: mysql:lts@sha256:1f5b0aca09cfa06d9a7b89b28d349c1e01ba0d31339a4786fbcb3d5927070130
@@ -67,10 +109,6 @@ jobs:
         php-versions:
           - "8.4"
           - "8.5"
-    env:
-      DATABASE_URL: mysql://root:symfony@127.0.0.1:3306/symfony
-      REDIS_HOST: localhost
-      APP_ENV: test
     steps:
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
@@ -78,27 +116,23 @@ jobs:
         uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, xml, ctype, iconv, intl, mysql
+          extensions: ${{ env.PHP_EXTENSIONS }}
           coverage: xdebug
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      - uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v5
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-      - name: Install Composer dependencies
-        run: composer install --no-progress -a
+          name: build-artifacts
+          path: .
+      - name: Extract build artifacts
+        run: tar -xzf build-artifacts.tar.gz
+      - name: Cleanup archive
+        run: rm build-artifacts.tar.gz
       - name: Prepare database
         run: |
           bin/console doctrine:schema:create
           bin/console domain:add example.com
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
-          composer run create-tls
       - name: Run tests
         run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml
       - name: Create code coverage report
