@@ -37,11 +37,11 @@ readonly class RspamdControllerClient
 
     public function __construct(
         private HttpClientInterface $httpClient,
-        #[Autowire('%env(default::string:RSPAMD_CONTROLLER_URL)%')]
+        #[Autowire('%env(resolve:string:RSPAMD_CONTROLLER_URL)%')]
         private string $controllerUrl,
         #[Autowire('%env(int:RSPAMD_TIMEOUT_MS)%')]
         private int $timeoutMs,
-        #[Autowire('%env(default::string:RSPAMD_PASSWORD)%')]
+        #[Autowire('%env(default::resolve:string:RSPAMD_PASSWORD)%')]
         private ?string $password = null,
     ) {
     }

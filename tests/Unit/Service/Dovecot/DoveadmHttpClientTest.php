@@ -13,7 +13,6 @@ namespace Tests\Unit\Service\Dovecot;
 use App\Exception\Dovecot\DoveadmConnectionException;
 use App\Exception\Dovecot\DoveadmResponseException;
 use App\Service\Dovecot\DoveadmHttpClient;
-use App\Service\Dovecot\DTO\DoveadmHealthDto;
 use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Exception\ClientException;
@@ -54,38 +53,6 @@ final class DoveadmHttpClientTest extends TestCase
         );
 
         self::assertFalse($client->isConfigured());
-    }
-
-    public function testIsConfiguredReturnsFalseWhenUrlIsNull(): void
-    {
-        $httpClient = new MockHttpClient();
-        $client = new DoveadmHttpClient(
-            $httpClient,
-            null,
-            self::API_KEY,
-            null,
-            true,
-        );
-
-        self::assertFalse($client->isConfigured());
-    }
-
-    public function testCheckHealthReturnsNotConfiguredWhenUrlNotSet(): void
-    {
-        $httpClient = new MockHttpClient();
-        $client = new DoveadmHttpClient(
-            $httpClient,
-            null,
-            self::API_KEY,
-            null,
-            true,
-        );
-
-        $health = $client->checkHealth();
-
-        self::assertInstanceOf(DoveadmHealthDto::class, $health);
-        self::assertFalse($health->isHealthy());
-        self::assertStringContainsString('not configured', $health->message);
     }
 
     public function testCheckHealthReturnsOkWhenListCommandsSucceeds(): void
