@@ -1,0 +1,16 @@
+{% extends 'bundles/TwigBundle/Exception/error_base.html.twig' %}
+
+{% block error_title %}Error{% endblock %}
+
+{% block error_heading %}An error occurred{% endblock %}
+
+{% block error_description %}
+    {% if status_code %}
+        Error {{ status_code }}
+    {% endif %}
+    {% if status_text %}
+        {{ status_text }}
+    {% else %}
+        Something went wrong. Please try again later.
+    {% endif %}
+{% endblock %}

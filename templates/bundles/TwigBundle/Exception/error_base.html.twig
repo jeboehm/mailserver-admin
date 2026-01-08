@@ -1,0 +1,38 @@
+{% extends '@!EasyAdmin/page/login_minimal.html.twig' %}
+
+{% block body_id %}error-page{% endblock %}
+{% block body_class %}error-page{% endblock %}
+
+{% block head_favicon %}
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96"/>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+    <link rel="shortcut icon" href="/favicon.ico"/>
+{% endblock %}
+
+{% block page_title %}
+    {% block error_title %}Error{% endblock %}
+{% endblock %}
+
+{% block wrapper_wrapper %}
+    <div class="login-wrapper" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+        <div class="login-content" style="text-align: center; max-width: 400px; padding: 2rem;">
+            <div class="mb-4">
+                {{ include('admin/_includes/logo.html.twig') }}
+            </div>
+            <div>
+                {% block error_message %}
+                    <h1 class="h3 mb-3">{% block error_heading %}An error occurred{% endblock %}</h1>
+                    <p class="text-muted">{% block error_description %}Something went wrong. Please try again later.{% endblock %}</p>
+                {% endblock %}
+            </div>
+            <div class="mt-5">
+                <a href="{{ path('admin') }}" class="btn btn-primary btn-lg">Go to Dashboard</a>
+            </div>
+            <div class="row mt-4">
+                <small>
+                    <a class="text-muted" href="https://github.com/jeboehm/docker-mailserver">docker-mailserver</a>
+                </small>
+            </div>
+        </div>
+    </div>
+{% endblock %}
