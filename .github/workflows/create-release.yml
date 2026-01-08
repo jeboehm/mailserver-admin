@@ -6,11 +6,14 @@ on:
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
+permissions:
+  contents: write
+env:
+  APP_ENV: prod
+  DATABASE_URL: sqlite:///%kernel.project_dir%/var/app.db
 jobs:
   create_release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
@@ -48,11 +51,10 @@ jobs:
             ${{ runner.os }}-cache-
       - name: Install Composer dependencies
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
-        env:
-          APP_ENV: prod
         run: |
           composer install --no-progress --prefer-dist -a --no-dev
           bin/console asset-map:compile
+          composer dump-env ${{ env.APP_ENV }}
       - name: Create release archive
         if: ${{ steps.changelog.outputs.skipped == 'false' }}
         run: |
@@ -77,9 +79,8 @@ jobs:
             tests/ \
             tls/ \
             var/
-          mkdir -p var/cache/prod var/log
-          chmod 777 var/cache/prod var/log
-          touch var/cache/prod/.keep var/log/.keep
+          mkdir -p var/{cache,log}
+          chmod 777 var/{cache,log}
           echo "${{ steps.changelog.outputs.version }}" > VERSION
           tar --exclude='.git' -czf \
             /tmp/release-${{ steps.changelog.outputs.version }}.tar.gz .
