@@ -38,9 +38,9 @@ readonly class DoveadmHttpClient
 
     public function __construct(
         private HttpClientInterface $httpClient,
-        #[Autowire('%env(default::string:DOVEADM_HTTP_URL)%')]
-        private ?string $httpUrl,
-        #[Autowire('%env(default::string:DOVEADM_API_KEY)%')]
+        #[Autowire('%env(resolve:string:DOVEADM_HTTP_URL)%')]
+        private string $httpUrl,
+        #[Autowire('%env(default::resolve:string:DOVEADM_API_KEY)%')]
         ?string $apiKey,
         #[Autowire('%env(default::int:DOVEADM_TIMEOUT_MS)%')]
         private ?int $timeoutMs,
