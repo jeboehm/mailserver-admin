@@ -11,26 +11,69 @@ declare(strict_types=1);
 namespace Tests\Unit\Service;
 
 use App\Service\ConnectionCheckService;
+use App\Service\Dovecot\DoveadmHttpClient;
+use App\Service\Dovecot\DTO\DoveadmHealthDto;
+use App\Service\Rspamd\DTO\HealthDto;
+use App\Service\Rspamd\RspamdControllerClient;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Result;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Predis\ClientInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class ConnectionCheckServiceTest extends TestCase
 {
     private MockObject|Connection $connection;
     private MockObject|ClientInterface $redis;
+    private MockObject|DoveadmHttpClient $doveadmHttpClient;
+    private MockObject|RspamdControllerClient $rspamdControllerClient;
     private ConnectionCheckService $service;
 
     protected function setUp(): void
     {
         $this->connection = $this->createMock(Connection::class);
         $this->redis = $this->createMock(ClientInterface::class);
-        // Add default stub behavior to prevent PHPUnit warnings in tests that don't use these mocks
-        $this->connection->method('executeQuery')->willReturn($this->createStub(Result::class));
-        $this->redis->method('__call')->willReturn(null);
-        $this->service = new ConnectionCheckService($this->connection, $this->redis);
+        $this->doveadmHttpClient = $this->createMock(DoveadmHttpClient::class);
+        $this->rspamdControllerClient = $this->createMock(RspamdControllerClient::class);
+
+        $this->service = new ConnectionCheckService(
+            $this->connection,
+            $this->redis,
+            $this->doveadmHttpClient,
+            $this->rspamdControllerClient
+        );
+    }
+
+    #[DataProvider('mysqlErrorProvider')]
+    public function testCheckMySQLErrors(string $errorMessage, string $expectedContain): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->willThrowException(new \RuntimeException($errorMessage));
+
+        $result = $this->service->checkMySQL();
+
+        $this->assertNotNull($result);
+        $this->assertStringContainsString($expectedContain, $result);
+    }
+
+    public static function mysqlErrorProvider(): array
+    {
+        return [
+            'access denied' => ['Access denied for user', 'Authentication failed'],
+            'unknown database' => ['Unknown database', 'Database not found'],
+            'connection refused' => ['Connection refused', 'Cannot connect to database server'],
+            'no connection' => ['No connection', 'Cannot connect to database server'],
+            'connection timeout' => ['Connection timed out', 'Connection to database server timed out'],
+            'hostname resolution' => ['getaddrinfo failed', 'Cannot resolve database hostname'],
+            'hostname translation' => ['could not translate host name', 'Cannot resolve database hostname'],
+            'generic error' => ['Error: detailed message', 'detailed message'],
+        ];
     }
 
     public function testCheckMySQLSuccess(): void
@@ -38,128 +81,45 @@ class ConnectionCheckServiceTest extends TestCase
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
+            ->with('SELECT id FROM mail_users LIMIT 1')
             ->willReturn($this->createStub(Result::class));
-
-        $this->redis->expects($this->never())->method('__call');
 
         $result = $this->service->checkMySQL();
 
         $this->assertNull($result);
     }
 
-    public function testCheckMySQLFailureAccessDenied(): void
+    #[DataProvider('redisErrorProvider')]
+    public function testCheckRedisErrors(string $errorMessage, string $expectedContain): void
     {
-        $exception = new \RuntimeException('Access denied for user');
-
-        $this->connection
+        $this->redis
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
+            ->method('__call')
+            ->with('ping', [])
+            ->willThrowException(new \RuntimeException($errorMessage));
 
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
+        $result = $this->service->checkRedis();
 
         $this->assertNotNull($result);
-        $this->assertStringContainsString('Authentication failed', $result);
+        $this->assertStringContainsString($expectedContain, $result);
     }
 
-    public function testCheckMySQLFailureUnknownDatabase(): void
+    public static function redisErrorProvider(): array
     {
-        $exception = new \RuntimeException('Unknown database');
-
-        $this->connection
-            ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
-
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
-
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Database not found', $result);
-    }
-
-    public function testCheckMySQLFailureConnectionRefused(): void
-    {
-        $exception = new \RuntimeException('Connection refused');
-
-        $this->connection
-            ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
-
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
-
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Cannot connect to database server', $result);
-    }
-
-    public function testCheckMySQLFailureConnectionTimeout(): void
-    {
-        $exception = new \RuntimeException('Connection timed out');
-
-        $this->connection
-            ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
-
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
-
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Connection to database server timed out', $result);
-    }
-
-    public function testCheckMySQLFailureHostnameResolution(): void
-    {
-        $exception = new \RuntimeException('getaddrinfo failed');
-
-        $this->connection
-            ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
-
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
-
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Cannot resolve database hostname', $result);
-    }
-
-    public function testCheckMySQLFailureGeneric(): void
-    {
-        $exception = new \RuntimeException('Some generic error: detailed message');
-
-        $this->connection
-            ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($exception);
-
-        $this->redis->expects($this->never())->method('__call');
-
-        $result = $this->service->checkMySQL();
-
-        $this->assertNotNull($result);
-        $this->assertEquals('detailed message', $result);
+        return [
+            'connection refused' => ['Connection refused', 'Cannot connect to Redis server'],
+            'no connection' => ['No connection', 'Cannot connect to Redis server'],
+            'connection timeout' => ['Connection timed out', 'Connection to Redis server timed out'],
+            'authentication failed' => ['AUTH failed', 'Redis authentication failed'],
+            'authentication lowercase' => ['authentication failed', 'Redis authentication failed'],
+            'hostname resolution' => ['getaddrinfo failed', 'Cannot resolve Redis hostname'],
+            'hostname translation' => ['could not translate host name', 'Cannot resolve Redis hostname'],
+            'generic error' => ['Error: detailed message', 'detailed message'],
+        ];
     }
 
     public function testCheckRedisSuccess(): void
     {
-        $this->connection->expects($this->never())->method('executeQuery');
-
         $this->redis
             ->expects($this->once())
             ->method('__call')
@@ -171,102 +131,100 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testCheckRedisFailureConnectionRefused(): void
+    public function testCheckDoveadmSuccess(): void
     {
-        $exception = new \RuntimeException('Connection refused');
+        $healthDto = DoveadmHealthDto::ok(new \DateTimeImmutable());
 
-        $this->connection->expects($this->never())->method('executeQuery');
-
-        $this->redis
+        $this->doveadmHttpClient
             ->expects($this->once())
-            ->method('__call')
-            ->with('ping', [])
-            ->willThrowException($exception);
+            ->method('checkHealth')
+            ->willReturn($healthDto);
 
-        $result = $this->service->checkRedis();
+        $result = $this->service->checkDoveadm();
 
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Cannot connect to Redis server', $result);
+        $this->assertNull($result);
     }
 
-    public function testCheckRedisFailureConnectionTimeout(): void
+    #[DataProvider('doveadmErrorProvider')]
+    public function testCheckDoveadmErrors(string $factoryMethod, string $expectedMessage): void
     {
-        $exception = new \RuntimeException('Connection timed out');
+        $healthDto = match ($factoryMethod) {
+            'connectionError' => DoveadmHealthDto::connectionError('Connection failed'),
+            'authenticationError' => DoveadmHealthDto::authenticationError(),
+            'formatError' => DoveadmHealthDto::formatError('Invalid response'),
+            'notConfigured' => DoveadmHealthDto::notConfigured(),
+            default => throw new \InvalidArgumentException("Unknown factory method: {$factoryMethod}"),
+        };
 
-        $this->connection->expects($this->never())->method('executeQuery');
-
-        $this->redis
+        $this->doveadmHttpClient
             ->expects($this->once())
-            ->method('__call')
-            ->with('ping', [])
-            ->willThrowException($exception);
+            ->method('checkHealth')
+            ->willReturn($healthDto);
 
-        $result = $this->service->checkRedis();
+        $result = $this->service->checkDoveadm();
 
         $this->assertNotNull($result);
-        $this->assertStringContainsString('Connection to Redis server timed out', $result);
+        $this->assertStringContainsString($expectedMessage, $result);
     }
 
-    public function testCheckRedisFailureAuthentication(): void
+    public static function doveadmErrorProvider(): array
     {
-        $exception = new \RuntimeException('AUTH failed');
+        return [
+            'connection error' => ['connectionError', 'Cannot connect to Doveadm API'],
+            'authentication error' => ['authenticationError', 'Authentication failed'],
+            'format error' => ['formatError', 'Unexpected response format'],
+            'not configured' => ['notConfigured', 'Doveadm HTTP API is not configured'],
+        ];
+    }
 
-        $this->connection->expects($this->never())->method('executeQuery');
+    public function testCheckRspamdSuccess(): void
+    {
+        $healthDto = HealthDto::ok('Rspamd is healthy');
 
-        $this->redis
+        $this->rspamdControllerClient
             ->expects($this->once())
-            ->method('__call')
-            ->with('ping', [])
-            ->willThrowException($exception);
+            ->method('ping')
+            ->willReturn($healthDto);
 
-        $result = $this->service->checkRedis();
+        $result = $this->service->checkRspamd();
+
+        $this->assertNull($result);
+    }
+
+    #[DataProvider('rspamdErrorProvider')]
+    public function testCheckRspamdErrors(string $factoryMethod, string $expectedMessage): void
+    {
+        $healthDto = match ($factoryMethod) {
+            'warning' => HealthDto::warning('Unexpected ping response', 500),
+            'critical' => HealthDto::critical('Connection timeout'),
+            default => throw new \InvalidArgumentException("Unknown factory method: {$factoryMethod}"),
+        };
+
+        $this->rspamdControllerClient
+            ->expects($this->once())
+            ->method('ping')
+            ->willReturn($healthDto);
+
+        $result = $this->service->checkRspamd();
 
         $this->assertNotNull($result);
-        $this->assertStringContainsString('Redis authentication failed', $result);
+        $this->assertStringContainsString($expectedMessage, $result);
     }
 
-    public function testCheckRedisFailureHostnameResolution(): void
+    public static function rspamdErrorProvider(): array
     {
-        $exception = new \RuntimeException('getaddrinfo failed');
-
-        $this->connection->expects($this->never())->method('executeQuery');
-
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('ping', [])
-            ->willThrowException($exception);
-
-        $result = $this->service->checkRedis();
-
-        $this->assertNotNull($result);
-        $this->assertStringContainsString('Cannot resolve Redis hostname', $result);
+        return [
+            'warning' => ['warning', 'Unexpected ping response'],
+            'critical' => ['critical', 'Connection timeout'],
+        ];
     }
 
-    public function testCheckRedisFailureGeneric(): void
-    {
-        $exception = new \RuntimeException('Some generic error: detailed message');
-
-        $this->connection->expects($this->never())->method('executeQuery');
-
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('ping', [])
-            ->willThrowException($exception);
-
-        $result = $this->service->checkRedis();
-
-        $this->assertNotNull($result);
-        $this->assertEquals('detailed message', $result);
-    }
-
-    public function testCheckAllBothSuccess(): void
+    public function testCheckAllBasic(): void
     {
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
+            ->with('SELECT id FROM mail_users LIMIT 1')
             ->willReturn($this->createStub(Result::class));
 
         $this->redis
@@ -275,29 +233,72 @@ class ConnectionCheckServiceTest extends TestCase
             ->with('ping', [])
             ->willReturn('PONG');
 
+        $this->doveadmHttpClient->expects($this->never())->method('checkHealth');
+        $this->rspamdControllerClient->expects($this->never())->method('ping');
+
         $result = $this->service->checkAll();
 
+        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('redis', $result);
+        $this->assertArrayNotHasKey('doveadm', $result);
+        $this->assertArrayNotHasKey('rspamd', $result);
         $this->assertNull($result['mysql']);
         $this->assertNull($result['redis']);
     }
 
-    public function testCheckAllBothFailure(): void
+    public function testCheckAllWithAllServices(): void
     {
-        $mysqlException = new \RuntimeException('Connection refused');
-
         $this->connection
             ->expects($this->once())
             ->method('executeQuery')
-            ->with('SELECT id FROM mail_domains LIMIT 1')
-            ->willThrowException($mysqlException);
-
-        $redisException = new \RuntimeException('Connection refused');
+            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->willReturn($this->createStub(Result::class));
 
         $this->redis
             ->expects($this->once())
             ->method('__call')
             ->with('ping', [])
-            ->willThrowException($redisException);
+            ->willReturn('PONG');
+
+        $this->doveadmHttpClient
+            ->expects($this->once())
+            ->method('checkHealth')
+            ->willReturn(DoveadmHealthDto::ok(new \DateTimeImmutable()));
+
+        $this->rspamdControllerClient
+            ->expects($this->once())
+            ->method('ping')
+            ->willReturn(HealthDto::ok('Rspamd is healthy'));
+
+        $result = $this->service->checkAll(true);
+
+        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('redis', $result);
+        $this->assertArrayHasKey('doveadm', $result);
+        $this->assertArrayHasKey('rspamd', $result);
+        $this->assertNull($result['mysql']);
+        $this->assertNull($result['redis']);
+        if (isset($result['doveadm'])) {
+            $this->assertNull($result['doveadm']);
+        }
+        if (isset($result['rspamd'])) {
+            $this->assertNull($result['rspamd']);
+        }
+    }
+
+    public function testCheckAllWithFailures(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->willThrowException(new \RuntimeException('Connection refused'));
+
+        $this->redis
+            ->expects($this->once())
+            ->method('__call')
+            ->with('ping', [])
+            ->willThrowException(new \RuntimeException('Connection refused'));
 
         $result = $this->service->checkAll();
 
@@ -305,5 +306,45 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertNotNull($result['redis']);
         $this->assertStringContainsString('Cannot connect to database server', $result['mysql']);
         $this->assertStringContainsString('Cannot connect to Redis server', $result['redis']);
+    }
+
+    public function testCheckAllWithAllServicesAndFailures(): void
+    {
+        $this->connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->willThrowException(new \RuntimeException('Connection refused'));
+
+        $this->redis
+            ->expects($this->once())
+            ->method('__call')
+            ->with('ping', [])
+            ->willThrowException(new \RuntimeException('Connection refused'));
+
+        $this->doveadmHttpClient
+            ->expects($this->once())
+            ->method('checkHealth')
+            ->willReturn(DoveadmHealthDto::connectionError('Connection failed'));
+
+        $this->rspamdControllerClient
+            ->expects($this->once())
+            ->method('ping')
+            ->willReturn(HealthDto::critical('Connection timeout'));
+
+        $result = $this->service->checkAll(true);
+
+        $this->assertNotNull($result['mysql']);
+        $this->assertNotNull($result['redis']);
+        $this->assertStringContainsString('Cannot connect to database server', $result['mysql']);
+        $this->assertStringContainsString('Cannot connect to Redis server', $result['redis']);
+        if (isset($result['doveadm'])) {
+            $this->assertNotNull($result['doveadm']);
+            $this->assertStringContainsString('Cannot connect to Doveadm API', $result['doveadm']);
+        }
+        if (isset($result['rspamd'])) {
+            $this->assertNotNull($result['rspamd']);
+            $this->assertStringContainsString('Connection timeout', $result['rspamd']);
+        }
     }
 }

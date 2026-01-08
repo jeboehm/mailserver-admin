@@ -11,12 +11,17 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Service\ConnectionCheckService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
+#[AsCommand(
+    name: 'system:check',
+    description: 'Check MySQL and Redis connection status.',
+)]
 class SystemCheckCommand extends Command
 {
     public function __construct(
@@ -31,15 +36,15 @@ class SystemCheckCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('system:check')
-            ->setDescription('Check MySQL and Redis connection status.')
-            ->addOption('wait', null, InputOption::VALUE_NONE, 'Wait for dependencies to become available');
+            ->addOption('wait', null, InputOption::VALUE_NONE, 'Wait for dependencies to become available')
+            ->addOption('all', null, InputOption::VALUE_NONE, 'Check all services including Doveadm and Rspamd');
     }
 
     #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $wait = (bool) $input->getOption('wait');
+        $all = (bool) $input->getOption('all');
 
         if ($wait) {
             $timeout = $this->parseTimeout();
@@ -49,10 +54,14 @@ class SystemCheckCommand extends Command
             $output->writeln(sprintf('Waiting for dependencies to become available (timeout: %ds)...', $timeout));
 
             while (time() < $endTime) {
-                $results = $this->connectionCheckService->checkAll();
+                $results = $this->connectionCheckService->checkAll($all);
 
                 $hasErrors = false;
                 if (null !== $results['mysql'] || null !== $results['redis']) {
+                    $hasErrors = true;
+                }
+
+                if ($all && (null !== ($results['doveadm'] ?? null) || null !== ($results['rspamd'] ?? null))) {
                     $hasErrors = true;
                 }
 
@@ -60,6 +69,10 @@ class SystemCheckCommand extends Command
                     $output->writeln('<fg=green>[OK]</> All dependencies are now available.');
                     $output->writeln('<fg=green>[OK]</> MySQL connection is working.');
                     $output->writeln('<fg=green>[OK]</> Redis connection is working.');
+                    if ($all) {
+                        $output->writeln('<fg=green>[OK]</> Doveadm connection is working.');
+                        $output->writeln('<fg=green>[OK]</> Rspamd connection is working.');
+                    }
 
                     return 0;
                 }
@@ -70,7 +83,7 @@ class SystemCheckCommand extends Command
             $output->writeln(sprintf('<fg=red>[ERROR]</> Timeout reached after %ds. Dependencies are still not available.', $timeout));
         }
 
-        $results = $this->connectionCheckService->checkAll();
+        $results = $this->connectionCheckService->checkAll($all);
 
         $hasErrors = false;
 
@@ -90,6 +103,26 @@ class SystemCheckCommand extends Command
             $hasErrors = true;
             $output->writeln('<fg=red>[ERROR]</> Your Redis connection failed because of:');
             $output->writeln(sprintf('<fg=red>%s</>', $results['redis']));
+        }
+
+        // Check Doveadm (only if --all flag is set)
+        if ($all) {
+            if (null === ($results['doveadm'] ?? null)) {
+                $output->writeln('<fg=green>[OK]</> Doveadm connection is working.');
+            } else {
+                $hasErrors = true;
+                $output->writeln('<fg=red>[ERROR]</> Your Doveadm connection failed because of:');
+                $output->writeln(sprintf('<fg=red>%s</>', $results['doveadm']));
+            }
+
+            // Check Rspamd
+            if (null === ($results['rspamd'] ?? null)) {
+                $output->writeln('<fg=green>[OK]</> Rspamd connection is working.');
+            } else {
+                $hasErrors = true;
+                $output->writeln('<fg=red>[ERROR]</> Your Rspamd connection failed because of:');
+                $output->writeln(sprintf('<fg=red>%s</>', $results['rspamd']));
+            }
         }
 
         return $hasErrors ? 1 : 0;

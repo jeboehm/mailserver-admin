@@ -88,26 +88,21 @@ final class DoveadmHttpClientTest extends TestCase
         self::assertStringContainsString('not configured', $health->message);
     }
 
-    public function testCheckHealthReturnsOkWhenStatsDumpSucceeds(): void
+    public function testCheckHealthReturnsOkWhenListCommandsSucceeds(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                // checkHealth calls statsDump which makes a POST request
-                if ('POST' === $method) {
-                    $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
-                    $tag = $payload[0][2] ?? 'stats_abc123';
-
+            function (string $method, string $url) {
+                // checkHealth now calls listCommands which makes a GET request
+                if ('GET' === $method) {
+                    // Return a list of commands as expected by the API
                     $response = [
-                        [
-                            'doveadmResponse',
-                            [
-                                [
-                                    'metric_name' => 'num_logins',
-                                    'field' => 'count',
-                                    'count' => '42',
-                                ],
-                            ],
-                            $tag,
+                        'statsDump' => [
+                            'description' => 'Dump statistics',
+                            'parameters' => [],
+                        ],
+                        'user' => [
+                            'description' => 'User management',
+                            'parameters' => [],
                         ],
                     ];
 
@@ -152,6 +147,46 @@ final class DoveadmHttpClientTest extends TestCase
 
         self::assertFalse($health->isHealthy());
         self::assertStringContainsString('Cannot connect', $health->message);
+    }
+
+    public function testCheckHealthReturnsFormatErrorWhenEmptyCommandsList(): void
+    {
+        $httpClient = new MockHttpClient([
+            new MockResponse('[]', ['http_code' => 200]),
+        ]);
+
+        $client = new DoveadmHttpClient(
+            $httpClient,
+            self::HTTP_URL,
+            self::API_KEY,
+            null,
+            true,
+        );
+
+        $health = $client->checkHealth();
+
+        self::assertFalse($health->isHealthy());
+        self::assertStringContainsString('Expected list of commands', $health->message);
+    }
+
+    public function testCheckHealthReturnsFormatErrorWhenInvalidResponse(): void
+    {
+        $httpClient = new MockHttpClient([
+            new MockResponse('"not an array"', ['http_code' => 200]),
+        ]);
+
+        $client = new DoveadmHttpClient(
+            $httpClient,
+            self::HTTP_URL,
+            self::API_KEY,
+            null,
+            true,
+        );
+
+        $health = $client->checkHealth();
+
+        self::assertFalse($health->isHealthy());
+        self::assertStringContainsString('Unexpected response format', $health->message);
     }
 
     public function testCheckHealthReturnsAuthenticationErrorOn401(): void

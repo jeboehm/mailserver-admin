@@ -94,7 +94,7 @@
     "rector": "vendor/bin/rector process",
     "test": "phpunit --display-all-issues",
     "coverage": "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html=_coverage",
-    "phpstan": "phpstan analyse --level 3",
+    "phpstan": "@php -d memory_limit=512M vendor/bin/phpstan analyse --level 3",
     "create-tls": "if ! [ -d tls ]; then mkdir tls; fi && openssl req -x509 -newkey rsa:4096 -keyout tls/tls.key -out tls/tls.crt -sha256 -days 365 -nodes -subj \"/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname\""
   },
   "conflict": {

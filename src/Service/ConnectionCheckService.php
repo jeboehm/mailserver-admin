@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Service\Dovecot\DoveadmHttpClient;
+use App\Service\Rspamd\RspamdControllerClient;
 use Doctrine\DBAL\Connection;
 use Predis\ClientInterface;
 
@@ -18,18 +20,57 @@ readonly class ConnectionCheckService
     public function __construct(
         private Connection $connection,
         private ClientInterface $redis,
+        private DoveadmHttpClient $doveadmHttpClient,
+        private RspamdControllerClient $rspamdControllerClient,
     ) {
     }
 
+    public function checkDoveadm(): ?string
+    {
+        $result = $this->doveadmHttpClient->checkHealth();
+
+        if ($result->isHealthy()) {
+            return null;
+        }
+
+        return (string) $result->message;
+    }
+
+    public function checkRspamd(): ?string
+    {
+        $result = $this->rspamdControllerClient->ping();
+
+        if ($result->isOk()) {
+            return null;
+        }
+
+        return (string) $result->message;
+    }
+
     /**
-     * Check MySQL connection and return error message if failed.
+     * Check both MySQL and Redis connections.
      *
-     * @return string|null Error message if connection failed, null if successful
+     * @return array{mysql: string|null, redis: string|null}|array{mysql: string|null, redis: string|null, doveadm: string|null, rspamd: string|null}
      */
+    public function checkAll(bool $all = false): array
+    {
+        $result = [
+            'mysql' => $this->checkMySQL(),
+            'redis' => $this->checkRedis(),
+        ];
+
+        if ($all) {
+            $result['doveadm'] = $this->checkDoveadm();
+            $result['rspamd'] = $this->checkRspamd();
+        }
+
+        return $result;
+    }
+
     public function checkMySQL(): ?string
     {
         try {
-            $this->connection->executeQuery('SELECT id FROM mail_domains LIMIT 1');
+            $this->connection->executeQuery('SELECT id FROM mail_users LIMIT 1');
         } catch (\Throwable $e) {
             return $this->formatMySQLError($e);
         }
@@ -37,11 +78,6 @@ readonly class ConnectionCheckService
         return null;
     }
 
-    /**
-     * Check Redis connection and return error message if failed.
-     *
-     * @return string|null Error message if connection failed, null if successful
-     */
     public function checkRedis(): ?string
     {
         try {
@@ -51,19 +87,6 @@ readonly class ConnectionCheckService
         }
 
         return null;
-    }
-
-    /**
-     * Check both MySQL and Redis connections.
-     *
-     * @return array{mysql: string|null, redis: string|null}
-     */
-    public function checkAll(): array
-    {
-        return [
-            'mysql' => $this->checkMySQL(),
-            'redis' => $this->checkRedis(),
-        ];
     }
 
     private function formatMySQLError(\Throwable $e): string
@@ -93,9 +116,8 @@ readonly class ConnectionCheckService
 
         // Generic error - extract the core message
         $parts = explode(':', $message, 2);
-        $coreMessage = trim($parts[1] ?? $message);
 
-        return $coreMessage;
+        return trim($parts[1] ?? $message);
     }
 
     private function formatRedisError(\Throwable $e): string
@@ -121,8 +143,7 @@ readonly class ConnectionCheckService
 
         // Generic error - extract the core message
         $parts = explode(':', $message, 2);
-        $coreMessage = trim($parts[1] ?? $message);
 
-        return $coreMessage;
+        return trim($parts[1] ?? $message);
     }
 }
