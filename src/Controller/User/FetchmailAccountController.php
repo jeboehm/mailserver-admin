@@ -138,6 +138,7 @@ class FetchmailAccountController extends AbstractCrudController
 
         yield TextareaField::new('lastLog')
             ->hideOnIndex()
+            ->hideWhenCreating()
             ->setEmptyData('')
             ->setLabel('Last run log')
             ->setHelp('The last log of the fetchmail run. Can help to identify issues.')

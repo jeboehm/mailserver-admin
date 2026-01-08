@@ -1,0 +1,111 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Dovecot Statistics{% endblock %}
+{% block page_title %}Dovecot Statistics{% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        .dovecot-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .kpi-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .health-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+        .health-ok {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: #1e7e34;
+        }
+        .health-warning {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: #d39e00;
+        }
+        .health-critical {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #c82333;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <div class="dovecot-dashboard">
+        {% if not isConfigured %}
+            <div class="alert alert-warning">
+                <h5 class="alert-heading">
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    Doveadm HTTP API Not Configured
+                </h5>
+                <p class="mb-0">
+                    To enable Dovecot statistics, configure the following environment variables:
+                </p>
+                <ul class="mt-2 mb-0">
+                    <li><code>DOVEADM_HTTP_URL</code> - URL to the Doveadm HTTP API (e.g., <code>http://dovecot:8080/doveadm/v1</code>)</li>
+                    <li><code>DOVEADM_API_KEY</code> - API key for authentication</li>
+                </ul>
+            </div>
+        {% else %}
+            <div
+                data-controller="dovecot-dashboard"
+                data-dovecot-dashboard-summary-url-value="{{ path('admin_dovecot_stats_summary_fragment') }}"
+                data-dovecot-dashboard-charts-url-value="{{ path('admin_dovecot_stats_charts_fragment') }}"
+                data-dovecot-dashboard-raw-url-value="{{ path('admin_dovecot_stats_raw_fragment') }}"
+                data-dovecot-dashboard-refresh-url-value="{{ path('admin_dovecot_stats_refresh') }}"
+                data-dovecot-dashboard-refresh-interval-value="30000"
+            >
+                {# Summary Fragment #}
+                <div data-dovecot-dashboard-target="summaryContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Charts Fragment #}
+                <div data-dovecot-dashboard-target="chartsContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading charts...</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Raw Data Fragment #}
+                <div data-dovecot-dashboard-target="rawContainer">
+                    <div class="d-flex justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading details...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

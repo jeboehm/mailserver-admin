@@ -8,17 +8,13 @@ parameters:
     env(MAILSERVER_VERSION_FILE): "%kernel.project_dir%/DMS-VERSION"
     env(MOBILECONFIG_SSL_CERT_FILE): "%kernel.project_dir%/tls/tls.crt"
     env(MOBILECONFIG_SSL_KEY_FILE): "%kernel.project_dir%/tls/tls.key"
-    # Rspamd default values
-    rspamd_timeout_default: 2500
-    rspamd_cache_ttl_default: 10
+    env(RSPAMD_TIMEOUT_MS): 2500
+    env(RSPAMD_CACHE_TTL_SECONDS): 10
 
 services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-
-    App\Service\DnsWizard\DnsLookupInterface:
-        class: App\Service\DnsWizard\NativeDnsLookup
 
     App\:
         resource: '../src/*'
@@ -36,9 +32,3 @@ services:
                 host: '%env(REDIS_HOST)%'
                 port: '%env(REDIS_PORT)%'
                 password: '%env(REDIS_PASSWORD)%'
-
-when@test:
-    services:
-        App\Service\DKIM\DKIMStatusService:
-            autowire: true
-            public: true
