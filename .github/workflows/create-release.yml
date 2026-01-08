@@ -66,6 +66,7 @@ jobs:
             .envrc \
             .github \
             .gitignore \
+            .php-cs-fixer.cache \
             .php-cs-fixer.dist.php \
             assets/ \
             bin/phpunit \

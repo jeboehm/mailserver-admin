@@ -390,7 +390,7 @@ final class DovecotStatsSamplerTest extends TestCase
 
     private function createSample(string $time = '2024-01-01 10:00:00', ?int $resetTimestamp = null, int $offset = 0): StatsDumpDto
     {
-        $fetchedAt = (new \DateTimeImmutable($time))->modify("+{$offset} seconds");
+        $fetchedAt = new \DateTimeImmutable($time)->modify("+{$offset} seconds");
 
         return new StatsDumpDto(
             fetchedAt: $fetchedAt,

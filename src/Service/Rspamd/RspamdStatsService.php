@@ -641,7 +641,7 @@ readonly class RspamdStatsService
 
     private function formatTimestamp(int $timestamp, string $type): string
     {
-        $date = (new \DateTimeImmutable())->setTimestamp($timestamp);
+        $date = new \DateTimeImmutable()->setTimestamp($timestamp);
 
         return match ($type) {
             TimeSeriesDto::TYPE_DAY => $date->format('H:i'),
@@ -691,7 +691,7 @@ readonly class RspamdStatsService
     private function parseTimestamp(mixed $timestamp): \DateTimeImmutable
     {
         return \is_numeric($timestamp)
-            ? (new \DateTimeImmutable())->setTimestamp((int) $timestamp)
+            ? new \DateTimeImmutable()->setTimestamp((int) $timestamp)
             : new \DateTimeImmutable((string) $timestamp);
     }
 
