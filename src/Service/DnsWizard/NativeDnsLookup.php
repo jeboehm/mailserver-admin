@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace App\Service\DnsWizard;
 
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+
+#[AsAlias(id: DnsLookupInterface::class)]
 final class NativeDnsLookup implements DnsLookupInterface
 {
     public function lookupA(string $host): array

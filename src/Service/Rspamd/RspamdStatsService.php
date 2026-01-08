@@ -34,7 +34,7 @@ readonly class RspamdStatsService
     public function __construct(
         private RspamdControllerClient $client,
         private CacheInterface $cacheApp,
-        #[Autowire('%env(default:rspamd_cache_ttl_default:int:RSPAMD_CACHE_TTL_SECONDS)%')]
+        #[Autowire('%env(int:RSPAMD_CACHE_TTL_SECONDS)%')]
         private int $cacheTtl,
     ) {
     }

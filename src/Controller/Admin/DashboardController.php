@@ -117,6 +117,8 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Observability')
             ->setPermission(Roles::ROLE_ADMIN);
+        yield MenuItem::linkToRoute('Dovecot', 'fa fa-chart-bar', 'admin_dovecot_stats_index')
+            ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToRoute('Rspamd', 'fa fa-filter', 'admin_observability_rspamd_index')
             ->setPermission(Roles::ROLE_ADMIN);
         yield MenuItem::linkToUrl('Rspamd WebUI', 'fa fa-external-link-alt', '/rspamd')

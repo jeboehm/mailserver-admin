@@ -1,0 +1,5 @@
+framework:
+    http_client:
+        default_options:
+            timeout: 3
+            max_redirects: 5

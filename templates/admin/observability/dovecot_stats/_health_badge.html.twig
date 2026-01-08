@@ -1,0 +1,21 @@
+{# Health status badge component #}
+{% if health.status.value == 'ok' %}
+    <span class="health-indicator health-ok">
+        <i class="fa fa-check-circle"></i>
+        {{ health.message }}
+        {% if health.lastSuccessfulFetch %}
+            <small>({{ health.lastSuccessfulFetch|date('Y-m-d H:i:s') }})</small>
+        {% endif %}
+    </span>
+{% elseif health.status.value == 'warning' %}
+    <span class="health-indicator health-warning">
+        <i class="fa fa-exclamation-triangle"></i>
+        {{ health.message }}
+    </span>
+{% else %}
+    <span class="health-indicator health-critical">
+        <i class="fa fa-times-circle"></i>
+        {{ health.message }}
+    </span>
+{% endif %}
+
