@@ -1,9 +1,8 @@
 {% extends '@!EasyAdmin/page/login.html.twig' %}
 
 {% block header_logo %}
-    <div class="text-center mt-2 mb-4">
-        <img src="{{ asset('logo.png') }}" alt="mailserver-admin Logo" class="login-logo"
-             style="max-width: 200px; height: auto; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));">
+    <div class="text-center mt-5 mb-4">
+        {{ include('admin/_includes/logo.html.twig') }}
     </div>
     {{ parent() }}
 {% endblock %}
