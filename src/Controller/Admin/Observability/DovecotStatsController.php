@@ -120,7 +120,7 @@ final readonly class DovecotStatsController
             foreach ($counters as $name => $value) {
                 if (str_starts_with($name, 'auth_')) {
                     $authCounters[$name] = $value;
-                } elseif (str_starts_with($name, 'num_') || in_array($name, ['num_logins', 'num_cmds', 'num_connected_sessions'], true)) {
+                } elseif (str_starts_with($name, 'num_')) {
                     $sessionCounters[$name] = $value;
                 } elseif (str_starts_with($name, 'disk_') || str_starts_with($name, 'mail_')) {
                     $ioCounters[$name] = $value;
@@ -129,7 +129,7 @@ final readonly class DovecotStatsController
                 } elseif (str_starts_with($name, 'fts_')) {
                     $ftsCounters[$name] = $value;
                 } elseif (str_starts_with($name, 'user_') || str_starts_with($name, 'sys_')
-                         || in_array($name, ['clock_time', 'min_faults', 'maj_faults', 'vol_cs', 'invol_cs'], true)) {
+                         || in_array($name, ['clock_time', 'min_faults', 'max_faults', 'vol_cs', 'invol_cs'], true)) {
                     $systemCounters[$name] = $value;
                 } else {
                     $otherCounters[$name] = $value;
