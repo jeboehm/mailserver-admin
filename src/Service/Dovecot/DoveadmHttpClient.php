@@ -52,6 +52,9 @@ readonly class DoveadmHttpClient
 
     /**
      * Get the health status of the Doveadm API connection.
+     *
+     * Issues a GET request to /doveadm/v1 to retrieve the list of available commands.
+     * This is a lightweight health check that verifies the API is reachable and authenticated.
      */
     public function checkHealth(): DoveadmHealthDto
     {
@@ -60,7 +63,12 @@ readonly class DoveadmHttpClient
         }
 
         try {
-            $this->statsDump();
+            $commands = $this->listCommands();
+
+            // Verify that we got a list of commands (non-empty array)
+            if (!is_array($commands) || empty($commands)) {
+                return DoveadmHealthDto::formatError('Expected list of commands, got empty or invalid response');
+            }
 
             return DoveadmHealthDto::ok(new \DateTimeImmutable());
         } catch (DoveadmConnectionException $e) {
@@ -104,6 +112,64 @@ readonly class DoveadmHttpClient
         $response = $this->executeCommand('statsDump', $parameters, $tag);
 
         return $this->parseStatsDumpResponse($response);
+    }
+
+    /**
+     * List available commands by issuing a GET request to /doveadm/v1.
+     *
+     * @throws DoveadmConnectionException     When the API cannot be reached
+     * @throws DoveadmAuthenticationException When authentication fails
+     * @throws DoveadmResponseException       When the response format is unexpected
+     *
+     * @return array<int|string, mixed> List of available commands
+     */
+    private function listCommands(): array
+    {
+        $this->validateUrl();
+
+        $url = $this->buildApiUrl();
+
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'headers' => $this->buildHeaders(false),
+                'timeout' => ($this->timeoutMs ?? self::DEFAULT_TIMEOUT_MS) / 1000,
+                'verify_host' => $this->verifySsl,
+                'verify_peer' => $this->verifySsl,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+
+            if (401 === $statusCode || 403 === $statusCode) {
+                throw new DoveadmAuthenticationException('Authentication failed with status code ' . $statusCode);
+            }
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                throw new DoveadmResponseException('Unexpected status code: ' . $statusCode);
+            }
+
+            $data = $response->toArray();
+
+            // The response should be an array of commands
+            if (!is_array($data)) {
+                throw new DoveadmResponseException('Expected array response, got ' . gettype($data));
+            }
+
+            return $data;
+        } catch (TransportExceptionInterface $e) {
+            throw new DoveadmConnectionException('Connection failed: ' . $e->getMessage(), 0, $e);
+        } catch (ClientExceptionInterface $e) {
+            $statusCode = $e->getResponse()->getStatusCode();
+            if (401 === $statusCode || 403 === $statusCode) {
+                throw new DoveadmAuthenticationException('Authentication failed', 0, $e);
+            }
+            throw new DoveadmResponseException('Client error: ' . $e->getMessage(), 0, $e);
+        } catch (ServerExceptionInterface $e) {
+            throw new DoveadmResponseException('Server error: ' . $e->getMessage(), 0, $e);
+        } catch (RedirectionExceptionInterface $e) {
+            throw new DoveadmResponseException('Unexpected redirect: ' . $e->getMessage(), 0, $e);
+        } catch (\JsonException $e) {
+            throw new DoveadmResponseException('Invalid JSON response: ' . $e->getMessage(), 0, $e);
+        }
     }
 
     /**

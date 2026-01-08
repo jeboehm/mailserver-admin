@@ -20,7 +20,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * HTTP client for Rspamd controller worker endpoints.
  * Only calls read-only endpoints, never privileged actions.
  */
-final readonly class RspamdControllerClient
+readonly class RspamdControllerClient
 {
     private const array READ_ONLY_ENDPOINTS = [
         '/ping',
