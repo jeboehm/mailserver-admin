@@ -1,20 +1,12 @@
-import { Controller } from '@hotwired/stimulus';
+import {Controller} from '@hotwired/stimulus';
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
     static values = {
-        summaryUrl: String,
-        chartsUrl: String,
-        rawUrl: String,
-        refreshUrl: String,
-        refreshInterval: { type: Number, default: 30000 }
+        summaryUrl: String, chartsUrl: String, rawUrl: String, refreshUrl: String, refreshInterval: {type: Number, default: 30000}
     };
 
-    static targets = [
-        'summaryContainer',
-        'chartsContainer',
-        'rawContainer'
-    ];
+    static targets = ['summaryContainer', 'chartsContainer', 'rawContainer'];
 
     connect() {
         this.loadAllFragments();
@@ -40,11 +32,7 @@ export default class extends Controller {
     }
 
     async loadAllFragments() {
-        await Promise.all([
-            this.loadSummary(),
-            this.loadCharts(),
-            this.loadRaw()
-        ]);
+        await Promise.all([this.loadSummary(), this.loadCharts(), this.loadRaw()]);
     }
 
     async loadSummary() {
@@ -85,8 +73,7 @@ export default class extends Controller {
             }
 
             const response = await fetch(this.refreshUrlValue, {
-                method: 'POST',
-                headers: {
+                method: 'POST', headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
@@ -105,8 +92,15 @@ export default class extends Controller {
             await this.loadAllFragments();
         } catch (error) {
             console.error('Error refreshing stats:', error);
+            // Show error on all containers that were showing loading state
             if (this.hasSummaryContainerTarget) {
                 this.showError(this.summaryContainerTarget, error.message);
+            }
+            if (this.hasChartsContainerTarget) {
+                this.showError(this.chartsContainerTarget, error.message);
+            }
+            if (this.hasRawContainerTarget) {
+                this.showError(this.rawContainerTarget, error.message);
             }
         }
     }
@@ -170,9 +164,11 @@ export default class extends Controller {
     initializeCharts(container) {
         // Chart.js charts are automatically initialized by Symfony UX Chart.js
         // This method can be extended if additional initialization is needed
+        // Symfony UX Chart.js uses data-controller="symfony--ux-chartjs--chart" attribute
         const chartElements = container.querySelectorAll('[data-controller*="chart"]');
 
-        // Trigger any custom chart initialization if needed
+        // Charts are auto-initialized by Symfony UX Chart.js bundle when the fragment is loaded
+        // No additional initialization needed unless custom behavior is required
         if (chartElements.length > 0) {
             // Charts should be auto-initialized by Symfony UX Chart.js bundle
             // If manual initialization is needed, it can be added here

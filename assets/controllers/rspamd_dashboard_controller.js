@@ -1,4 +1,4 @@
-import { Controller } from '@hotwired/stimulus';
+import {Controller} from '@hotwired/stimulus';
 
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
@@ -8,17 +8,10 @@ export default class extends Controller {
         thresholdsUrl: String,
         countersUrl: String,
         historyUrl: String,
-        defaultType: { type: String, default: 'day' }
+        defaultType: {type: String, default: 'day'}
     };
 
-    static targets = [
-        'throughputContainer',
-        'actionsPieContainer',
-        'thresholdsContainer',
-        'countersContainer',
-        'historyContainer',
-        'typeButton'
-    ];
+    static targets = ['throughputContainer', 'actionsPieContainer', 'thresholdsContainer', 'countersContainer', 'historyContainer', 'typeButton'];
 
     connect() {
         this.currentType = this.defaultTypeValue;
@@ -42,13 +35,7 @@ export default class extends Controller {
     }
 
     async loadAllFragments() {
-        await Promise.all([
-            this.loadThroughput(),
-            this.loadActionsPie(),
-            this.loadThresholds(),
-            this.loadCounters(),
-            this.loadHistory()
-        ]);
+        await Promise.all([this.loadThroughput(), this.loadActionsPie(), this.loadThresholds(), this.loadCounters(), this.loadHistory()]);
     }
 
     async loadThroughput() {
