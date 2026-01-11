@@ -42,7 +42,16 @@ class DomainCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        return $actions->disable(Action::EDIT);
+        return parent::configureActions($actions)
+            ->disable(Action::BATCH_DELETE)
+            ->disable(Action::EDIT)
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+                $action->displayIf(
+                    fn (Domain $domain) => 0 === $domain->getAliases()->count() && 0 === $domain->getUsers()->count()
+                );
+
+                return $action;
+            });
     }
 
     #[\Override]
@@ -50,7 +59,9 @@ class DomainCrudController extends AbstractCrudController
     {
         yield TextField::new('name')
             ->setRequired(true)
-            ->setHelp('The domain name must contain only ASCII characters. You need to use punycode if you want to use non-ASCII characters.')
+            ->setHelp(
+                'The domain name must contain only ASCII characters. You need to use punycode if you want to use non-ASCII characters.'
+            )
             ->hideWhenUpdating();
         yield AssociationField::new('users')
             ->setSortable(false)

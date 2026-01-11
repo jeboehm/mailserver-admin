@@ -15,7 +15,6 @@ use App\Entity\Domain;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Service\Security\Roles;
-use App\Service\Security\Voter\LocalUserVoter;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -66,8 +65,7 @@ class DashboardController extends AbstractDashboardController
 
         $userMenu->addMenuItems(
             [
-                MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index')
-                    ->setPermission(LocalUserVoter::KEY),
+                MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index'),
             ]
         );
 
@@ -93,8 +91,7 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_USER);
 
         yield MenuItem::section('Security');
-        yield MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index')
-            ->setPermission(LocalUserVoter::KEY);
+        yield MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index');
         yield MenuItem::linkToCrud('DKIM', 'fa fa-shield-alt', Domain::class)
             ->setController(DKIMCrudController::class)
             ->setPermission(Roles::ROLE_ADMIN);
@@ -102,8 +99,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Tools');
         yield MenuItem::linkToRoute('DNS wizard', 'fa fa-network-wired', 'admin_dns_wizard_index')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
-        yield MenuItem::linkToRoute('iOS/MacOS Profile', 'fa fa-mobile-alt', 'admin_mobileconfig_download')
-            ->setPermission(LocalUserVoter::KEY);
+        yield MenuItem::linkToRoute('iOS/MacOS Profile', 'fa fa-mobile-alt', 'admin_mobileconfig_download');
 
         $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');

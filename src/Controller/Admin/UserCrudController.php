@@ -18,6 +18,8 @@ use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
@@ -156,5 +158,19 @@ class UserCrudController extends AbstractCrudController
         }
 
         return $qb;
+    }
+
+    public function configureActions(Actions $actions): Actions
+    {
+        $loggedInUser = $this->getUser();
+        assert($loggedInUser instanceof User);
+
+        return parent::configureActions($actions)
+            ->disable(Action::BATCH_DELETE)
+            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) use ($loggedInUser): Action {
+                $action->displayIf(fn (User $user) => $user->getId() !== $loggedInUser?->getId());
+
+                return $action;
+            });
     }
 }

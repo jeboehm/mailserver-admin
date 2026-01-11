@@ -11,10 +11,9 @@ declare(strict_types=1);
 namespace App\Controller\User;
 
 use App\Entity\User;
-use App\Form\ChangePasswordType;
 use App\Form\DTO\ChangePasswordDTO;
+use App\Form\Type\ChangePasswordType;
 use App\Service\Security\Roles;
-use App\Service\Security\Voter\LocalUserVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
@@ -29,7 +28,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Twig\Environment;
 
 #[AdminRoute('/change-password', name: 'change_password')]
-#[IsGranted(LocalUserVoter::KEY)]
 #[IsGranted(Roles::ROLE_USER)]
 readonly class ChangePasswordAction
 {

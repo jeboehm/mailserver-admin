@@ -13,7 +13,6 @@ namespace App\Controller\User;
 use App\Entity\User;
 use App\Service\MobileConfig\MobileConfigService;
 use App\Service\Security\Roles;
-use App\Service\Security\Voter\LocalUserVoter;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +21,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute('/mobileconfig', name: 'mobileconfig')]
 #[IsGranted(Roles::ROLE_USER)]
-#[IsGranted(LocalUserVoter::KEY)]
 final readonly class MobileConfigAction
 {
     public function __construct(
@@ -32,7 +30,6 @@ final readonly class MobileConfigAction
     }
 
     #[AdminRoute('/', name: 'download')]
-    #[IsGranted(LocalUserVoter::KEY)]
     public function __invoke(Request $request): Response
     {
         $user = $this->security->getUser();

@@ -1,0 +1,48 @@
+{% extends 'oauth_base.html.twig' %}
+
+{% block oauth_title %}Account Registration{% endblock %}
+
+{% block oauth_heading %}Create Your Account{% endblock %}
+
+{% block oauth_description %}
+    <div class="registration-container text-start w-100">
+        <div class="mb-2">
+            <p class="text-muted mb-2">
+                You will now create a new account with the email address:
+            </p>
+            <div class="email-display bg-light border rounded px-4 py-3 mb-4">
+                <strong class="text-dark">{{ userInformation.userIdentifier }}</strong>
+            </div>
+        </div>
+
+            <p class="text-muted">
+                Please set up a password below. This password will be used to access your IMAP and SMTP email services.
+            </p>
+
+        <div class="registration-form-wrapper mt-4">
+            {{ form_start(form, {'action': path('hwi_oauth_connect_registration', {'key': key}), 'attr': {'class': 'registration-form'}}) }}
+                <div class="form-group">
+                    {{ form_label(form.plainPassword.first, null, {'label_attr': {'class': 'form-label fw-semibold mb-2 small text-secondary'}}) }}
+                    {{ form_widget(form.plainPassword.first, {'attr': {'class': 'form-control form-control-lg', 'autocomplete': 'new-password', 'placeholder': 'Enter your password'}}) }}
+                    {{ form_errors(form.plainPassword.first) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.plainPassword.second, null, {'label_attr': {'class': 'form-label fw-semibold mb-2 small text-secondary'}}) }}
+                    {{ form_widget(form.plainPassword.second, {'attr': {'class': 'form-control form-control-lg', 'autocomplete': 'new-password', 'placeholder': 'Confirm your password'}}) }}
+                    {{ form_errors(form.plainPassword.second) }}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        {{ 'connect.registration.submit'|trans({}, 'HWIOAuthBundle') }}
+                    </button>
+
+                    <a href="{{ path('admin') }}" class="btn btn-secondary btn-lg">
+                        {{ 'connect.registration.cancel' | trans({}, 'HWIOAuthBundle') }}
+                    </a>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

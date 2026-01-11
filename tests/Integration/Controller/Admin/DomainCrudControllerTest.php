@@ -75,6 +75,25 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
 
         static::assertSelectorTextContains('span[title="example.com"]', 'example.com');
 
+        $this->assertIndexEntityActionNotExists('delete', $domainId);
+        $this->assertGlobalActionExists('new');
+    }
+
+    public function testListCanDeleteEmptyDomains(): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.invalid');
+
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+
+        $domainId = $domain->getId();
+
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
+        static::assertResponseIsSuccessful();
+
+        static::assertSelectorTextContains('span[title="example.invalid"]', 'example.invalid');
+
         $this->assertIndexEntityActionExists('delete', $domainId);
         $this->assertGlobalActionExists('new');
     }

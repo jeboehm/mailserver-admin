@@ -40,7 +40,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private string $name = '';
     #[ORM\Column(name: 'password', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
     private string $password = '';
-    #[Assert\Length(min: 6, max: 5000)]
+    #[Assert\Length(min: 6, max: 5000, groups: ['default', 'change-password', 'register'])]
+    #[Assert\NotBlank(groups: ['change-password', 'register'])]
+    #[Assert\PasswordStrength(minScore: Assert\PasswordStrength::STRENGTH_WEAK, groups: ['change-password', 'register'])]
+    #[Assert\NotCompromisedPassword(skipOnError: true, groups: ['change-password', 'register'])]
     private ?string $plainPassword = null;
     #[ORM\Column(name: 'admin', type: Types::BOOLEAN)]
     private bool $admin = false;

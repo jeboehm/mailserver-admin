@@ -45,6 +45,30 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertSelectorTextContains('body', 'admin@example.com');
 
         $this->assertIndexEntityActionExists('edit', $userId);
+        $this->assertIndexEntityActionNotExists('delete', $userId);
+        $this->assertGlobalActionExists('new');
+    }
+
+    public function testListUsersCanDeleteOtherUsers(): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.invalid');
+
+        $user = new User();
+        $user->setDomain($domain);
+        $user->setName('max');
+
+        $this->entityManager->persist($user);
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+
+        $userId = $user->getId();
+
+        $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
+
+        static::assertResponseIsSuccessful();
+
+        $this->assertIndexEntityActionExists('edit', $userId);
         $this->assertIndexEntityActionExists('delete', $userId);
         $this->assertGlobalActionExists('new');
     }
@@ -114,6 +138,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertInstanceOf(User::class, $updatedUser);
         static::assertEquals(2000, $updatedUser->getQuota());
         static::assertTrue($updatedUser->getSendOnly());
+        static::assertNotEmpty($updatedUser->getPassword());
     }
 
     public function testEditUserWithoutPassword(): void

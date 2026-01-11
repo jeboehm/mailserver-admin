@@ -25,7 +25,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
 
     public static function getDefaultPriority(): int
     {
-        return 60;
+        return 0;
     }
 
     /**

@@ -34,7 +34,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
     public function testGetDefaultPriority(): void
     {
-        self::assertSame(60, AutodiscoveryRecordCheck::getDefaultPriority());
+        self::assertSame(0, AutodiscoveryRecordCheck::getDefaultPriority());
     }
 
     public function testValidateMailHostReturnsEmptyArray(): void
