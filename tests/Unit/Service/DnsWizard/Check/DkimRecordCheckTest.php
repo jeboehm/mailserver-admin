@@ -151,10 +151,16 @@ class DkimRecordCheckTest extends TestCase
     public function testValidateMailHostReturnsEmptyArray(): void
     {
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
+        $this->statusService->expects($this->never())->method('getStatus');
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, []);
 
         self::assertEmpty($result);
+    }
+
+    public function testGetDefaultPriority(): void
+    {
         $this->statusService->expects($this->never())->method('getStatus');
+        self::assertEquals(50, $this->check::getDefaultPriority());
     }
 }

@@ -1,5 +1,11 @@
+parameters:
+  env(OAUTH_PATHS_IDENTIFIER): sub
+
 hwi_oauth:
-  # https://github.com/hwi/HWIOAuthBundle/blob/master/docs/2-configuring_resource_owners.md
+  connect:
+    account_connector: App\Service\Security\User\OAuth\AccountConnector
+    registration_form: App\Form\Type\OAuthRegisterType
+    registration_form_handler: App\Service\Security\User\OAuth\RegistrationFormHandler
   resource_owners:
     default:
       class: HWI\Bundle\OAuthBundle\OAuth\ResourceOwner\OAuth2ResourceOwner
@@ -10,5 +16,7 @@ hwi_oauth:
       access_token_url: '%env(OAUTH_ACCESS_TOKEN_URL)%'
       authorization_url: '%env(OAUTH_AUTHORIZATION_URL)%'
       infos_url: '%env(OAUTH_INFOS_URL)%'
+      options:
+        csrf: '%env(bool:CSRF_ENABLED)%'
       paths:
-        identifier: sub
+        identifier: '%env(OAUTH_PATHS_IDENTIFIER)%'

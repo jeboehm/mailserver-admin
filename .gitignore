@@ -21,6 +21,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+/_coverage
 ###< phpunit/phpunit ###
 
 # Devenv

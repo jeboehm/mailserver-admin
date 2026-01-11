@@ -2,7 +2,7 @@ parameters:
     env(WAITSTART_TIMEOUT): "1m"
     env(OAUTH_ENABLED): "false"
     env(OAUTH_BUTTON_TEXT): "OIDC Login"
-    env(OAUTH_ADMIN_GROUP): ""
+    env(OAUTH_ADMIN_GROUP): "admin"
     env(CSRF_ENABLED): "true"
     env(ADMIN_VERSION_FILE): "%kernel.project_dir%/VERSION"
     env(MAILSERVER_VERSION_FILE): "%kernel.project_dir%/DMS-VERSION"
