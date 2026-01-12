@@ -54,8 +54,8 @@ class ChangePasswordActionTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('form');
         self::assertSelectorExists('input[name="change_password[currentPassword]"]');
-        self::assertSelectorExists('input[name="change_password[newPassword][first]"]');
-        self::assertSelectorExists('input[name="change_password[newPassword][second]"]');
+        self::assertSelectorExists('input[name="change_password[plainPassword][first]"]');
+        self::assertSelectorExists('input[name="change_password[plainPassword][second]"]');
     }
 
     public function testChangePasswordSuccessfully(): void
@@ -72,11 +72,11 @@ class ChangePasswordActionTest extends WebTestCase
         $this->client->request(Request::METHOD_GET, $url);
         self::assertResponseIsSuccessful();
 
-        $newPassword = 'neWP4ssword123!!';
+        $plainPassword = 'neWP4ssword123!!';
         $this->client->submitForm('Change Password', [
             'change_password[currentPassword]' => 'changeme',
-            'change_password[newPassword][first]' => $newPassword,
-            'change_password[newPassword][second]' => $newPassword,
+            'change_password[plainPassword][first]' => $plainPassword,
+            'change_password[plainPassword][second]' => $plainPassword,
         ]);
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
@@ -95,6 +95,6 @@ class ChangePasswordActionTest extends WebTestCase
         $passwordHasherFactory = $this->client->getContainer()->get(PasswordHasherFactoryInterface::class);
         assert($passwordHasherFactory instanceof PasswordHasherFactoryInterface);
         $passwordHasher = $passwordHasherFactory->getPasswordHasher($updatedUser);
-        static::assertTrue($passwordHasher->verify($updatedUser->getPassword(), $newPassword));
+        static::assertTrue($passwordHasher->verify($updatedUser->getPassword(), $plainPassword));
     }
 }
