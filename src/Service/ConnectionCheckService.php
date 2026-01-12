@@ -10,15 +10,15 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Repository\UserRepository;
 use App\Service\Dovecot\DoveadmHttpClient;
 use App\Service\Rspamd\RspamdControllerClient;
-use Doctrine\DBAL\Connection;
 use Predis\ClientInterface;
 
 readonly class ConnectionCheckService
 {
     public function __construct(
-        private Connection $connection,
+        private UserRepository $userRepository,
         private ClientInterface $redis,
         private DoveadmHttpClient $doveadmHttpClient,
         private RspamdControllerClient $rspamdControllerClient,
@@ -70,7 +70,10 @@ readonly class ConnectionCheckService
     public function checkMySQL(): ?string
     {
         try {
-            $this->connection->executeQuery('SELECT id FROM mail_users LIMIT 1');
+            $this->userRepository->findBy(
+                criteria: [],
+                limit: 1,
+            );
         } catch (\Throwable $e) {
             return $this->formatMySQLError($e);
         }

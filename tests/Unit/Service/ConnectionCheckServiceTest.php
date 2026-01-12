@@ -10,13 +10,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service;
 
+use App\Repository\UserRepository;
 use App\Service\ConnectionCheckService;
 use App\Service\Dovecot\DoveadmHttpClient;
 use App\Service\Dovecot\DTO\DoveadmHealthDto;
 use App\Service\Rspamd\DTO\HealthDto;
 use App\Service\Rspamd\RspamdControllerClient;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Result;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -26,7 +25,7 @@ use Predis\ClientInterface;
 #[AllowMockObjectsWithoutExpectations]
 class ConnectionCheckServiceTest extends TestCase
 {
-    private MockObject|Connection $connection;
+    private MockObject|UserRepository $userRepository;
     private MockObject|ClientInterface $redis;
     private MockObject|DoveadmHttpClient $doveadmHttpClient;
     private MockObject|RspamdControllerClient $rspamdControllerClient;
@@ -34,13 +33,13 @@ class ConnectionCheckServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->connection = $this->createMock(Connection::class);
+        $this->userRepository = $this->createMock(UserRepository::class);
         $this->redis = $this->createMock(ClientInterface::class);
         $this->doveadmHttpClient = $this->createMock(DoveadmHttpClient::class);
         $this->rspamdControllerClient = $this->createMock(RspamdControllerClient::class);
 
         $this->service = new ConnectionCheckService(
-            $this->connection,
+            $this->userRepository,
             $this->redis,
             $this->doveadmHttpClient,
             $this->rspamdControllerClient
@@ -50,10 +49,10 @@ class ConnectionCheckServiceTest extends TestCase
     #[DataProvider('mysqlErrorProvider')]
     public function testCheckMySQLErrors(string $errorMessage, string $expectedContain): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->method('findBy')
+            ->with([], null, 1)
             ->willThrowException(new \RuntimeException($errorMessage));
 
         $result = $this->service->checkMySQL();
@@ -78,11 +77,11 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckMySQLSuccess(): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
-            ->willReturn($this->createStub(Result::class));
+            ->method('findBy')
+            ->with([], null, 1)
+            ->willReturn([]);
 
         $result = $this->service->checkMySQL();
 
@@ -221,11 +220,11 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckAllBasic(): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
-            ->willReturn($this->createStub(Result::class));
+            ->method('findBy')
+            ->with([], null, 1)
+            ->willReturn([]);
 
         $this->redis
             ->expects($this->once())
@@ -248,11 +247,11 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckAllWithAllServices(): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
-            ->willReturn($this->createStub(Result::class));
+            ->method('findBy')
+            ->with([], null, 1)
+            ->willReturn([]);
 
         $this->redis
             ->expects($this->once())
@@ -288,10 +287,10 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckAllWithFailures(): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->method('findBy')
+            ->with([], null, 1)
             ->willThrowException(new \RuntimeException('Connection refused'));
 
         $this->redis
@@ -310,10 +309,10 @@ class ConnectionCheckServiceTest extends TestCase
 
     public function testCheckAllWithAllServicesAndFailures(): void
     {
-        $this->connection
+        $this->userRepository
             ->expects($this->once())
-            ->method('executeQuery')
-            ->with('SELECT id FROM mail_users LIMIT 1')
+            ->method('findBy')
+            ->with([], null, 1)
             ->willThrowException(new \RuntimeException('Connection refused'));
 
         $this->redis

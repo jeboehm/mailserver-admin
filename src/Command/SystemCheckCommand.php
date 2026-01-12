@@ -27,7 +27,7 @@ class SystemCheckCommand extends Command
     public function __construct(
         private readonly ConnectionCheckService $connectionCheckService,
         #[Autowire('%env(string:WAITSTART_TIMEOUT)%')]
-        private string $dependencyWaitTimeout,
+        private readonly string $dependencyWaitTimeout,
     ) {
         parent::__construct();
     }
