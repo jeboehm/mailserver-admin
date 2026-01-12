@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace App\Controller\User;
 
 use App\Entity\User;
-use App\Form\DTO\ChangePasswordDTO;
 use App\Form\Type\ChangePasswordType;
 use App\Service\Security\Roles;
 use Doctrine\ORM\EntityManagerInterface;
@@ -43,20 +42,24 @@ readonly class ChangePasswordAction
     #[AdminRoute('/', name: 'index')]
     public function __invoke(Request $request): Response
     {
-        $dto = new ChangePasswordDTO();
-        $form = $this->form->create(ChangePasswordType::class, $dto);
+        $user = $this->security->getUser();
+        assert($user instanceof User);
+
+        $form = $this->form->create(ChangePasswordType::class, $user);
 
         if ($request->isMethod(Request::METHOD_POST)) {
             $form->handleRequest($request);
 
             if ($form->isValid()) {
-                $this->updatePassword($dto);
+                $user->setPassword(''); // set empty password to trigger entity's lifecycle callbacks.
 
                 $this->addFlash(
                     $request->getSession(),
                     'info',
                     'Your password has been updated.'
                 );
+
+                $this->entityManager->flush();
 
                 return new RedirectResponse(
                     $this->router->setRoute('admin_change_password_index')->generateUrl()
@@ -72,19 +75,6 @@ readonly class ChangePasswordAction
                 ]
             )
         );
-    }
-
-    private function updatePassword(ChangePasswordDTO $dto): void
-    {
-        $user = $this->security->getUser();
-
-        if (!($user instanceof User)) {
-            throw new \UnexpectedValueException(sprintf('User class "%s" is not supposed to change passwords.', $user::class));
-        }
-
-        $user->setPlainPassword($dto->newPassword);
-        $user->setPassword(''); // set password to trigger LifeCycleCallbacks
-        $this->entityManager->flush();
     }
 
     private function addFlash(SessionInterface $session, string $type, mixed $message): void

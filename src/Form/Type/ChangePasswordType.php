@@ -10,22 +10,31 @@ declare(strict_types=1);
 
 namespace App\Form\Type;
 
-use App\Form\DTO\ChangePasswordDTO;
+use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Core\Validator\Constraints\UserPassword;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ChangePasswordType extends AbstractType
 {
+    private const array VALIDATION_GROUPS = ['change-password'];
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('currentPassword', PasswordType::class, [
+                'constraints' => [
+                    new NotBlank(groups: self::VALIDATION_GROUPS),
+                    new UserPassword(message: 'The password is wrong. Please enter your current password.', groups: self::VALIDATION_GROUPS),
+                ],
+                'mapped' => false,
                 'required' => true,
             ])
-            ->add('newPassword', RepeatedType::class, [
+            ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'required' => true,
                 'first_options' => [
@@ -39,6 +48,9 @@ class ChangePasswordType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefault('data_class', ChangePasswordDTO::class);
+        $resolver->setDefaults([
+            'data_class' => User::class,
+            'validation_groups' => self::VALIDATION_GROUPS,
+        ]);
     }
 }
