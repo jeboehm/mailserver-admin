@@ -16,6 +16,9 @@ use App\Service\Dovecot\DoveadmHttpClient;
 use App\Service\Dovecot\DTO\DoveadmHealthDto;
 use App\Service\Rspamd\DTO\HealthDto;
 use App\Service\Rspamd\RspamdControllerClient;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Result;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -26,6 +29,7 @@ use Predis\ClientInterface;
 class ConnectionCheckServiceTest extends TestCase
 {
     private MockObject|UserRepository $userRepository;
+    private MockObject|EntityManagerInterface $entityManager;
     private MockObject|ClientInterface $redis;
     private MockObject|DoveadmHttpClient $doveadmHttpClient;
     private MockObject|RspamdControllerClient $rspamdControllerClient;
@@ -34,12 +38,14 @@ class ConnectionCheckServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepository::class);
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->redis = $this->createMock(ClientInterface::class);
         $this->doveadmHttpClient = $this->createMock(DoveadmHttpClient::class);
         $this->rspamdControllerClient = $this->createMock(RspamdControllerClient::class);
 
         $this->service = new ConnectionCheckService(
             $this->userRepository,
+            $this->entityManager,
             $this->redis,
             $this->doveadmHttpClient,
             $this->rspamdControllerClient
@@ -86,6 +92,50 @@ class ConnectionCheckServiceTest extends TestCase
         $result = $this->service->checkMySQL();
 
         $this->assertNull($result);
+    }
+
+    public function testCheckMySQLWithAllowEmptyDatabaseSuccess(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(Result::class));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('getConnection')
+            ->willReturn($connection);
+
+        $this->userRepository->expects($this->never())->method('findBy');
+
+        $result = $this->service->checkMySQL(true);
+
+        $this->assertNull($result);
+    }
+
+    #[DataProvider('mysqlErrorProvider')]
+    public function testCheckMySQLWithAllowEmptyDatabaseErrors(string $errorMessage, string $expectedContain): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT 1')
+            ->willThrowException(new \RuntimeException($errorMessage));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('getConnection')
+            ->willReturn($connection);
+
+        $this->userRepository->expects($this->never())->method('findBy');
+
+        $result = $this->service->checkMySQL(true);
+
+        $this->assertNotNull($result);
+        $this->assertStringContainsString($expectedContain, $result);
     }
 
     #[DataProvider('redisErrorProvider')]
@@ -344,6 +394,88 @@ class ConnectionCheckServiceTest extends TestCase
         if (isset($result['rspamd'])) {
             $this->assertNotNull($result['rspamd']);
             $this->assertStringContainsString('Connection timeout', $result['rspamd']);
+        }
+    }
+
+    public function testCheckAllWithAllowEmptyDatabase(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(Result::class));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('getConnection')
+            ->willReturn($connection);
+
+        $this->redis
+            ->expects($this->once())
+            ->method('__call')
+            ->with('ping', [])
+            ->willReturn('PONG');
+
+        $this->userRepository->expects($this->never())->method('findBy');
+        $this->doveadmHttpClient->expects($this->never())->method('checkHealth');
+        $this->rspamdControllerClient->expects($this->never())->method('ping');
+
+        $result = $this->service->checkAll(false, true);
+
+        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('redis', $result);
+        $this->assertArrayNotHasKey('doveadm', $result);
+        $this->assertArrayNotHasKey('rspamd', $result);
+        $this->assertNull($result['mysql']);
+        $this->assertNull($result['redis']);
+    }
+
+    public function testCheckAllWithAllowEmptyDatabaseAndAllServices(): void
+    {
+        $connection = $this->createMock(Connection::class);
+        $connection
+            ->expects($this->once())
+            ->method('executeQuery')
+            ->with('SELECT 1')
+            ->willReturn($this->createMock(Result::class));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('getConnection')
+            ->willReturn($connection);
+
+        $this->redis
+            ->expects($this->once())
+            ->method('__call')
+            ->with('ping', [])
+            ->willReturn('PONG');
+
+        $this->doveadmHttpClient
+            ->expects($this->once())
+            ->method('checkHealth')
+            ->willReturn(DoveadmHealthDto::ok(new \DateTimeImmutable()));
+
+        $this->rspamdControllerClient
+            ->expects($this->once())
+            ->method('ping')
+            ->willReturn(HealthDto::ok('Rspamd is healthy'));
+
+        $this->userRepository->expects($this->never())->method('findBy');
+
+        $result = $this->service->checkAll(true, true);
+
+        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('redis', $result);
+        $this->assertArrayHasKey('doveadm', $result);
+        $this->assertArrayHasKey('rspamd', $result);
+        $this->assertNull($result['mysql']);
+        $this->assertNull($result['redis']);
+        if (isset($result['doveadm'])) {
+            $this->assertNull($result['doveadm']);
+        }
+        if (isset($result['rspamd'])) {
+            $this->assertNull($result['rspamd']);
         }
     }
 }

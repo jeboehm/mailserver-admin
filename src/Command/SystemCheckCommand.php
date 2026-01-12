@@ -37,7 +37,8 @@ class SystemCheckCommand extends Command
     {
         $this
             ->addOption('wait', null, InputOption::VALUE_NONE, 'Wait for dependencies to become available')
-            ->addOption('all', null, InputOption::VALUE_NONE, 'Check all services including Doveadm and Rspamd');
+            ->addOption('all', null, InputOption::VALUE_NONE, 'Check all services including Doveadm and Rspamd')
+            ->addOption('allow-empty-database', null, InputOption::VALUE_NONE, 'Only test database connection without requiring tables');
     }
 
     #[\Override]
@@ -45,6 +46,7 @@ class SystemCheckCommand extends Command
     {
         $wait = (bool) $input->getOption('wait');
         $all = (bool) $input->getOption('all');
+        $allowEmptyDatabase = (bool) $input->getOption('allow-empty-database');
 
         if ($wait) {
             $timeout = $this->parseTimeout();
@@ -54,7 +56,7 @@ class SystemCheckCommand extends Command
             $output->writeln(sprintf('Waiting for dependencies to become available (timeout: %ds)...', $timeout));
 
             while (time() < $endTime) {
-                $results = $this->connectionCheckService->checkAll($all);
+                $results = $this->connectionCheckService->checkAll($all, $allowEmptyDatabase);
 
                 $hasErrors = false;
                 if (null !== $results['mysql'] || null !== $results['redis']) {
@@ -83,7 +85,7 @@ class SystemCheckCommand extends Command
             $output->writeln(sprintf('<fg=red>[ERROR]</> Timeout reached after %ds. Dependencies are still not available.', $timeout));
         }
 
-        $results = $this->connectionCheckService->checkAll($all);
+        $results = $this->connectionCheckService->checkAll($all, $allowEmptyDatabase);
 
         $hasErrors = false;
 
