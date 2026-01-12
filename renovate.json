@@ -2,11 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
+    "group:recommended",
     "schedule:weekends",
-    ":automergeMinor",
+    ":approveMajorUpdates",
     ":automergeDigest",
-    ":automergePr",
-    "group:recommended"
+    ":automergeMinor",
+    ":automergePr"
   ],
   "packageRules": [
     {
