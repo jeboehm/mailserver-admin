@@ -37,7 +37,7 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
         $emailAddress = method_exists($response, 'getUserIdentifier') ? $response->getUserIdentifier() : $response->getUsername();
 
         if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
-            throw new UserNotFoundException('No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
+            throw $this->createUserNotFoundException(username: $emailAddress, message: 'No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
         }
 
         $user = $this->findUser($emailAddress) ?? throw $this->createUserNotFoundException($emailAddress, \sprintf("User '%s' not found.", $emailAddress));
