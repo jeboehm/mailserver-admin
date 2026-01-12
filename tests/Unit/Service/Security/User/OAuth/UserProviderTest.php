@@ -20,7 +20,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class UserProviderTest extends TestCase
@@ -106,7 +105,7 @@ class UserProviderTest extends TestCase
         $isValidEmail = false !== filter_var($emailAddress, \FILTER_VALIDATE_EMAIL);
 
         if (!$isValidEmail) {
-            $this->expectException(UserNotFoundException::class);
+            $this->expectException(AccountNotLinkedException::class);
             $this->expectExceptionMessage('No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
             $response->expects($this->never())->method('getData');
         } else {
