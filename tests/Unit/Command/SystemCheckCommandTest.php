@@ -37,7 +37,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -53,12 +53,33 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringNotContainsString('Rspamd', $output);
     }
 
+    public function testBasicCheckWithAllowEmptyDatabase(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->with(false, true)
+            ->willReturn([
+                'mysql' => null,
+                'redis' => null,
+            ]);
+
+        $this->commandTester->execute(['--allow-empty-database' => true]);
+
+        $this->assertEquals(0, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+        $this->assertStringNotContainsString('Doveadm', $output);
+        $this->assertStringNotContainsString('Rspamd', $output);
+    }
+
     public function testBasicCheckWithMySQLError(): void
     {
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturn([
                 'mysql' => 'Connection refused',
                 'redis' => null,
@@ -73,12 +94,32 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
 
+    public function testBasicCheckWithAllowEmptyDatabaseAndMySQLError(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->with(false, true)
+            ->willReturn([
+                'mysql' => 'Connection refused',
+                'redis' => null,
+            ]);
+
+        $this->commandTester->execute(['--allow-empty-database' => true]);
+
+        $this->assertEquals(1, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('[ERROR] Your MySQL connection failed', $output);
+        $this->assertStringContainsString('Connection refused', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+    }
+
     public function testBasicCheckWithRedisError(): void
     {
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => 'Authentication failed',
@@ -98,7 +139,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturn([
                 'mysql' => 'Database not found',
                 'redis' => 'Connection refused',
@@ -119,7 +160,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -137,12 +178,35 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
     }
 
+    public function testCheckAllWithAllowEmptyDatabase(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->with(true, true)
+            ->willReturn([
+                'mysql' => null,
+                'redis' => null,
+                'doveadm' => null,
+                'rspamd' => null,
+            ]);
+
+        $this->commandTester->execute(['--all' => true, '--allow-empty-database' => true]);
+
+        $this->assertEquals(0, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+        $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
+        $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
+    }
+
     public function testCheckAllWithDoveadmError(): void
     {
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -166,7 +230,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -190,7 +254,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturn([
                 'mysql' => 'Database not found',
                 'redis' => 'Connection refused',
@@ -213,7 +277,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -229,13 +293,34 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
 
+    public function testWaitOptionWithAllowEmptyDatabase(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->with(false, true)
+            ->willReturn([
+                'mysql' => null,
+                'redis' => null,
+            ]);
+
+        $this->commandTester->execute(['--wait' => true, '--allow-empty-database' => true]);
+
+        $this->assertEquals(0, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('Waiting for dependencies to become available', $output);
+        $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
+        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+    }
+
     public function testWaitOptionWithInitialFailureThenSuccess(): void
     {
         $callCount = 0;
         $this->connectionCheckService
             ->expects($this->atLeast(2))
             ->method('checkAll')
-            ->with(false)
+            ->with(false, false)
             ->willReturnCallback(function () use (&$callCount) {
                 ++$callCount;
                 if (1 === $callCount) {
@@ -264,7 +349,7 @@ class SystemCheckCommandTest extends TestCase
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturn([
                 'mysql' => null,
                 'redis' => null,
@@ -284,13 +369,38 @@ class SystemCheckCommandTest extends TestCase
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
     }
 
+    public function testWaitOptionWithAllFlagAndAllowEmptyDatabase(): void
+    {
+        $this->connectionCheckService
+            ->expects($this->once())
+            ->method('checkAll')
+            ->with(true, true)
+            ->willReturn([
+                'mysql' => null,
+                'redis' => null,
+                'doveadm' => null,
+                'rspamd' => null,
+            ]);
+
+        $this->commandTester->execute(['--wait' => true, '--all' => true, '--allow-empty-database' => true]);
+
+        $this->assertEquals(0, $this->commandTester->getStatusCode());
+        $output = $this->commandTester->getDisplay();
+        $this->assertStringContainsString('Waiting for dependencies to become available', $output);
+        $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
+        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Redis connection is working.', $output);
+        $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
+        $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
+    }
+
     public function testWaitOptionWithAllFlagAndDoveadmError(): void
     {
         $callCount = 0;
         $this->connectionCheckService
             ->expects($this->atLeast(2))
             ->method('checkAll')
-            ->with(true)
+            ->with(true, false)
             ->willReturnCallback(function () use (&$callCount) {
                 ++$callCount;
                 if (1 === $callCount) {

@@ -13,12 +13,14 @@ namespace App\Service;
 use App\Repository\UserRepository;
 use App\Service\Dovecot\DoveadmHttpClient;
 use App\Service\Rspamd\RspamdControllerClient;
+use Doctrine\ORM\EntityManagerInterface;
 use Predis\ClientInterface;
 
 readonly class ConnectionCheckService
 {
     public function __construct(
         private UserRepository $userRepository,
+        private EntityManagerInterface $entityManager,
         private ClientInterface $redis,
         private DoveadmHttpClient $doveadmHttpClient,
         private RspamdControllerClient $rspamdControllerClient,
@@ -52,10 +54,10 @@ readonly class ConnectionCheckService
      *
      * @return array{mysql: string|null, redis: string|null}|array{mysql: string|null, redis: string|null, doveadm: string|null, rspamd: string|null}
      */
-    public function checkAll(bool $all = false): array
+    public function checkAll(bool $all = false, bool $allowEmptyDatabase = false): array
     {
         $result = [
-            'mysql' => $this->checkMySQL(),
+            'mysql' => $this->checkMySQL($allowEmptyDatabase),
             'redis' => $this->checkRedis(),
         ];
 
@@ -67,13 +69,20 @@ readonly class ConnectionCheckService
         return $result;
     }
 
-    public function checkMySQL(): ?string
+    public function checkMySQL(bool $allowEmptyDatabase = false): ?string
     {
         try {
-            $this->userRepository->findBy(
-                criteria: [],
-                limit: 1,
-            );
+            if ($allowEmptyDatabase) {
+                // Just test the connection without requiring tables
+                $connection = $this->entityManager->getConnection();
+                $connection->executeQuery('SELECT 1');
+            } else {
+                // Test connection by querying a table
+                $this->userRepository->findBy(
+                    criteria: [],
+                    limit: 1,
+                );
+            }
         } catch (\Throwable $e) {
             return $this->formatMySQLError($e);
         }
