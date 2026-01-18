@@ -12,7 +12,7 @@
     "doctrine/doctrine-bundle": "3.2.2",
     "doctrine/doctrine-migrations-bundle": "3.7.0",
     "doctrine/orm": "3.6.1",
-    "easycorp/easyadmin-bundle": "v4.27.6",
+    "easycorp/easyadmin-bundle": "v4.27.7",
     "hwi/oauth-bundle": "v2.4.0",
     "predis/predis": "v3.3.0",
     "symfony/asset-mapper": "*",

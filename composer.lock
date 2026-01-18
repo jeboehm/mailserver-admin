@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c67e623a424a7980ebc6cc63dde9fdc",
+    "content-hash": "0d6167d1768c7d1edae6c5d5a4b5e22a",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -1263,16 +1263,16 @@
         },
         {
             "name": "easycorp/easyadmin-bundle",
-            "version": "v4.27.6",
+            "version": "v4.27.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EasyCorp/EasyAdminBundle.git",
-                "reference": "ece70f2111f006262cd30af16dc10b1720704e10"
+                "reference": "03ade1df9654a4fb1d728262a32f7aaafae905b2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/ece70f2111f006262cd30af16dc10b1720704e10",
-                "reference": "ece70f2111f006262cd30af16dc10b1720704e10",
+                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/03ade1df9654a4fb1d728262a32f7aaafae905b2",
+                "reference": "03ade1df9654a4fb1d728262a32f7aaafae905b2",
                 "shasum": ""
             },
             "require": {
@@ -1356,7 +1356,7 @@
             ],
             "support": {
                 "issues": "https://github.com/EasyCorp/EasyAdminBundle/issues",
-                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.27.6"
+                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v4.27.7"
             },
             "funding": [
                 {
@@ -1364,7 +1364,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-04T09:25:06+00:00"
+            "time": "2026-01-15T19:06:53+00:00"
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
@@ -2220,16 +2220,16 @@
         },
         {
             "name": "symfony/asset-mapper",
-            "version": "v8.0.0",
+            "version": "v8.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/asset-mapper.git",
-                "reference": "82a88a78eca5dd127def692d1b853c5bc245705f"
+                "reference": "87c12734877c97ac7274ad145592a2c7efcfa34f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/asset-mapper/zipball/82a88a78eca5dd127def692d1b853c5bc245705f",
-                "reference": "82a88a78eca5dd127def692d1b853c5bc245705f",
+                "url": "https://api.github.com/repos/symfony/asset-mapper/zipball/87c12734877c97ac7274ad145592a2c7efcfa34f",
+                "reference": "87c12734877c97ac7274ad145592a2c7efcfa34f",
                 "shasum": ""
             },
             "require": {
@@ -2277,7 +2277,7 @@
             "description": "Maps directories of assets & makes them available in a public directory with versioned filenames.",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/asset-mapper/tree/v8.0.0"
+                "source": "https://github.com/symfony/asset-mapper/tree/v8.0.3"
             },
             "funding": [
                 {
@@ -2297,7 +2297,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-11-21T13:19:49+00:00"
+            "time": "2025-12-19T10:01:18+00:00"
         },
         {
             "name": "symfony/cache",
