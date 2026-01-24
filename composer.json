@@ -33,8 +33,8 @@
     "symfony/ux-chartjs": "^2.32",
     "symfony/validator": "v7.4.3",
     "symfony/yaml": "v7.4.1",
-    "twig/extra-bundle": "v3.22.2",
-    "twig/string-extra": "v3.22.1"
+    "twig/extra-bundle": "v3.23.0",
+    "twig/string-extra": "v3.23.0"
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
