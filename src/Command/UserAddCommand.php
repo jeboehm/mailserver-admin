@@ -65,13 +65,13 @@ class UserAddCommand extends Command
         $domain = $this->getDomain($input->getArgument('domain'));
 
         if (null === $domain) {
-            $output->writeln(sprintf('<error>Domain %s was not found.</error>', $input->getArgument('domain')));
+            $output->writeln(\sprintf('<error>Domain %s was not found.</error>', $input->getArgument('domain')));
 
             return 1;
         }
 
         $user->setDomain($domain);
-        $user->setName(\mb_strtolower((string) $input->getArgument('name')));
+        $user->setName(mb_strtolower((string) $input->getArgument('name')));
         $user->setAdmin((bool) $input->getOption('admin'));
         $user->setSendOnly((bool) $input->getOption('sendonly'));
         $user->setEnabled((bool) $input->getOption('enable'));
@@ -104,7 +104,7 @@ class UserAddCommand extends Command
         if ($validationResult->count() > 0) {
             foreach ($validationResult as $item) {
                 /* @var $item ConstraintViolation */
-                $output->writeln(sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
+                $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
             return 1;
@@ -118,6 +118,6 @@ class UserAddCommand extends Command
 
     private function getDomain(string $domain): ?Domain
     {
-        return $this->domainRepository->findOneBy(['name' => \mb_strtolower($domain)]);
+        return $this->domainRepository->findOneBy(['name' => mb_strtolower($domain)]);
     }
 }

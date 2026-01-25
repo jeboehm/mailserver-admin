@@ -34,7 +34,7 @@ final readonly class MobileConfigAction
     {
         $user = $this->security->getUser();
 
-        if (!($user instanceof User)) {
+        if (!$user instanceof User) {
             throw new \LogicException('User must be a local user (not OAuth) to download mobileconfig.');
         }
 
@@ -42,18 +42,18 @@ final readonly class MobileConfigAction
             $signedProfile = $this->mobileConfigService->generateSignedProfile($user);
         } catch (\RuntimeException $e) {
             return new Response(
-                content: sprintf('Error generating mobileconfig: %s', $e->getMessage()),
+                content: \sprintf('Error generating mobileconfig: %s', $e->getMessage()),
                 status: Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
 
-        $filename = sprintf('%s.mobileconfig', str_replace('@', '_at_', (string) $user));
+        $filename = \sprintf('%s.mobileconfig', str_replace('@', '_at_', (string) $user));
 
         return new Response(
             content: $signedProfile,
             headers: [
                 'Content-Type' => 'application/x-apple-aspen-config',
-                'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+                'Content-Disposition' => \sprintf('attachment; filename="%s"', $filename),
             ]
         );
     }

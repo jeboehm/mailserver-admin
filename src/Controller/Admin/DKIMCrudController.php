@@ -80,7 +80,7 @@ class DKIMCrudController extends AbstractCrudController
     {
         $domain = $adminContext->getEntity()->getInstance();
 
-        assert($domain instanceof Domain);
+        \assert($domain instanceof Domain);
 
         $keyPair = $this->keyGenerationService->createKeyPair();
         $domain->setDkimPrivateKey($keyPair->getPrivate());
@@ -90,7 +90,7 @@ class DKIMCrudController extends AbstractCrudController
         $this->entityManager->flush();
 
         $url = $this->adminUrlGenerator
-            ->setController(DKIMCrudController::class)
+            ->setController(self::class)
             ->setAction(Crud::PAGE_EDIT)
             ->setEntityId($domain->getId())
             ->generateUrl();

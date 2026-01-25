@@ -48,7 +48,7 @@ readonly class MxRecordCheck implements DnsCheckInterface
         $domainName = $domain->getName();
 
         $mxTargets = $this->dns->lookupMx($domainName);
-        $mxTargetsNormalized = \array_map($this->normalizeHostname(...), $mxTargets);
+        $mxTargetsNormalized = array_map($this->normalizeHostname(...), $mxTargets);
         $mxOk = false;
         $mxMessage = 'No MX record points to the mail host';
 
@@ -63,7 +63,7 @@ readonly class MxRecordCheck implements DnsCheckInterface
             $aaaa = $this->dns->lookupAaaa($target);
             $resolved = [...$a, ...$aaaa];
 
-            if (0 !== \count(\array_intersect($expectedAll, $resolved))) {
+            if (0 !== \count(array_intersect($expectedAll, $resolved))) {
                 $mxOk = true;
                 $mxMessage = \sprintf('MX target "%s" resolves to expected host IPs', $mxTargets[$idx] ?? $target);
                 break;
@@ -85,6 +85,6 @@ readonly class MxRecordCheck implements DnsCheckInterface
 
     private function normalizeHostname(string $host): string
     {
-        return \rtrim(\strtolower($host), '.');
+        return rtrim(strtolower($host), '.');
     }
 }

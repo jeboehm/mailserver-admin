@@ -99,7 +99,7 @@ class LoginActionTest extends TestCase
             ->method('render')
             ->with(
                 '@EasyAdmin/page/login.html.twig',
-                $this->callback(function (array $context) use ($lastUsername) {
+                $this->callback(static function (array $context) use ($lastUsername) {
                     return '<h1>mailserver-admin</h1>' === $context['page_title']
                         && $lastUsername === $context['last_username']
                         && null === $context['error']
@@ -151,7 +151,7 @@ class LoginActionTest extends TestCase
             ->method('render')
             ->with(
                 '@EasyAdmin/page/login.html.twig',
-                $this->callback(function (array $context) use ($lastUsername, $error) {
+                $this->callback(static function (array $context) use ($lastUsername, $error) {
                     return '<h1>mailserver-admin</h1>' === $context['page_title']
                         && $lastUsername === $context['last_username']
                         && $error === $context['error']
@@ -203,7 +203,7 @@ class LoginActionTest extends TestCase
             ->method('render')
             ->with(
                 '@EasyAdmin/page/login.html.twig',
-                $this->callback(function (array $context) use ($lastUsername, $oauthButtonText) {
+                $this->callback(static function (array $context) use ($lastUsername, $oauthButtonText) {
                     return '<h1>mailserver-admin</h1>' === $context['page_title']
                         && $lastUsername === $context['last_username']
                         && null === $context['error']
@@ -254,7 +254,7 @@ class LoginActionTest extends TestCase
             ->method('render')
             ->with(
                 '@EasyAdmin/page/login.html.twig',
-                $this->callback(function (array $context) use ($lastUsername) {
+                $this->callback(static function (array $context) use ($lastUsername) {
                     return '<h1>mailserver-admin</h1>' === $context['page_title']
                         && $lastUsername === $context['last_username']
                         && null === $context['error']

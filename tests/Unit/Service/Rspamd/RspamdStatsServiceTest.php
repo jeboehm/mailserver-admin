@@ -140,7 +140,7 @@ final class RspamdStatsServiceTest extends TestCase
     {
         // Create a client that throws a connection error
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection failed');
             },
         ]);
@@ -177,7 +177,7 @@ final class RspamdStatsServiceTest extends TestCase
     public function testGetActionDistributionReturnsEmptyOnException(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection failed');
             },
         ]);
@@ -216,7 +216,7 @@ final class RspamdStatsServiceTest extends TestCase
     public function testGetActionThresholdsReturnsEmptyOnException(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection failed');
             },
         ]);
@@ -272,7 +272,7 @@ final class RspamdStatsServiceTest extends TestCase
     public function testGetTopSymbolsReturnsEmptyOnException(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection failed');
             },
         ]);
@@ -321,7 +321,7 @@ final class RspamdStatsServiceTest extends TestCase
     public function testGetHistoryReturnsEmptyOnException(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection failed');
             },
         ]);

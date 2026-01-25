@@ -43,7 +43,7 @@ readonly class ChangePasswordAction
     public function __invoke(Request $request): Response
     {
         $user = $this->security->getUser();
-        assert($user instanceof User);
+        \assert($user instanceof User);
 
         $form = $this->form->create(ChangePasswordType::class, $user);
 
@@ -79,7 +79,7 @@ readonly class ChangePasswordAction
 
     private function addFlash(SessionInterface $session, string $type, mixed $message): void
     {
-        if (!($session instanceof FlashBagAwareSessionInterface)) {
+        if (!$session instanceof FlashBagAwareSessionInterface) {
             throw new \LogicException(\sprintf('You cannot use the addFlash method because class "%s" doesn\'t implement "%s".', get_debug_type($session), FlashBagAwareSessionInterface::class));
         }
 

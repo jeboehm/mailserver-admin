@@ -88,7 +88,7 @@ final class DovecotStatsSamplerTest extends TestCase
         $this->cache
             ->expects(self::once())
             ->method('get')
-            ->with(self::callback(fn (string $key) => str_contains($key, 'samples')))
+            ->with(self::callback(static fn (string $key) => str_contains($key, 'samples')))
             ->willReturnCallback(function (string $key, callable $callback) {
                 $item = $this->createMock(ItemInterface::class);
                 $item->method('expiresAfter');
@@ -115,7 +115,7 @@ final class DovecotStatsSamplerTest extends TestCase
         $this->cache
             ->expects(self::once())
             ->method('get')
-            ->with(self::callback(fn (string $key) => str_contains($key, 'samples')))
+            ->with(self::callback(static fn (string $key) => str_contains($key, 'samples')))
             ->willReturnCallback(function (string $key, callable $callback) {
                 $item = $this->createMock(ItemInterface::class);
                 $item->method('expiresAfter');
@@ -170,7 +170,7 @@ final class DovecotStatsSamplerTest extends TestCase
         $this->cache
             ->expects(self::once())
             ->method('get')
-            ->with(self::callback(fn (string $key) => str_contains($key, 'samples')))
+            ->with(self::callback(static fn (string $key) => str_contains($key, 'samples')))
             ->willReturnCallback(function (string $key, callable $callback) {
                 $item = $this->createMock(ItemInterface::class);
                 $item->method('expiresAfter');
@@ -191,7 +191,7 @@ final class DovecotStatsSamplerTest extends TestCase
         $this->cache
             ->expects(self::once())
             ->method('get')
-            ->with(self::callback(fn (string $key) => str_contains($key, 'samples')))
+            ->with(self::callback(static fn (string $key) => str_contains($key, 'samples')))
             ->willReturn([
                 $sample1->toArray(),
                 $sample2->toArray(),

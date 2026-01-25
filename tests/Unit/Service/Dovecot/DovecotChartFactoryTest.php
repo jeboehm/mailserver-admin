@@ -59,7 +59,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertArrayHasKey('labels', $data);
                 self::assertArrayHasKey('datasets', $data);
                 self::assertCount(2, $data['labels']);
@@ -74,7 +74,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setOptions')
-            ->with(self::callback(function (array $options): bool {
+            ->with(self::callback(static function (array $options): bool {
                 self::assertArrayHasKey('plugins', $options);
                 self::assertArrayHasKey('title', $options['plugins']);
                 self::assertSame('Authentication Rate (/min)', $options['plugins']['title']['text']);
@@ -110,7 +110,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertCount(1, $data['datasets']);
                 self::assertSame('Auth Success', $data['datasets'][0]['label']);
 
@@ -145,7 +145,7 @@ final class DovecotChartFactoryTest extends TestCase
         $chart
             ->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertCount(1, $data['datasets']);
                 self::assertSame('Auth Failure', $data['datasets'][0]['label']);
 
@@ -176,7 +176,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertEmpty($data['datasets']);
 
                 return true;
@@ -199,7 +199,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertEmpty($data['datasets']);
 
                 return true;
@@ -231,7 +231,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 self::assertArrayHasKey('labels', $data);
                 self::assertArrayHasKey('datasets', $data);
                 self::assertCount(1, $data['datasets']);
@@ -243,7 +243,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setOptions')
-            ->with(self::callback(function (array $options): bool {
+            ->with(self::callback(static function (array $options): bool {
                 self::assertSame('Mail Deliveries (/min)', $options['plugins']['title']['text']);
 
                 return true;
@@ -284,7 +284,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 // Should use success series labels
                 self::assertCount(2, $data['labels']);
                 self::assertSame('10:00', $data['labels'][0]);
@@ -319,7 +319,7 @@ final class DovecotChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data): bool {
+            ->with(self::callback(static function (array $data): bool {
                 // Should use failure series labels when success is missing
                 // The code uses $successSeries?->getLabels() ?? [] which returns empty array when null
                 // But then it should use failure series labels - let's check what actually happens

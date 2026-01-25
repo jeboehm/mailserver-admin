@@ -136,7 +136,7 @@ class MobileConfigServiceTest extends TestCase
             ->method('render')
             ->with(
                 'admin/mobileconfig/mobileconfig.xml.twig',
-                $this->callback(function (array $params) use ($mailname) {
+                $this->callback(static function (array $params) use ($mailname) {
                     return 'test@example.com' === $params['email']
                         && $params['mailServerHost'] === $mailname
                         && isset($params['uuid1'])
@@ -171,7 +171,7 @@ class MobileConfigServiceTest extends TestCase
             ->method('render')
             ->with(
                 'admin/mobileconfig/mobileconfig.xml.twig',
-                $this->callback(function (array $params) {
+                $this->callback(static function (array $params) {
                     return 'test@example.com' === $params['email']
                         && 'example.com' === $params['mailServerHost']
                         && isset($params['uuid1'])
@@ -207,7 +207,7 @@ class MobileConfigServiceTest extends TestCase
             ->method('render')
             ->with(
                 'admin/mobileconfig/mobileconfig.xml.twig',
-                $this->callback(function (array $params) {
+                $this->callback(static function (array $params) {
                     // When user has no domain, __toString() returns empty string
                     return '' === $params['email']
                         && 'mail.example.com' === $params['mailServerHost']
@@ -242,7 +242,7 @@ class MobileConfigServiceTest extends TestCase
         $this->twigMock
             ->expects($this->once())
             ->method('render')
-            ->willReturnCallback(function (string $template, array $params) use (&$capturedUuids, $expectedXml) {
+            ->willReturnCallback(static function (string $template, array $params) use (&$capturedUuids, $expectedXml) {
                 $capturedUuids[] = $params['uuid1'];
                 $capturedUuids[] = $params['uuid2'];
 
@@ -270,7 +270,7 @@ class MobileConfigServiceTest extends TestCase
 
     public function testGenerateSignedProfileWithValidCertificates(): void
     {
-        if (!function_exists('openssl_cms_sign')) {
+        if (!\function_exists('openssl_cms_sign')) {
             $this->markTestSkipped('OpenSSL CMS signing is not available');
         }
 
@@ -298,7 +298,7 @@ class MobileConfigServiceTest extends TestCase
         $this->assertIsString($result);
         $this->assertNotEmpty($result);
         // Signed profile should be in DER format (binary)
-        $this->assertGreaterThan(strlen($expectedXml), strlen($result));
+        $this->assertGreaterThan(\strlen($expectedXml), \strlen($result));
     }
 
     private function createUserWithDomain(string $email, string $domainName): User

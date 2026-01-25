@@ -65,7 +65,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
     public function testListDomains(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
         $domainId = $domain->getId();

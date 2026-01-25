@@ -45,9 +45,9 @@ class DomainCrudController extends AbstractCrudController
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
             ->disable(Action::EDIT)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) {
+            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) {
                 $action->displayIf(
-                    fn (Domain $domain) => 0 === $domain->getAliases()->count() && 0 === $domain->getUsers()->count()
+                    static fn (Domain $domain) => 0 === $domain->getAliases()->count() && 0 === $domain->getUsers()->count()
                 );
 
                 return $action;

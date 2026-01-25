@@ -64,7 +64,7 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/index.html.twig',
-                $this->callback(fn (array $context) => isset($context['isConfigured']) && true === $context['isConfigured'])
+                $this->callback(static fn (array $context) => isset($context['isConfigured']) && true === $context['isConfigured'])
             )
             ->willReturn('rendered html');
 
@@ -86,7 +86,7 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/index.html.twig',
-                $this->callback(fn (array $context) => isset($context['isConfigured']) && false === $context['isConfigured'])
+                $this->callback(static fn (array $context) => isset($context['isConfigured']) && false === $context['isConfigured'])
             )
             ->willReturn('rendered html');
 
@@ -121,7 +121,7 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/_summary.html.twig',
-                $this->callback(function (array $context) use ($health) {
+                $this->callback(static function (array $context) use ($health) {
                     return isset($context['health'])
                         && $context['health'] instanceof DoveadmHealthDto
                         && $context['health']->isHealthy() === $health->isHealthy()
@@ -252,7 +252,7 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/_charts.html.twig',
-                $this->callback(function (array $context) {
+                $this->callback(static function (array $context) {
                     return isset($context['hasData'])
                         && true === $context['hasData']
                         && isset($context['sampleCount'])
@@ -318,7 +318,7 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/_charts.html.twig',
-                $this->callback(function (array $context) {
+                $this->callback(static function (array $context) {
                     return isset($context['hasData'])
                         && false === $context['hasData']
                         && isset($context['sampleCount'])
@@ -358,30 +358,30 @@ class DovecotStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/dovecot_stats/_raw.html.twig',
-                $this->callback(function (array $context) {
+                $this->callback(static function (array $context) {
                     return isset($context['sample'])
                         && $context['sample'] instanceof StatsDumpDto
                         && isset($context['authCounters'])
-                        && is_array($context['authCounters'])
+                        && \is_array($context['authCounters'])
                         && isset($context['authCounters']['auth_successes'])
                         && isset($context['authCounters']['auth_failures'])
                         && isset($context['sessionCounters'])
-                        && is_array($context['sessionCounters'])
+                        && \is_array($context['sessionCounters'])
                         && isset($context['sessionCounters']['num_logins'])
                         && isset($context['ioCounters'])
-                        && is_array($context['ioCounters'])
+                        && \is_array($context['ioCounters'])
                         && isset($context['ioCounters']['disk_input'])
                         && isset($context['indexCounters'])
-                        && is_array($context['indexCounters'])
+                        && \is_array($context['indexCounters'])
                         && isset($context['indexCounters']['idx_read'])
                         && isset($context['ftsCounters'])
-                        && is_array($context['ftsCounters'])
+                        && \is_array($context['ftsCounters'])
                         && isset($context['ftsCounters']['fts_read'])
                         && isset($context['systemCounters'])
-                        && is_array($context['systemCounters'])
+                        && \is_array($context['systemCounters'])
                         && isset($context['systemCounters']['user_cpu'])
                         && isset($context['otherCounters'])
-                        && is_array($context['otherCounters'])
+                        && \is_array($context['otherCounters'])
                         && isset($context['otherCounters']['other_counter']);
                 })
             )
@@ -429,7 +429,7 @@ class DovecotStatsControllerTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->headers->get('Content-Type'));
 
-        $content = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $content = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertTrue($content['success']);
         self::assertSame($fetchedAt->format(\DateTimeInterface::ATOM), $content['fetchedAt']);
     }
@@ -448,7 +448,7 @@ class DovecotStatsControllerTest extends TestCase
         self::assertSame(503, $response->getStatusCode());
         self::assertSame('application/json', $response->headers->get('Content-Type'));
 
-        $content = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $content = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
         self::assertFalse($content['success']);
         self::assertSame('Connection failed', $content['error']);
     }

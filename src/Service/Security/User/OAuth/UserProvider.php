@@ -49,7 +49,7 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
 
     public function refreshUser(UserInterface $user): User
     {
-        if (!($user instanceof User)) {
+        if (!$user instanceof User) {
             throw new UnsupportedUserException(\sprintf('Instances of "%s" are not supported.', $user::class));
         }
 
@@ -81,7 +81,7 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
     private function findUser(?string $emailAddress): ?User
     {
         return $this->userRepository->findOneByEmailAddress(
-            \mb_strtolower($emailAddress)
+            mb_strtolower($emailAddress)
         );
     }
 
@@ -117,10 +117,10 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
     {
         $groups = $userInformation->getData()['groups'] ?? false;
 
-        if (!is_array($groups)) {
+        if (!\is_array($groups)) {
             return false;
         }
 
-        return in_array($this->adminGroupName, $groups, true);
+        return \in_array($this->adminGroupName, $groups, true);
     }
 }

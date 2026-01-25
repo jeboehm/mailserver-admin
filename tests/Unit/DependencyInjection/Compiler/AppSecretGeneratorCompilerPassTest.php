@@ -25,7 +25,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
     {
         $this->tempDir = sys_get_temp_dir() . '/mailserver_admin_test_' . bin2hex(random_bytes(4));
         if (!mkdir($this->tempDir) && !is_dir($this->tempDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $this->tempDir));
+            throw new \RuntimeException(\sprintf('Directory "%s" was not created', $this->tempDir));
         }
 
         $this->containerBuilderMock = $this->createMock(ContainerBuilder::class);
@@ -71,13 +71,13 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
             ->method('setParameter')
             ->with(
                 'env(APP_SECRET)',
-                $this->callback(fn ($secret) => is_string($secret) && 12 === strlen($secret))
+                $this->callback(static fn ($secret) => \is_string($secret) && 12 === \strlen($secret))
             );
 
         $this->compilerPass->process($this->containerBuilderMock);
 
         $newSecret = file_get_contents($this->tempDir . '/app.secret');
-        $this->assertEquals(12, strlen($newSecret));
+        $this->assertEquals(12, \strlen($newSecret));
         $this->assertNotEquals($shortSecret, $newSecret);
     }
 
@@ -91,14 +91,14 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
             ->method('setParameter')
             ->with(
                 'env(APP_SECRET)',
-                $this->callback(fn ($secret) => is_string($secret) && 12 === strlen($secret))
+                $this->callback(static fn ($secret) => \is_string($secret) && 12 === \strlen($secret))
             );
 
         $this->compilerPass->process($this->containerBuilderMock);
 
         $this->assertFileExists($this->tempDir . '/app.secret');
         $newSecret = file_get_contents($this->tempDir . '/app.secret');
-        $this->assertEquals(12, strlen($newSecret));
+        $this->assertEquals(12, \strlen($newSecret));
     }
 
     public function testProcessThrowsExceptionWhenNotWritable(): void
@@ -108,7 +108,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
             ->method('getParameter')
             ->with('kernel.cache_dir')
             ->willReturn($this->tempDir);
-        $this->containerBuilderMock->method('setParameter')->willReturnCallback(function () {});
+        $this->containerBuilderMock->method('setParameter')->willReturnCallback(static function () {});
 
         // Make the directory read-only so file creation fails
         chmod($this->tempDir, 0o555);

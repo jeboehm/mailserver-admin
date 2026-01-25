@@ -50,7 +50,7 @@ class GitHubTagServiceTest extends TestCase
             ->with(
                 'GET',
                 'https://api.github.com/repos/jeboehm/mailserver-admin/tags',
-                $this->callback(function ($options) {
+                $this->callback(static function ($options) {
                     return isset($options['headers']['Accept'])
                         && 'application/vnd.github.v3+json' === $options['headers']['Accept']
                         && isset($options['timeout'])
@@ -62,7 +62,7 @@ class GitHubTagServiceTest extends TestCase
         $cacheItem = $this->createMock(ItemInterface::class);
         $cacheItem->expects($this->once())
             ->method('expiresAfter')
-            ->with($this->callback(function ($interval) {
+            ->with($this->callback(static function ($interval) {
                 return $interval instanceof \DateInterval && 8 === $interval->h;
             }))
             ->willReturnSelf();
@@ -70,8 +70,8 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->with($this->equalTo(md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -105,7 +105,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -137,7 +137,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -171,7 +171,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -200,7 +200,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -238,8 +238,8 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->with($this->equalTo(md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -273,7 +273,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -305,7 +305,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->with($this->equalTo(\md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
+            ->with($this->equalTo(md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
             ->willReturn($cachedData);
 
         $this->httpClient

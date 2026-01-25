@@ -40,7 +40,7 @@ class MobileConfigActionTest extends WebTestCase
 
     public function testMobileConfigDownloadRequiresCertificates(): void
     {
-        if (!function_exists('openssl_cms_sign')) {
+        if (!\function_exists('openssl_cms_sign')) {
             $this->markTestSkipped('OpenSSL CMS signing is not available');
         }
 
@@ -49,7 +49,7 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        assert($adminUrlGenerator instanceof AdminUrlGenerator);
+        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -58,7 +58,7 @@ class MobileConfigActionTest extends WebTestCase
 
     public function testMobileConfigDownloadReturnsCorrectContentType(): void
     {
-        if (!function_exists('openssl_cms_sign')) {
+        if (!\function_exists('openssl_cms_sign')) {
             $this->markTestSkipped('OpenSSL CMS signing is not available');
         }
 
@@ -67,7 +67,7 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        assert($adminUrlGenerator instanceof AdminUrlGenerator);
+        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -79,7 +79,7 @@ class MobileConfigActionTest extends WebTestCase
 
     public function testMobileConfigDownloadReturnsAttachment(): void
     {
-        if (!function_exists('openssl_cms_sign')) {
+        if (!\function_exists('openssl_cms_sign')) {
             $this->markTestSkipped('OpenSSL CMS signing is not available');
         }
 
@@ -88,7 +88,7 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        assert($adminUrlGenerator instanceof AdminUrlGenerator);
+        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -103,7 +103,7 @@ class MobileConfigActionTest extends WebTestCase
 
     public function testMobileConfigDownloadReturnsSignedProfile(): void
     {
-        if (!function_exists('openssl_cms_sign')) {
+        if (!\function_exists('openssl_cms_sign')) {
             $this->markTestSkipped('OpenSSL CMS signing is not available');
         }
 
@@ -112,7 +112,7 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        assert($adminUrlGenerator instanceof AdminUrlGenerator);
+        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -123,6 +123,6 @@ class MobileConfigActionTest extends WebTestCase
         self::assertIsString($content);
         self::assertNotEmpty($content);
         // Signed profile should be in DER format (binary), so it should be larger than a typical XML
-        self::assertGreaterThan(100, strlen($content));
+        self::assertGreaterThan(100, \strlen($content));
     }
 }

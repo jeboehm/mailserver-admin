@@ -64,7 +64,7 @@ class FetchmailAccountAddCommand extends Command
         );
 
         if (null === $user) {
-            $output->writeln(sprintf('<error>User %s not found.</error>', $input->getArgument('user')));
+            $output->writeln(\sprintf('<error>User %s not found.</error>', $input->getArgument('user')));
 
             return self::FAILURE;
         }
@@ -81,10 +81,10 @@ class FetchmailAccountAddCommand extends Command
 
         $errors = $this->validator->validate($fetchmailAccount);
 
-        if (count($errors) > 0) {
+        if (\count($errors) > 0) {
             foreach ($errors as $error) {
                 if ($error instanceof ConstraintViolationInterface) {
-                    $output->writeln(sprintf('<error>%s</error>', $error->getMessage()));
+                    $output->writeln(\sprintf('<error>%s</error>', $error->getMessage()));
                 }
             }
 

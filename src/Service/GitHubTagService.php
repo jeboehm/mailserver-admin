@@ -39,7 +39,7 @@ readonly class GitHubTagService
      */
     public function getLatestTag(string $owner, string $repo): ?string
     {
-        $url = sprintf(
+        $url = \sprintf(
             '%s/repos/%s/%s/tags',
             self::GITHUB_API_BASE_URL,
             $owner,
@@ -47,7 +47,7 @@ readonly class GitHubTagService
         );
 
         $tags = $this->cacheApp->get(
-            \md5(__CLASS__ . $owner . $repo),
+            md5(__CLASS__ . $owner . $repo),
             function (ItemInterface $item) use ($url): ?array {
                 $item->expiresAfter(new \DateInterval('PT8H'));
                 try {
@@ -105,7 +105,7 @@ readonly class GitHubTagService
     public function getLatestTagFromPath(string $repositoryPath): ?string
     {
         $parts = explode('/', $repositoryPath, 2);
-        if (2 !== count($parts)) {
+        if (2 !== \count($parts)) {
             return null;
         }
 

@@ -52,7 +52,7 @@ class OAuthRegisterTypeTest extends TestCase
             ->with(
                 'plainPassword',
                 RepeatedType::class,
-                $this->callback(function (array $options): bool {
+                $this->callback(static function (array $options): bool {
                     return PasswordType::class === $options['type']
                         && true === $options['required']
                         && isset($options['first_options']['label'])

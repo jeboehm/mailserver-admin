@@ -57,8 +57,8 @@ readonly class HostIpResolver
         }
 
         return new ExpectedHostIps(
-            ipv4: \array_values(\array_unique($ipv4)),
-            ipv6: \array_values(\array_unique($ipv6)),
+            ipv4: array_values(array_unique($ipv4)),
+            ipv6: array_values(array_unique($ipv6)),
             isOverride: false,
         );
     }
@@ -69,13 +69,13 @@ readonly class HostIpResolver
             return null;
         }
 
-        $value = \trim($value);
+        $value = trim($value);
 
         if ('' === $value) {
             return null;
         }
 
-        $parts = \array_values(\array_filter(\array_map('trim', \explode(',', $value)), static fn (string $p) => '' !== $p));
+        $parts = array_values(array_filter(array_map('trim', explode(',', $value)), static fn (string $p) => '' !== $p));
 
         $ipv4 = [];
         $ipv6 = [];
@@ -95,8 +95,8 @@ readonly class HostIpResolver
         }
 
         return new ExpectedHostIps(
-            ipv4: \array_values(\array_unique($ipv4)),
-            ipv6: \array_values(\array_unique($ipv6)),
+            ipv4: array_values(array_unique($ipv4)),
+            ipv6: array_values(array_unique($ipv6)),
             isOverride: true,
         );
     }
@@ -106,11 +106,11 @@ readonly class HostIpResolver
      */
     private function extractIps(string $body): array
     {
-        $tokens = \preg_split('/[^0-9a-fA-F\:\.]+/', $body) ?: [];
+        $tokens = preg_split('/[^0-9a-fA-F\:\.]+/', $body) ?: [];
         $ips = [];
 
         foreach ($tokens as $token) {
-            $token = \trim($token);
+            $token = trim($token);
 
             if ('' === $token) {
                 continue;
@@ -121,6 +121,6 @@ readonly class HostIpResolver
             }
         }
 
-        return \array_values(\array_unique($ips));
+        return array_values(array_unique($ips));
     }
 }

@@ -62,7 +62,7 @@ class FetchmailAccountAddCommandTest extends TestCase
         $this->userRepository->expects($this->once())->method('findOneByEmailAddress')->willReturn($this->createStub(User::class));
         $this->validator->expects($this->once())->method('validate')->willReturn(new ConstraintViolationList());
         $this->entityManager->expects($this->once())->method('persist')->with(
-            $this->callback(function (FetchmailAccount $fetchmailAccount) {
+            $this->callback(static function (FetchmailAccount $fetchmailAccount) {
                 self::assertEquals('example.com', $fetchmailAccount->getHost());
                 self::assertEquals('imap', $fetchmailAccount->getProtocol());
                 self::assertEquals(993, $fetchmailAccount->getPort());
@@ -128,7 +128,7 @@ class FetchmailAccountAddCommandTest extends TestCase
             ]
         ));
         $this->entityManager->expects($this->once())->method('persist')->with(
-            $this->callback(function (FetchmailAccount $fetchmailAccount) {
+            $this->callback(static function (FetchmailAccount $fetchmailAccount) {
                 self::assertEquals('example.com', $fetchmailAccount->getHost());
                 self::assertEquals('imap', $fetchmailAccount->getProtocol());
                 self::assertEquals(993, $fetchmailAccount->getPort());

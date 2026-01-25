@@ -63,7 +63,7 @@ readonly class DovecotStatsSampler
     {
         $samples = $this->getSamples();
 
-        return empty($samples) ? null : $samples[count($samples) - 1];
+        return empty($samples) ? null : $samples[\count($samples) - 1];
     }
 
     /**
@@ -83,7 +83,7 @@ readonly class DovecotStatsSampler
     {
         return $this->cacheApp->get(
             self::CACHE_KEY_LAST_SAMPLE_TIME,
-            function (ItemInterface $item): ?\DateTimeImmutable {
+            static function (ItemInterface $item): ?\DateTimeImmutable {
                 $item->expiresAfter(new \DateInterval('PT10S')); // Trigger refetch
 
                 return new \DateTimeImmutable();
@@ -137,8 +137,8 @@ readonly class DovecotStatsSampler
         $samples[] = $sample;
 
         // Trim to max size
-        if (count($samples) > self::MAX_SAMPLES) {
-            $samples = array_slice($samples, -self::MAX_SAMPLES);
+        if (\count($samples) > self::MAX_SAMPLES) {
+            $samples = \array_slice($samples, -self::MAX_SAMPLES);
         }
 
         // Remove samples older than TTL
@@ -165,7 +165,7 @@ readonly class DovecotStatsSampler
 
         $serialized = $this->cacheApp->get(
             self::CACHE_KEY_SAMPLES,
-            function (ItemInterface $item) use ($ttlMinutes): array {
+            static function (ItemInterface $item) use ($ttlMinutes): array {
                 $item->expiresAfter(new \DateInterval('PT' . ($ttlMinutes + 10) . 'M'));
 
                 return [];
@@ -198,7 +198,7 @@ readonly class DovecotStatsSampler
         $this->cacheApp->delete(self::CACHE_KEY_SAMPLES);
         $this->cacheApp->get(
             self::CACHE_KEY_SAMPLES,
-            function (ItemInterface $item) use ($serialized, $ttlMinutes): array {
+            static function (ItemInterface $item) use ($serialized, $ttlMinutes): array {
                 $item->expiresAfter(new \DateInterval('PT' . ($ttlMinutes + 10) . 'M'));
 
                 return $serialized;
@@ -216,7 +216,7 @@ readonly class DovecotStatsSampler
         $this->cacheApp->delete(self::CACHE_KEY_LAST_SAMPLE_TIME);
         $this->cacheApp->get(
             self::CACHE_KEY_LAST_SAMPLE_TIME,
-            function (ItemInterface $item) use ($time, $ttlMinutes): \DateTimeImmutable {
+            static function (ItemInterface $item) use ($time, $ttlMinutes): \DateTimeImmutable {
                 $item->expiresAfter(new \DateInterval('PT' . ($ttlMinutes + 10) . 'M'));
 
                 return $time;

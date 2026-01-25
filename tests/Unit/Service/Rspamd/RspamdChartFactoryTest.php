@@ -48,13 +48,13 @@ final class RspamdChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data) {
+            ->with(self::callback(static function (array $data) {
                 return isset($data['labels']) && isset($data['datasets']);
             }));
 
         $chart->expects(self::once())
             ->method('setOptions')
-            ->with(self::callback(function (array $options) {
+            ->with(self::callback(static function (array $options) {
                 return isset($options['responsive']) && isset($options['scales']);
             }));
 
@@ -96,13 +96,13 @@ final class RspamdChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data) {
+            ->with(self::callback(static function (array $data) {
                 return isset($data['labels']) && isset($data['datasets']);
             }));
 
         $chart->expects(self::once())
             ->method('setOptions')
-            ->with(self::callback(function (array $options) {
+            ->with(self::callback(static function (array $options) {
                 return isset($options['responsive']) && isset($options['plugins']);
             }));
 
@@ -139,13 +139,13 @@ final class RspamdChartFactoryTest extends TestCase
 
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data) {
+            ->with(self::callback(static function (array $data) {
                 return isset($data['labels']) && 'No data available' === $data['labels'][0];
             }));
 
         $chart->expects(self::once())
             ->method('setOptions')
-            ->with(self::callback(function (array $options) {
+            ->with(self::callback(static function (array $options) {
                 return isset($options['responsive']) && isset($options['plugins']);
             }));
 
@@ -165,7 +165,7 @@ final class RspamdChartFactoryTest extends TestCase
         $message = 'Custom error message';
         $chart->expects(self::once())
             ->method('setData')
-            ->with(self::callback(function (array $data) use ($message) {
+            ->with(self::callback(static function (array $data) use ($message) {
                 return isset($data['labels']) && $data['labels'][0] === $message;
             }));
 

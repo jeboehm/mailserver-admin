@@ -41,7 +41,7 @@ class NativeDnsLookupTest extends TestCase
     public function testLookupAWithInvalidHost(): void
     {
         // Use a domain that definitely doesn't exist
-        $result = $this->lookup->lookupA('this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupA('this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -65,7 +65,7 @@ class NativeDnsLookupTest extends TestCase
 
     public function testLookupAaaaWithInvalidHost(): void
     {
-        $result = $this->lookup->lookupAaaa('this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupAaaa('this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -87,7 +87,7 @@ class NativeDnsLookupTest extends TestCase
 
     public function testLookupMxWithInvalidDomain(): void
     {
-        $result = $this->lookup->lookupMx('this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupMx('this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -109,7 +109,7 @@ class NativeDnsLookupTest extends TestCase
 
     public function testLookupTxtWithInvalidName(): void
     {
-        $result = $this->lookup->lookupTxt('this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupTxt('this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -202,7 +202,7 @@ class NativeDnsLookupTest extends TestCase
 
     public function testLookupSrvWithInvalidName(): void
     {
-        $result = $this->lookup->lookupSrv('_service._tcp.this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupSrv('_service._tcp.this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -225,7 +225,7 @@ class NativeDnsLookupTest extends TestCase
 
     public function testLookupCnameWithInvalidHost(): void
     {
-        $result = $this->lookup->lookupCname('this-domain-definitely-does-not-exist-' . \time() . '.com');
+        $result = $this->lookup->lookupCname('this-domain-definitely-does-not-exist-' . time() . '.com');
 
         self::assertIsArray($result);
         self::assertEmpty($result);
@@ -239,7 +239,7 @@ class NativeDnsLookupTest extends TestCase
 
         self::assertIsArray($result);
         // Verify no duplicates by comparing count with unique count
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 
@@ -248,7 +248,7 @@ class NativeDnsLookupTest extends TestCase
         $result = $this->lookup->lookupAaaa('example.com');
 
         self::assertIsArray($result);
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 
@@ -257,7 +257,7 @@ class NativeDnsLookupTest extends TestCase
         $result = $this->lookup->lookupMx('example.com');
 
         self::assertIsArray($result);
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 
@@ -266,7 +266,7 @@ class NativeDnsLookupTest extends TestCase
         $result = $this->lookup->lookupTxt('example.com');
 
         self::assertIsArray($result);
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 
@@ -275,7 +275,7 @@ class NativeDnsLookupTest extends TestCase
         $result = $this->lookup->lookupPtr('8.8.8.8');
 
         self::assertIsArray($result);
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 
@@ -284,7 +284,7 @@ class NativeDnsLookupTest extends TestCase
         $result = $this->lookup->lookupCname('example.com');
 
         self::assertIsArray($result);
-        $uniqueCount = \count(\array_unique($result));
+        $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
 

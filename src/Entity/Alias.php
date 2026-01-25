@@ -41,7 +41,7 @@ class Alias implements \Stringable
     public function __toString(): string
     {
         if (null !== $this->getDomain()) {
-            return sprintf('%s@%s → %s', $this->name, $this->getDomain()->getName(), $this->destination);
+            return \sprintf('%s@%s → %s', $this->name, $this->getDomain()->getName(), $this->destination);
         }
 
         return '';

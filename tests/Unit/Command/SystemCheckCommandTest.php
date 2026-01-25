@@ -321,7 +321,7 @@ class SystemCheckCommandTest extends TestCase
             ->expects($this->atLeast(2))
             ->method('checkAll')
             ->with(false, false)
-            ->willReturnCallback(function () use (&$callCount) {
+            ->willReturnCallback(static function () use (&$callCount) {
                 ++$callCount;
                 if (1 === $callCount) {
                     return [
@@ -401,7 +401,7 @@ class SystemCheckCommandTest extends TestCase
             ->expects($this->atLeast(2))
             ->method('checkAll')
             ->with(true, false)
-            ->willReturnCallback(function () use (&$callCount) {
+            ->willReturnCallback(static function () use (&$callCount) {
                 ++$callCount;
                 if (1 === $callCount) {
                     return [

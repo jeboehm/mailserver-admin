@@ -28,6 +28,6 @@ final readonly class ExpectedHostIps
      */
     public function all(): array
     {
-        return \array_values(\array_unique([...$this->ipv4, ...$this->ipv6]));
+        return array_values(array_unique([...$this->ipv4, ...$this->ipv6]));
     }
 }

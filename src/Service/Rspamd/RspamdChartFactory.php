@@ -259,7 +259,7 @@ readonly class RspamdChartFactory
             $g = hexdec(substr($hex, 2, 2));
             $b = hexdec(substr($hex, 4, 2));
 
-            return sprintf('rgba(%d, %d, %d, 0.8)', $r, $g, $b);
+            return \sprintf('rgba(%d, %d, %d, 0.8)', $r, $g, $b);
         }
 
         // Fallback: return original if conversion fails

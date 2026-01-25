@@ -24,6 +24,7 @@ return $config
     ->setRules([
                    '@PSR2' => true,
                    '@Symfony' => true,
+                   '@Symfony:risky' => true,
                    '@autoPHPMigration' => true,
                    'header_comment' => ['header' => $header, 'separate' => 'bottom', 'comment_type' => 'PHPDoc'],
                    'no_useless_else' => true,

@@ -25,13 +25,13 @@ trait ConnectionCheckTrait
         if (null !== $results['mysql']) {
             $hasErrors = true;
             $output->writeln('<fg=red>[ERROR]</> Your MySQL connection failed because of:');
-            $output->writeln(sprintf('<fg=red>%s</>', $results['mysql']));
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['mysql']));
         }
 
         if (null !== $results['redis']) {
             $hasErrors = true;
             $output->writeln('<fg=red>[ERROR]</> Your Redis connection failed because of:');
-            $output->writeln(sprintf('<fg=red>%s</>', $results['redis']));
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['redis']));
         }
 
         return !$hasErrors;

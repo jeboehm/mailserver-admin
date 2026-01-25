@@ -39,7 +39,7 @@ readonly class PtrRecordCheck implements DnsCheckInterface
 
         foreach ($expectedAll as $ip) {
             $targets = $this->dns->lookupPtr($ip);
-            $targetsNormalized = \array_map($this->normalizeHostname(...), $targets);
+            $targetsNormalized = array_map($this->normalizeHostname(...), $targets);
             $ok = \in_array($mailname, $targetsNormalized, true);
 
             $rows[] = new DnsWizardRow(
@@ -68,6 +68,6 @@ readonly class PtrRecordCheck implements DnsCheckInterface
 
     private function normalizeHostname(string $host): string
     {
-        return \rtrim(\strtolower($host), '.');
+        return rtrim(strtolower($host), '.');
     }
 }

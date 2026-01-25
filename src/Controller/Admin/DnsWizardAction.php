@@ -79,7 +79,7 @@ final readonly class DnsWizardAction
 
         $user = $this->security->getUser();
 
-        if (!($user instanceof User)) {
+        if (!$user instanceof User) {
             throw new \LogicException('User is not an instance of User');
         }
 

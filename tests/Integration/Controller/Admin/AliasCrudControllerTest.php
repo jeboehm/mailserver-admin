@@ -34,7 +34,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     public function testListAliases(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -58,7 +58,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     public function testCreateAlias(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -75,7 +75,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $aliasRepository = $this->entityManager->getRepository(Alias::class);
-        assert($aliasRepository instanceof AliasRepository);
+        \assert($aliasRepository instanceof AliasRepository);
         $alias = $aliasRepository->findOneBy(['name' => 'testalias', 'domain' => $domain]);
         static::assertInstanceOf(Alias::class, $alias);
         static::assertEquals('test@example.com', $alias->getDestination());
@@ -84,7 +84,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     public function testCreateCatchAllAlias(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -101,7 +101,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $aliasRepository = $this->entityManager->getRepository(Alias::class);
-        assert($aliasRepository instanceof AliasRepository);
+        \assert($aliasRepository instanceof AliasRepository);
         $alias = $aliasRepository->findOneBy(['name' => '', 'domain' => $domain, 'destination' => 'catchall@example.com']);
         static::assertInstanceOf(Alias::class, $alias);
     }
@@ -109,7 +109,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     public function testEditAlias(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -132,7 +132,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $aliasRepository = $this->entityManager->getRepository(Alias::class);
-        assert($aliasRepository instanceof AliasRepository);
+        \assert($aliasRepository instanceof AliasRepository);
         $updatedAlias = $aliasRepository->find($alias->getId());
         static::assertInstanceOf(Alias::class, $updatedAlias);
         static::assertEquals('updated@example.com', $updatedAlias->getDestination());
@@ -141,7 +141,7 @@ class AliasCrudControllerTest extends AbstractCrudTestCase
     public function testCreateDuplicateAlias(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 

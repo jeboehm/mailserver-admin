@@ -155,7 +155,7 @@ class MxRecordCheckTest extends TestCase
             ->willReturn(['mx1.example.com', 'mx2.example.com']);
 
         $this->dns->method('lookupA')
-            ->willReturnCallback(function (string $host) use ($expectedAll) {
+            ->willReturnCallback(static function (string $host) use ($expectedAll) {
                 return match ($host) {
                     'mx1.example.com' => ['5.6.7.8'],
                     'mx2.example.com' => $expectedAll,

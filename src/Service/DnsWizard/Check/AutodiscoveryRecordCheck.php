@@ -68,7 +68,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
         $a = $this->dns->lookupA($name);
         $aaaa = $this->dns->lookupAaaa($name);
         $all = [...$a, ...$aaaa];
-        $matched = 0 !== \count(\array_intersect($expectedAll, $all));
+        $matched = 0 !== \count(array_intersect($expectedAll, $all));
 
         return new DnsWizardRow(
             scope: Scopes::SCOPE_DOMAIN,
@@ -96,7 +96,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
 
         // Check A/AAAA records
         $all = [...$a, ...$aaaa];
-        if (0 !== \count(\array_intersect($expectedAll, $all))) {
+        if (0 !== \count(array_intersect($expectedAll, $all))) {
             $matched = true;
         }
 
@@ -106,12 +106,12 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             $cnameA = $this->dns->lookupA($cname);
             $cnameAaaa = $this->dns->lookupAaaa($cname);
             $cnameAll = [...$cnameA, ...$cnameAaaa];
-            if (0 !== \count(\array_intersect($expectedAll, $cnameAll))) {
+            if (0 !== \count(array_intersect($expectedAll, $cnameAll))) {
                 $matched = true;
             }
         }
 
-        $actualValues = \array_merge($all, $actualValues);
+        $actualValues = array_merge($all, $actualValues);
 
         return new DnsWizardRow(
             scope: Scopes::SCOPE_DOMAIN,
@@ -132,7 +132,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
         $found = false;
 
         foreach ($txt as $value) {
-            if (\trim($value) === $expected) {
+            if (trim($value) === $expected) {
                 $found = true;
                 break;
             }
@@ -188,6 +188,6 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
 
     private function normalizeHostname(string $host): string
     {
-        return \rtrim(\strtolower($host), '.');
+        return rtrim(strtolower($host), '.');
     }
 }
