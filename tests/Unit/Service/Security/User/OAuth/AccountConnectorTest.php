@@ -60,7 +60,7 @@ class AccountConnectorTest extends TestCase
             ->method('flush');
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage(sprintf('User must be an instance of %s', User::class));
+        $this->expectExceptionMessage(\sprintf('User must be an instance of %s', User::class));
 
         $this->accountConnector->connect($user, $response);
     }

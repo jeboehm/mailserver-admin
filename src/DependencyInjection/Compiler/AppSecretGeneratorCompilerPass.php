@@ -19,13 +19,13 @@ readonly class AppSecretGeneratorCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container): void
     {
         $cacheDir = $container->getParameter('kernel.cache_dir');
-        $secretPath = sprintf('%s/app.secret', $cacheDir);
+        $secretPath = \sprintf('%s/app.secret', $cacheDir);
         $secret = null;
 
         if (is_readable($secretPath)) {
             $secret = file_get_contents($secretPath);
 
-            if (!$secret || strlen($secret) < 8) {
+            if (!$secret || \strlen($secret) < 8) {
                 $secret = null;
             }
         }
@@ -42,7 +42,7 @@ readonly class AppSecretGeneratorCompilerPass implements CompilerPassInterface
         $secret = substr(bin2hex(random_bytes(32)), 0, 12);
 
         if (!@file_put_contents($secretPath, $secret)) {
-            throw new \RuntimeException(sprintf('Cannot write APP_SECRET file: %s', $secretPath));
+            throw new \RuntimeException(\sprintf('Cannot write APP_SECRET file: %s', $secretPath));
         }
 
         return $secret;

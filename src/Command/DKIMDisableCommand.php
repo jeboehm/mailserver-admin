@@ -53,7 +53,7 @@ class DKIMDisableCommand extends Command
         $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {
-            $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));
+            $output->writeln(\sprintf('<error>Domain "%s" was not found.</error>', $name));
 
             return 1;
         }
@@ -63,7 +63,7 @@ class DKIMDisableCommand extends Command
         $result = $questionHelper->ask(
             $input,
             $output,
-            new ConfirmationQuestion(sprintf('Do you want to disable DKIM for domain "%s"?', $domain->getName()))
+            new ConfirmationQuestion(\sprintf('Do you want to disable DKIM for domain "%s"?', $domain->getName()))
         );
 
         if (!$result) {

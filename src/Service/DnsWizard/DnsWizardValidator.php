@@ -62,6 +62,6 @@ readonly class DnsWizardValidator
 
     private function normalizeHostname(string $host): string
     {
-        return \rtrim(\strtolower($host), '.');
+        return rtrim(strtolower($host), '.');
     }
 }

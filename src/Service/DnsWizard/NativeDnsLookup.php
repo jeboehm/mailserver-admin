@@ -33,7 +33,7 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($ips));
+        return array_values(array_unique($ips));
     }
 
     public function lookupAaaa(string $host): array
@@ -54,7 +54,7 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($ips));
+        return array_values(array_unique($ips));
     }
 
     public function lookupMx(string $domain): array
@@ -75,7 +75,7 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($targets));
+        return array_values(array_unique($targets));
     }
 
     public function lookupTxt(string $name): array
@@ -96,7 +96,7 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($values));
+        return array_values(array_unique($values));
     }
 
     public function lookupPtr(string $ip): array
@@ -123,7 +123,7 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($targets));
+        return array_values(array_unique($targets));
     }
 
     /**
@@ -185,19 +185,19 @@ final class NativeDnsLookup implements DnsLookupInterface
             }
         }
 
-        return \array_values(\array_unique($targets));
+        return array_values(array_unique($targets));
     }
 
     private function toReverseName(string $ip): ?string
     {
         if (false !== filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4)) {
-            $octets = \explode('.', $ip);
+            $octets = explode('.', $ip);
 
             if (4 !== \count($octets)) {
                 return null;
             }
 
-            return \sprintf('%s.in-addr.arpa', \implode('.', \array_reverse($octets)));
+            return \sprintf('%s.in-addr.arpa', implode('.', array_reverse($octets)));
         }
 
         if (false !== filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
@@ -207,11 +207,11 @@ final class NativeDnsLookup implements DnsLookupInterface
                 return null;
             }
 
-            $hex = \bin2hex($packed);
-            $nibbles = \str_split($hex, 1);
-            $reversed = \array_reverse($nibbles);
+            $hex = bin2hex($packed);
+            $nibbles = str_split($hex, 1);
+            $reversed = array_reverse($nibbles);
 
-            return \sprintf('%s.ip6.arpa', \implode('.', $reversed));
+            return \sprintf('%s.ip6.arpa', implode('.', $reversed));
         }
 
         return null;

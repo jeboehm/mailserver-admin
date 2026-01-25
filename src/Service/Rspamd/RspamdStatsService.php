@@ -337,7 +337,7 @@ readonly class RspamdStatsService
             $labels[] = $this->formatTimestamp((int) $timestamp, $type);
 
             foreach ($row as $key => $value) {
-                if (\in_array($key, ['ts', 'time', 'timestamp'], true) || !\is_numeric($value)) {
+                if (\in_array($key, ['ts', 'time', 'timestamp'], true) || !is_numeric($value)) {
                     continue;
                 }
 
@@ -366,7 +366,7 @@ readonly class RspamdStatsService
             }
 
             foreach ($series as $point) {
-                if (\is_array($point) && isset($point['x']) && \is_numeric($point['x'])) {
+                if (\is_array($point) && isset($point['x']) && is_numeric($point['x'])) {
                     $allTimestamps[(int) $point['x']] = true;
                 }
             }
@@ -441,7 +441,7 @@ readonly class RspamdStatsService
         $seriesData = [];
 
         foreach ($series as $point) {
-            if (!\is_array($point) || !isset($point['x']) || !\is_numeric($point['x'])) {
+            if (!\is_array($point) || !isset($point['x']) || !is_numeric($point['x'])) {
                 continue;
             }
 
@@ -481,7 +481,7 @@ readonly class RspamdStatsService
 
         // Handle key-value format: {action: count, ...}
         foreach ($pieData as $key => $value) {
-            if (\is_string($key) && \is_numeric($value)) {
+            if (\is_string($key) && is_numeric($value)) {
                 $actions[$key] = (int) $value;
             }
         }
@@ -682,7 +682,7 @@ readonly class RspamdStatsService
     {
         $value = $this->safeGetArray($data, $key, $default);
 
-        return \is_numeric($value) ? (float) $value : $default;
+        return is_numeric($value) ? (float) $value : $default;
     }
 
     /**
@@ -690,7 +690,7 @@ readonly class RspamdStatsService
      */
     private function parseTimestamp(mixed $timestamp): \DateTimeImmutable
     {
-        return \is_numeric($timestamp)
+        return is_numeric($timestamp)
             ? new \DateTimeImmutable()->setTimestamp((int) $timestamp)
             : new \DateTimeImmutable((string) $timestamp);
     }

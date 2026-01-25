@@ -80,7 +80,7 @@ class InitSetupCommand extends Command
             foreach ($domainValidationList as $item) {
                 /* @var $item ConstraintViolation */
                 $output->writeln(
-                    sprintf('<error>Domain %s: %s</error>', $item->getPropertyPath(), $item->getMessage())
+                    \sprintf('<error>Domain %s: %s</error>', $item->getPropertyPath(), $item->getMessage())
                 );
             }
 
@@ -93,7 +93,7 @@ class InitSetupCommand extends Command
             foreach ($userValidationList as $item) {
                 /* @var $item ConstraintViolation */
                 $output->writeln(
-                    sprintf('<error>User %s: %s</error>', $item->getPropertyPath(), $item->getMessage())
+                    \sprintf('<error>User %s: %s</error>', $item->getPropertyPath(), $item->getMessage())
                 );
             }
 
@@ -107,7 +107,7 @@ class InitSetupCommand extends Command
 
         $this->manager->flush();
 
-        $output->writeln(sprintf('<info>Your new email address %s was successfully created.</info>', $user));
+        $output->writeln(\sprintf('<info>Your new email address %s was successfully created.</info>', $user));
         $output->writeln('<info>You can now login using the previously set password.</info>');
 
         return 0;
@@ -120,8 +120,8 @@ class InitSetupCommand extends Command
     ): array {
         $emailQuestion = new Question('Please enter the first email address you want to receive mails to: ');
         $emailQuestion->setValidator(
-            function (string $value): string {
-                if (!$value = \filter_var($value, \FILTER_VALIDATE_EMAIL)) {
+            static function (string $value): string {
+                if (!$value = filter_var($value, \FILTER_VALIDATE_EMAIL)) {
                     throw new \RuntimeException('Please enter a valid email address.');
                 }
 
@@ -135,7 +135,7 @@ class InitSetupCommand extends Command
             $emailQuestion
         );
 
-        return \explode('@', $email);
+        return explode('@', $email);
     }
 
     private function getPassword(
@@ -145,8 +145,8 @@ class InitSetupCommand extends Command
     ): string {
         $passwordQuestion = new Question('Enter a password for the new account: ');
         $passwordQuestion->setValidator(
-            function (string $value): string {
-                if (\mb_strlen($value) < 8) {
+            static function (string $value): string {
+                if (mb_strlen($value) < 8) {
                     throw new \RuntimeException('The password should be longer.');
                 }
 

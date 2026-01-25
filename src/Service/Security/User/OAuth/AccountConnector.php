@@ -25,8 +25,8 @@ readonly class AccountConnector implements AccountConnectorInterface
 
     public function connect(UserInterface $user, UserResponseInterface $response): void
     {
-        if (!($user instanceof User)) {
-            throw new \InvalidArgumentException(sprintf('User must be an instance of %s', User::class));
+        if (!$user instanceof User) {
+            throw new \InvalidArgumentException(\sprintf('User must be an instance of %s', User::class));
         }
 
         $this->entityManager->persist($user);

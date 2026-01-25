@@ -33,16 +33,16 @@ final class DomainAdminVoter extends Voter
             return true;
         }
 
-        assert($subject instanceof User || $subject instanceof Alias);
+        \assert($subject instanceof User || $subject instanceof Alias);
 
-        if (in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
+        if (\in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
             return true;
         }
 
-        if (in_array(Roles::ROLE_DOMAIN_ADMIN, $token->getRoleNames(), true)) {
+        if (\in_array(Roles::ROLE_DOMAIN_ADMIN, $token->getRoleNames(), true)) {
             $user = $token->getUser();
 
-            if (!($user instanceof User)) {
+            if (!$user instanceof User) {
                 throw new \LogicException('User is not an instance of User');
             }
 

@@ -72,11 +72,11 @@ class DnsWizardActionTest extends TestCase
             ->method('get')
             ->with(
                 $this->isString(),
-                $this->callback(function (callable $callback) use ($cacheItem, $result) {
+                $this->callback(static function (callable $callback) use ($cacheItem, $result) {
                     return $result === $callback($cacheItem);
                 })
             )
-            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -136,11 +136,11 @@ class DnsWizardActionTest extends TestCase
             ->method('get')
             ->with(
                 $this->isString(),
-                $this->callback(function (callable $callback) use ($cacheItem, $result) {
+                $this->callback(static function (callable $callback) use ($cacheItem, $result) {
                     return $result === $callback($cacheItem);
                 })
             )
-            ->willReturnCallback(function (string $key, callable $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 

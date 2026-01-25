@@ -188,7 +188,7 @@ class InitSetupCommandTest extends TestCase
         $this->validatorMock
             ->expects($this->atLeastOnce())
             ->method('validate')
-            ->willReturnCallback(function ($entity) use ($violationList, $emptyViolationList) {
+            ->willReturnCallback(static function ($entity) use ($violationList, $emptyViolationList) {
                 if ($entity instanceof Domain) {
                     return $violationList;
                 }
@@ -223,7 +223,7 @@ class InitSetupCommandTest extends TestCase
         $this->validatorMock
             ->expects($this->atLeastOnce())
             ->method('validate')
-            ->willReturnCallback(function ($entity) use ($violationList, $emptyViolationList) {
+            ->willReturnCallback(static function ($entity) use ($violationList, $emptyViolationList) {
                 if ($entity instanceof User) {
                     return $violationList;
                 }
@@ -259,7 +259,7 @@ class InitSetupCommandTest extends TestCase
         $this->validatorMock
             ->expects($this->atLeastOnce())
             ->method('validate')
-            ->willReturnCallback(function ($entity) use ($domainViolationList, $emptyViolationList) {
+            ->willReturnCallback(static function ($entity) use ($domainViolationList, $emptyViolationList) {
                 if ($entity instanceof Domain) {
                     return $domainViolationList;
                 }

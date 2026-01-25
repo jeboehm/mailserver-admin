@@ -64,7 +64,7 @@ class RspamdStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/rspamd/index.html.twig',
-                $this->callback(fn (array $context) => isset($context['summary']) && $context['summary'] === $summary)
+                $this->callback(static fn (array $context) => isset($context['summary']) && $context['summary'] === $summary)
             )
             ->willReturn('rendered html');
 
@@ -121,7 +121,7 @@ class RspamdStatsControllerTest extends TestCase
             ->method('render')
             ->with(
                 'admin/observability/rspamd/_throughput.html.twig',
-                $this->callback(fn (array $context) => 'day' === $context['type'] && $context['chart'] === $chart)
+                $this->callback(static fn (array $context) => 'day' === $context['type'] && $context['chart'] === $chart)
             )
             ->willReturn('rendered html');
 

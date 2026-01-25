@@ -82,7 +82,7 @@ class PtrRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4', '5.6.7.8'];
 
         $this->dns->method('lookupPtr')
-            ->willReturnCallback(function (string $ip) {
+            ->willReturnCallback(static function (string $ip) {
                 return match ($ip) {
                     '1.2.3.4' => ['mail.example.com.'],
                     '5.6.7.8' => ['other.example.com.'],

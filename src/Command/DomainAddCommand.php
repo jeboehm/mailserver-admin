@@ -50,14 +50,14 @@ class DomainAddCommand extends Command
         }
 
         $domain = new Domain();
-        $domain->setName(\mb_strtolower((string) $input->getArgument('domain')));
+        $domain->setName(mb_strtolower((string) $input->getArgument('domain')));
 
         $validationResult = $this->validator->validate($domain);
 
         if ($validationResult->count() > 0) {
             foreach ($validationResult as $item) {
                 /* @var $item ConstraintViolation */
-                $output->writeln(sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
+                $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
             return 1;

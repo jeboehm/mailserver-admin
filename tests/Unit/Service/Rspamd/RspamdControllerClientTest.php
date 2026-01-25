@@ -104,7 +104,7 @@ final class RspamdControllerClientTest extends TestCase
     public function testPingReturnsCriticalOnTimeout(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection timed out');
             },
         ]);
@@ -296,7 +296,7 @@ final class RspamdControllerClientTest extends TestCase
     public function testRequestThrowsOnConnectionFailure(): void
     {
         $httpClient = new MockHttpClient([
-            function () {
+            static function () {
                 throw new TransportException('Connection refused');
             },
         ]);

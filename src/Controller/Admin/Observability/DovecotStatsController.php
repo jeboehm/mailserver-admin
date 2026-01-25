@@ -79,7 +79,7 @@ final readonly class DovecotStatsController
 
         $authChart = null;
         $mailDeliveriesChart = null;
-        $hasData = !empty($samples) && count($samples) >= 2;
+        $hasData = !empty($samples) && \count($samples) >= 2;
 
         if ($hasData) {
             $authRates = $this->rateCalculator->calculateAuthRates($samples);
@@ -91,7 +91,7 @@ final readonly class DovecotStatsController
 
         return new Response($this->twig->render('admin/observability/dovecot_stats/_charts.html.twig', [
             'hasData' => $hasData,
-            'sampleCount' => count($samples),
+            'sampleCount' => \count($samples),
             'authChart' => $authChart,
             'mailDeliveriesChart' => $mailDeliveriesChart,
         ]));
@@ -129,7 +129,7 @@ final readonly class DovecotStatsController
                 } elseif (str_starts_with($name, 'fts_')) {
                     $ftsCounters[$name] = $value;
                 } elseif (str_starts_with($name, 'user_') || str_starts_with($name, 'sys_')
-                         || in_array($name, ['clock_time', 'min_faults', 'max_faults', 'vol_cs', 'invol_cs'], true)) {
+                         || \in_array($name, ['clock_time', 'min_faults', 'max_faults', 'vol_cs', 'invol_cs'], true)) {
                     $systemCounters[$name] = $value;
                 } else {
                     $otherCounters[$name] = $value;
@@ -159,13 +159,13 @@ final readonly class DovecotStatsController
             $sample = $this->sampler->forceFetchSample();
 
             return new Response(
-                json_encode(['success' => true, 'fetchedAt' => $sample->fetchedAt->format(\DateTimeInterface::ATOM)], JSON_THROW_ON_ERROR),
+                json_encode(['success' => true, 'fetchedAt' => $sample->fetchedAt->format(\DateTimeInterface::ATOM)], \JSON_THROW_ON_ERROR),
                 Response::HTTP_OK,
                 ['Content-Type' => 'application/json']
             );
         } catch (DoveadmException $e) {
             return new Response(
-                json_encode(['success' => false, 'error' => $e->getMessage()], JSON_THROW_ON_ERROR),
+                json_encode(['success' => false, 'error' => $e->getMessage()], \JSON_THROW_ON_ERROR),
                 Response::HTTP_SERVICE_UNAVAILABLE,
                 ['Content-Type' => 'application/json']
             );

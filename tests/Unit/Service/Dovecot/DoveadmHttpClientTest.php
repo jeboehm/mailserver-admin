@@ -58,7 +58,7 @@ final class DoveadmHttpClientTest extends TestCase
     public function testCheckHealthReturnsOkWhenListCommandsSucceeds(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url) {
+            static function (string $method, string $url) {
                 // checkHealth now calls listCommands which makes a GET request
                 if ('GET' === $method) {
                     // Return a list of commands as expected by the API
@@ -97,7 +97,7 @@ final class DoveadmHttpClientTest extends TestCase
     public function testCheckHealthReturnsConnectionErrorOnTransportException(): void
     {
         $httpClient = new MockHttpClient([
-            function (): void {
+            static function (): void {
                 throw new TransportException('Connection refused');
             },
         ]);
@@ -179,8 +179,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpReturnsStatsDumpDto(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -224,8 +224,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpWithSocketPath(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -262,8 +262,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpThrowsOnErrorResponse(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -323,7 +323,7 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpThrowsOnTransportException(): void
     {
         $httpClient = new MockHttpClient([
-            function (): void {
+            static function (): void {
                 throw new TransportException('Connection refused');
             },
         ]);
@@ -347,7 +347,7 @@ final class DoveadmHttpClientTest extends TestCase
         $exception = new ClientException($response);
 
         $httpClient = new MockHttpClient([
-            function () use ($exception): void {
+            static function () use ($exception): void {
                 throw $exception;
             },
         ]);
@@ -371,7 +371,7 @@ final class DoveadmHttpClientTest extends TestCase
         $exception = new ServerException($response);
 
         $httpClient = new MockHttpClient([
-            function () use ($exception): void {
+            static function () use ($exception): void {
                 throw $exception;
             },
         ]);
@@ -396,7 +396,7 @@ final class DoveadmHttpClientTest extends TestCase
         $exception = new RedirectionException($response);
 
         $httpClient = new MockHttpClient([
-            function () use ($exception): void {
+            static function () use ($exception): void {
                 throw $exception;
             },
         ]);
@@ -418,8 +418,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testBuildApiUrlAppendsDoveadmV1(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -456,8 +456,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testBuildApiUrlPreservesExistingPath(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -494,8 +494,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testApiKeyIsBase64Encoded(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -532,8 +532,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpParsesNumericValuesAsStrings(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [
@@ -576,8 +576,8 @@ final class DoveadmHttpClientTest extends TestCase
     public function testStatsDumpHandlesMissingCounters(): void
     {
         $httpClient = new MockHttpClient([
-            function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, JSON_THROW_ON_ERROR);
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
                 $tag = $payload[0][2] ?? 'unknown';
 
                 $response = [

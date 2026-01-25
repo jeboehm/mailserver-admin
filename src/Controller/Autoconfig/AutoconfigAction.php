@@ -45,7 +45,7 @@ readonly class AutoconfigAction
     {
         $email = (string) $request->query->get('emailaddress');
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($email, \FILTER_VALIDATE_EMAIL)) {
             return null;
         }
 

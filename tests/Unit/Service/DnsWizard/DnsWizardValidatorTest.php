@@ -192,7 +192,7 @@ class DnsWizardValidatorTest extends TestCase
 
         $check->expects(self::exactly(2))
             ->method('validateDomain')
-            ->willReturnCallback(function (string $mailname, array $expectedAll, Domain $domain) use ($row1, $row2) {
+            ->willReturnCallback(static function (string $mailname, array $expectedAll, Domain $domain) use ($row1, $row2) {
                 return match ($domain->getName()) {
                     'example.com' => [$row1],
                     'test.com' => [$row2],

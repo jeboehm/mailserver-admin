@@ -99,7 +99,7 @@ class DKIMSetupCommand extends Command
         $this->manager->flush();
         $this->dkimManager->refresh();
 
-        $output->writeln(sprintf('<info>Add the following TXT record to %s.%s:</info>', $selector, $domain->getName()));
+        $output->writeln(\sprintf('<info>Add the following TXT record to %s.%s:</info>', $selector, $domain->getName()));
         $output->writeln('');
         $output->writeln($expectedDnsRecord);
         $output->writeln('');
@@ -117,7 +117,7 @@ class DKIMSetupCommand extends Command
         $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {
-            $output->writeln(sprintf('<error>Domain "%s" was not found.</error>', $name));
+            $output->writeln(\sprintf('<error>Domain "%s" was not found.</error>', $name));
 
             return null;
         }

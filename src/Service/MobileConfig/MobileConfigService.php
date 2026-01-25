@@ -48,11 +48,11 @@ readonly class MobileConfigService
         }
 
         if (!is_readable($this->serverCertPath)) {
-            throw new \RuntimeException(sprintf('Server certificate file "%s" is not readable.', $this->serverCertPath));
+            throw new \RuntimeException(\sprintf('Server certificate file "%s" is not readable.', $this->serverCertPath));
         }
 
         if (!is_readable($this->serverKeyPath)) {
-            throw new \RuntimeException(sprintf('Server key file "%s" is not readable.', $this->serverKeyPath));
+            throw new \RuntimeException(\sprintf('Server key file "%s" is not readable.', $this->serverKeyPath));
         }
 
         $mailServerHost = $this->mailname ?? $user->getDomain()?->getName() ?? throw new \RuntimeException('Cannot determine mail server hostname.');
@@ -125,7 +125,7 @@ readonly class MobileConfigService
                 certificate: 'file://' . $this->serverCertPath,
                 private_key: ['file://' . $this->serverKeyPath, ''],
                 headers: [],
-                encoding: OPENSSL_ENCODING_DER,
+                encoding: \OPENSSL_ENCODING_DER,
                 untrusted_certificates_filename: CaBundle::getSystemCaRootBundlePath(),
             );
 

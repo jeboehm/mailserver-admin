@@ -29,7 +29,7 @@ readonly class ConfigSyncSubscriber
     {
         $entity = $event->getObject();
 
-        if (!($entity instanceof Domain)) {
+        if (!$entity instanceof Domain) {
             return;
         }
 
@@ -40,7 +40,7 @@ readonly class ConfigSyncSubscriber
     {
         $entity = $event->getObject();
 
-        if (!($entity instanceof Domain)) {
+        if (!$entity instanceof Domain) {
             return;
         }
 

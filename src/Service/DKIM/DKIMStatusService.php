@@ -30,10 +30,10 @@ class DKIMStatusService
             $parts = [];
 
             foreach ($key as $name => $value) {
-                $parts[] = sprintf('%s=%s', $name, $value);
+                $parts[] = \sprintf('%s=%s', $name, $value);
             }
 
-            $dnsRecord = \implode('\; ', $parts);
+            $dnsRecord = implode('\; ', $parts);
             $generatedRecord = $this->formatterService->getTXTRecord(
                 $this->keyGenerationService->extractPublicKey($domain->getDkimPrivateKey()),
                 KeyGenerationService::DIGEST_ALGORITHM

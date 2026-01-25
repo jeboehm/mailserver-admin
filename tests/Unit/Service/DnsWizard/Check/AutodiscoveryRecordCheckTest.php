@@ -54,7 +54,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->willReturnCallback(function (string $host) use ($expectedAll) {
+            ->willReturnCallback(static function (string $host) use ($expectedAll) {
                 return match ($host) {
                     'autoconfig.example.com', 'autodiscover.example.com', 'imap.example.com', 'smtp.example.com' => $expectedAll,
                     default => [],
@@ -65,15 +65,15 @@ class AutodiscoveryRecordCheckTest extends TestCase
         $this->dns->method('lookupCname')->willReturn([]);
         $this->dns->method('lookupMx')->willReturn([$mailname]);
         $this->dns->method('lookupTxt')
-            ->willReturnCallback(function (string $name) {
+            ->willReturnCallback(static function (string $name) {
                 return match ($name) {
-                    'example.com' => [\sprintf('mailconf=https://autoconfig.example.com/mail/config-v1.1.xml')],
+                    'example.com' => ['mailconf=https://autoconfig.example.com/mail/config-v1.1.xml'],
                     default => [],
                 };
             });
 
         $this->dns->method('lookupSrv')
-            ->willReturnCallback(function (string $name) use ($mailname) {
+            ->willReturnCallback(static function (string $name) use ($mailname) {
                 return match ($name) {
                     '_imaps._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 993, 'target' => $mailname],
@@ -175,7 +175,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->willReturnCallback(function (string $host) use ($expectedAll) {
+            ->willReturnCallback(static function (string $host) use ($expectedAll) {
                 return match ($host) {
                     'autoconfig.example.com', 'autodiscover.example.com' => $expectedAll,
                     'mail.example.com' => $expectedAll, // CNAME target resolves to expected IP
@@ -185,7 +185,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $this->dns->method('lookupAaaa')->willReturn([]);
         $this->dns->method('lookupCname')
-            ->willReturnCallback(function (string $host) {
+            ->willReturnCallback(static function (string $host) {
                 return match ($host) {
                     'imap.example.com', 'smtp.example.com' => ['mail.example.com'],
                     default => [],
@@ -238,7 +238,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
         $this->dns->method('lookupMx')->willReturn([$mailname]);
         $this->dns->method('lookupTxt')->willReturn([]);
         $this->dns->method('lookupSrv')
-            ->willReturnCallback(function (string $name) {
+            ->willReturnCallback(static function (string $name) {
                 return match ($name) {
                     '_imaps._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 587, 'target' => 'wrong.example.com'], // Wrong port and target

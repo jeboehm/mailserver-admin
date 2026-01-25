@@ -45,7 +45,7 @@ class AliasCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('Aliases')
             ->setSearchFields(['name', 'destination', 'domain.name'])
             ->setDefaultSort(['domain' => 'ASC', 'name' => 'ASC'])
-            ->setPageTitle(Crud::PAGE_EDIT, fn (Alias $alias) => sprintf('Edit Alias %s', $alias))
+            ->setPageTitle(Crud::PAGE_EDIT, static fn (Alias $alias) => \sprintf('Edit Alias %s', $alias))
             ->setEntityPermission(DomainAdminVoter::VIEW);
     }
 
@@ -69,7 +69,7 @@ class AliasCrudController extends AbstractCrudController
     public function createEntity(string $entityFqcn): Alias
     {
         $entity = parent::createEntity($entityFqcn);
-        assert($entity instanceof Alias);
+        \assert($entity instanceof Alias);
 
         $user = $this->getUser();
 

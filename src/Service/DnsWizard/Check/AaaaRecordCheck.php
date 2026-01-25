@@ -37,8 +37,8 @@ readonly class AaaaRecordCheck implements DnsCheckInterface
     {
         $a = $this->dns->lookupA($mailname);
         $aaaa = $this->dns->lookupAaaa($mailname);
-        $matchedAny = 0 !== \count(\array_intersect($expectedAll, [...$a, ...$aaaa]));
-        $matchedThis = 0 !== \count(\array_intersect($expectedAll, $aaaa));
+        $matchedAny = 0 !== \count(array_intersect($expectedAll, [...$a, ...$aaaa]));
+        $matchedThis = 0 !== \count(array_intersect($expectedAll, $aaaa));
 
         return [
             $this->buildAddressRow(

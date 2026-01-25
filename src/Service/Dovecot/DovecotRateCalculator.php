@@ -49,7 +49,7 @@ readonly class DovecotRateCalculator
         string $unit = 'per second',
         float $multiplier = 1.0,
     ): RateSeriesDto {
-        if (count($samples) < 2) {
+        if (\count($samples) < 2) {
             return new RateSeriesDto($counterName, $unit, [], []);
         }
 
@@ -205,7 +205,7 @@ readonly class DovecotRateCalculator
     public function getCurrentValues(array $samples, array $counterNames): array
     {
         $result = [];
-        $latestSample = empty($samples) ? null : $samples[count($samples) - 1];
+        $latestSample = empty($samples) ? null : $samples[\count($samples) - 1];
 
         foreach ($counterNames as $counterName) {
             $result[$counterName] = $latestSample?->getCounter($counterName);

@@ -17,6 +17,6 @@ class FormatterService
         $publicKey = preg_replace('#^-+.*?-+$#m', '', $publicKey);
         $publicKey = str_replace(["\r", "\n"], '', $publicKey);
 
-        return sprintf('v=DKIM1\; h=%s\; t=s\; p=%s', $algorithm, $publicKey);
+        return \sprintf('v=DKIM1\; h=%s\; t=s\; p=%s', $algorithm, $publicKey);
     }
 }

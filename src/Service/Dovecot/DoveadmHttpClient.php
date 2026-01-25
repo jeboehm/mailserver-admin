@@ -66,7 +66,7 @@ readonly class DoveadmHttpClient
             $commands = $this->listCommands();
 
             // Verify that we got a list of commands (non-empty array)
-            if (!is_array($commands) || empty($commands)) {
+            if (!\is_array($commands) || empty($commands)) {
                 return DoveadmHealthDto::formatError('Expected list of commands, got empty or invalid response');
             }
 
@@ -150,8 +150,8 @@ readonly class DoveadmHttpClient
             $data = $response->toArray();
 
             // The response should be an array of commands
-            if (!is_array($data)) {
-                throw new DoveadmResponseException('Expected array response, got ' . gettype($data));
+            if (!\is_array($data)) {
+                throw new DoveadmResponseException('Expected array response, got ' . \gettype($data));
             }
 
             return $data;
@@ -255,7 +255,7 @@ readonly class DoveadmHttpClient
             throw new DoveadmConnectionException('Invalid DOVEADM_HTTP_URL format');
         }
 
-        if (!in_array(strtolower($parsed['scheme']), self::ALLOWED_URL_SCHEMES, true)) {
+        if (!\in_array(strtolower($parsed['scheme']), self::ALLOWED_URL_SCHEMES, true)) {
             throw new DoveadmConnectionException('DOVEADM_HTTP_URL must use http or https scheme');
         }
     }
@@ -333,7 +333,7 @@ readonly class DoveadmHttpClient
     private function extractResult(array $data, string $tag): array
     {
         foreach ($data as $item) {
-            if (!is_array($item) || count($item) < 3) {
+            if (!\is_array($item) || \count($item) < 3) {
                 continue;
             }
 
@@ -349,7 +349,7 @@ readonly class DoveadmHttpClient
 
             // Match doveadmResponse by tag
             if ('doveadmResponse' === $responseType && $responseTag === $tag) {
-                if (!is_array($result)) {
+                if (!\is_array($result)) {
                     throw new DoveadmResponseException('Expected array result in doveadmResponse');
                 }
 
@@ -378,14 +378,14 @@ readonly class DoveadmHttpClient
         $counters = [];
 
         foreach ($response as $metric) {
-            if (!is_array($metric)) {
+            if (!\is_array($metric)) {
                 continue;
             }
 
             $metricName = $metric['metric_name'] ?? null;
             $field = $metric['field'] ?? null;
 
-            if (!is_string($metricName) || !is_string($field)) {
+            if (!\is_string($metricName) || !\is_string($field)) {
                 continue;
             }
 
@@ -432,11 +432,11 @@ readonly class DoveadmHttpClient
      */
     private function parseNumericValue(mixed $value): int|float|null
     {
-        if (is_int($value) || is_float($value)) {
+        if (\is_int($value) || \is_float($value)) {
             return $value;
         }
 
-        if (!is_string($value)) {
+        if (!\is_string($value)) {
             return null;
         }
 

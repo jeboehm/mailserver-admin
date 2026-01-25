@@ -66,7 +66,7 @@ class UserProviderTest extends TestCase
     {
         if (!$expected) {
             $this->expectException(AccountNotLinkedException::class);
-            $this->expectExceptionMessage(sprintf("User '%s' not found.", $identifier));
+            $this->expectExceptionMessage(\sprintf("User '%s' not found.", $identifier));
         }
 
         $user = $expected ? $this->createStub(User::class) : null;
@@ -116,7 +116,7 @@ class UserProviderTest extends TestCase
             // Exception already set above
         } elseif (!$userFound) {
             $this->expectException(AccountNotLinkedException::class);
-            $this->expectExceptionMessage(sprintf("User '%s' not found.", $emailAddress));
+            $this->expectExceptionMessage(\sprintf("User '%s' not found.", $emailAddress));
         }
 
         $user = $userFound && $isValidEmail ? $this->createMock(User::class) : null;
@@ -157,7 +157,7 @@ class UserProviderTest extends TestCase
     {
         $user = $this->createStub(UserInterface::class);
         $this->expectException(UnsupportedUserException::class);
-        $this->expectExceptionMessage(sprintf('Instances of "%s" are not supported.', $user::class));
+        $this->expectExceptionMessage(\sprintf('Instances of "%s" are not supported.', $user::class));
         $this->userRepository->expects($this->never())->method('findOneByEmailAddress');
         $this->entityManager->expects($this->never())->method('flush');
 
@@ -202,7 +202,7 @@ class UserProviderTest extends TestCase
         $user->expects($this->never())->method('setEnabled');
 
         $this->expectException(AccountNotLinkedException::class);
-        $this->expectExceptionMessage(sprintf('User with ID "%s" could not be reloaded.', $emailAddress));
+        $this->expectExceptionMessage(\sprintf('User with ID "%s" could not be reloaded.', $emailAddress));
 
         $this->userRepository
             ->expects($this->once())

@@ -107,7 +107,7 @@ class FetchmailAccountController extends AbstractCrudController
             $password
                 ->setHelp('Leave empty to keep the current password.')
                 ->setRequired(false)
-                ->setFormTypeOption('empty_data', fn (FormInterface $form) => $form->getData());
+                ->setFormTypeOption('empty_data', static fn (FormInterface $form) => $form->getData());
         }
 
         yield $password;
@@ -123,7 +123,7 @@ class FetchmailAccountController extends AbstractCrudController
         // runtime infos
         yield DateTimeField::new('lastRun')
             ->hideOnForm()
-            ->formatValue(function ($value) {
+            ->formatValue(static function ($value) {
                 if (null === $value) {
                     return 'N/A';
                 }
@@ -150,7 +150,7 @@ class FetchmailAccountController extends AbstractCrudController
     {
         $entity = parent::createEntity($entityFqcn);
         $user = $this->getUser();
-        assert($entity instanceof FetchmailAccount);
+        \assert($entity instanceof FetchmailAccount);
 
         if ($user instanceof User) {
             $entity->setUser($user);

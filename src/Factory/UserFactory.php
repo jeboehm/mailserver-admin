@@ -25,7 +25,7 @@ readonly class UserFactory
     {
         $this->validateEmailAddress($emailAddress);
 
-        [$name, $domainName] = explode('@', \mb_strtolower($emailAddress), 2);
+        [$name, $domainName] = explode('@', mb_strtolower($emailAddress), 2);
 
         $domain = $this->domainRepository->findOneBy(['name' => $domainName]);
 
@@ -42,7 +42,7 @@ readonly class UserFactory
 
     private function validateEmailAddress(string $emailAddress): void
     {
-        if (!filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
+        if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException(\sprintf('"%s" is not a valid email address.', $emailAddress));
         }
     }

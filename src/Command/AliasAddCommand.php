@@ -58,21 +58,21 @@ class AliasAddCommand extends Command
         $from = $input->getArgument('from');
 
         if (!$input->getOption('catchall')) {
-            $from = \filter_var($from, \FILTER_VALIDATE_EMAIL);
+            $from = filter_var($from, \FILTER_VALIDATE_EMAIL);
 
             if (!$from) {
                 $output->writeln(
-                    sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from'))
+                    \sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from'))
                 );
 
                 return 1;
             }
         }
 
-        $to = \filter_var($input->getArgument('to'), \FILTER_VALIDATE_EMAIL);
+        $to = filter_var($input->getArgument('to'), \FILTER_VALIDATE_EMAIL);
 
         if (!$to) {
-            $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('to')));
+            $output->writeln(\sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('to')));
 
             return 1;
         }
@@ -80,10 +80,10 @@ class AliasAddCommand extends Command
         $alias = new Alias();
         $alias->setDestination($to);
 
-        $fromParts = \explode('@', (string) $from, 2);
+        $fromParts = explode('@', (string) $from, 2);
 
-        if (2 !== count($fromParts)) {
-            $output->writeln(sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
+        if (2 !== \count($fromParts)) {
+            $output->writeln(\sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
 
             return 1;
         }
@@ -91,20 +91,20 @@ class AliasAddCommand extends Command
         $domain = $this->getDomain($fromParts[1]);
 
         if (null === $domain) {
-            $output->writeln(sprintf('<error>Domain %s has to be created before.</error>', $fromParts[1]));
+            $output->writeln(\sprintf('<error>Domain %s has to be created before.</error>', $fromParts[1]));
 
             return 1;
         }
 
         $alias->setDomain($domain);
-        $alias->setName(\mb_strtolower($fromParts[0]));
+        $alias->setName(mb_strtolower($fromParts[0]));
 
         $validationResult = $this->validator->validate($alias);
 
         if ($validationResult->count() > 0) {
             foreach ($validationResult as $item) {
                 /* @var $item ConstraintViolation */
-                $output->writeln(sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
+                $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
             return 1;
@@ -118,6 +118,6 @@ class AliasAddCommand extends Command
 
     private function getDomain(string $domain): ?Domain
     {
-        return $this->domainRepository->findOneBy(['name' => \mb_strtolower($domain)]);
+        return $this->domainRepository->findOneBy(['name' => mb_strtolower($domain)]);
     }
 }

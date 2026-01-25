@@ -46,7 +46,7 @@ readonly class ApplicationVersionService
         // Remove 'v' prefix if present (e.g., 'v1.2.3' -> '1.2.3')
         $version = ltrim($version, 'v');
 
-        if (!is_numeric(\substr($version, 0, 1))) {
+        if (!is_numeric(substr($version, 0, 1))) {
             return null;
         }
 

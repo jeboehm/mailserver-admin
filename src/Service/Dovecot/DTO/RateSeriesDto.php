@@ -61,6 +61,6 @@ final readonly class RateSeriesDto
             return 0.0;
         }
 
-        return array_sum($this->rates) / count($this->rates);
+        return array_sum($this->rates) / \count($this->rates);
     }
 }

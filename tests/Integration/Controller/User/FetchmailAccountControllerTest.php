@@ -34,7 +34,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testListFetchmailAccounts(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -61,7 +61,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testCreateFetchmailAccount(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -83,7 +83,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $account = $fetchmailRepository->findOneBy(['user' => $user, 'host' => 'mail.example.com', 'username' => 'testuser']);
         static::assertInstanceOf(FetchmailAccount::class, $account);
         static::assertEquals('mail.example.com', $account->getHost());
@@ -97,7 +97,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testCreateFetchmailAccountWithPop3(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -119,7 +119,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $account = $fetchmailRepository->findOneBy(['user' => $user, 'host' => 'pop.example.com', 'username' => 'popuser']);
         static::assertInstanceOf(FetchmailAccount::class, $account);
         static::assertEquals('pop3', $account->getProtocol());
@@ -130,7 +130,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testEditFetchmailAccount(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -160,7 +160,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $updatedAccount = $fetchmailRepository->find($account->getId());
         static::assertInstanceOf(FetchmailAccount::class, $updatedAccount);
         static::assertEquals('updated.example.com', $updatedAccount->getHost());
@@ -171,7 +171,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testEditFetchmailAccountWithoutPassword(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -200,7 +200,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $updatedAccount = $fetchmailRepository->find($account->getId());
         static::assertInstanceOf(FetchmailAccount::class, $updatedAccount);
         // Password should remain unchanged
@@ -210,7 +210,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testCreateDuplicateFetchmailAccount(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -246,7 +246,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testPasswordFieldOnEditForm(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -286,7 +286,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testEditWithNewPassword(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -313,7 +313,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $updatedAccount = $fetchmailRepository->find($account->getId());
         static::assertInstanceOf(FetchmailAccount::class, $updatedAccount);
         static::assertNotEquals('originalpassword', $updatedAccount->getPassword());
@@ -322,7 +322,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
     public function testCreateEntitySetsCurrentUser(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
 
@@ -343,7 +343,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $fetchmailRepository = $this->entityManager->getRepository(FetchmailAccount::class);
-        assert($fetchmailRepository instanceof FetchmailAccountRepository);
+        \assert($fetchmailRepository instanceof FetchmailAccountRepository);
         $account = $fetchmailRepository->findOneBy(['user' => $user, 'host' => 'autouser.example.com']);
         static::assertInstanceOf(FetchmailAccount::class, $account);
         static::assertEquals($user->getId(), $account->getUser()->getId());

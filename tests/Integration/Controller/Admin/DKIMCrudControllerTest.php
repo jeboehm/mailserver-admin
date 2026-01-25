@@ -36,7 +36,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
         $domainId = $domain->getId();
@@ -55,7 +55,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     {
         $this->loginClient($this->client);
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -75,7 +75,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -101,7 +101,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -121,7 +121,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     {
         $this->loginClient($this->client);
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -143,7 +143,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 

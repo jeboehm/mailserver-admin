@@ -29,7 +29,7 @@ readonly class CreatePrivateKeyOnActivationSubscriber
     {
         $entity = $event->getObject();
 
-        if (!($entity instanceof Domain)) {
+        if (!$entity instanceof Domain) {
             return;
         }
 
@@ -40,7 +40,7 @@ readonly class CreatePrivateKeyOnActivationSubscriber
     {
         $entity = $event->getObject();
 
-        if (!($entity instanceof Domain)) {
+        if (!$entity instanceof Domain) {
             return;
         }
 

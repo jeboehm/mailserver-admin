@@ -35,7 +35,7 @@ readonly class RuntimeDataLoader
 
         $runtimeData = $this->serializer->deserialize($data, RuntimeData::class, 'json');
 
-        if (!($runtimeData instanceof RuntimeData)) {
+        if (!$runtimeData instanceof RuntimeData) {
             return;
         }
 

@@ -17,19 +17,19 @@ class KeyGenerationService
 
     public function extractPublicKey(string $privateKey): string
     {
-        $res = \openssl_pkey_get_private($privateKey);
+        $res = openssl_pkey_get_private($privateKey);
 
         if (false === $res) {
             throw new \LogicException('Cannot read private key.');
         }
 
-        return \openssl_pkey_get_details($res)['key'];
+        return openssl_pkey_get_details($res)['key'];
     }
 
     public function createKeyPair(): KeyPair
     {
         $privateKey = '';
-        $res = \openssl_pkey_new(
+        $res = openssl_pkey_new(
             [
                 'digest_alg' => self::DIGEST_ALGORITHM,
                 'private_key_bits' => self::KEY_LENGTH,
@@ -37,8 +37,8 @@ class KeyGenerationService
             ]
         );
 
-        \openssl_pkey_export($res, $privateKey);
+        openssl_pkey_export($res, $privateKey);
 
-        return new KeyPair(\openssl_pkey_get_details($res)['key'], $privateKey);
+        return new KeyPair(openssl_pkey_get_details($res)['key'], $privateKey);
     }
 }

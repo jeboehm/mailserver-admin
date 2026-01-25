@@ -67,7 +67,7 @@ class UserCrudController extends AbstractCrudController
             ->setSortProperty('name');
         yield IntegerField::new('quota')
             ->setHelp('How much space the account can use (in megabytes).')
-            ->formatValue(fn (?int $value) => $value ? sprintf('%d MB', $value) : 'Unlimited');
+            ->formatValue(static fn (?int $value) => $value ? \sprintf('%d MB', $value) : 'Unlimited');
 
         yield Field::new('plainPassword')
             ->setFormType(RepeatedType::class)
@@ -97,7 +97,7 @@ class UserCrudController extends AbstractCrudController
     #[\Override]
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        assert($entityInstance instanceof User);
+        \assert($entityInstance instanceof User);
 
         if (!empty($entityInstance->getPlainPassword())) {
             $entityInstance->setPassword(''); // set password to trigger LifeCycleCallbacks
@@ -123,7 +123,7 @@ class UserCrudController extends AbstractCrudController
     public function createEntity(string $entityFqcn): User
     {
         $entity = parent::createEntity($entityFqcn);
-        assert($entity instanceof User);
+        \assert($entity instanceof User);
 
         $user = $this->getUser();
 
@@ -163,12 +163,12 @@ class UserCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $loggedInUser = $this->getUser();
-        assert($loggedInUser instanceof User);
+        \assert($loggedInUser instanceof User);
 
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, function (Action $action) use ($loggedInUser): Action {
-                $action->displayIf(fn (User $user) => $user->getId() !== $loggedInUser?->getId());
+            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($loggedInUser): Action {
+                $action->displayIf(static fn (User $user) => $user->getId() !== $loggedInUser?->getId());
 
                 return $action;
             });

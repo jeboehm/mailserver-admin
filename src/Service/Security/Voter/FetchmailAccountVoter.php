@@ -33,16 +33,16 @@ final class FetchmailAccountVoter extends Voter
             return true;
         }
 
-        assert($subject instanceof FetchmailAccount);
+        \assert($subject instanceof FetchmailAccount);
 
-        if (in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
+        if (\in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
             return true;
         }
 
         $user = $token->getUser();
 
-        if (in_array(Roles::ROLE_DOMAIN_ADMIN, $token->getRoleNames(), true)) {
-            if (!($user instanceof User)) {
+        if (\in_array(Roles::ROLE_DOMAIN_ADMIN, $token->getRoleNames(), true)) {
+            if (!$user instanceof User) {
                 throw new \LogicException('User is not an instance of User');
             }
 

@@ -69,13 +69,13 @@ readonly class DmarcRecordCheck implements DnsCheckInterface
     private function findPolicy(array $txtValues, string $pattern): ?string
     {
         foreach ($txtValues as $txt) {
-            $txt = \trim($txt);
+            $txt = trim($txt);
 
             if ('' === $txt) {
                 continue;
             }
 
-            if (1 === \preg_match($pattern, $txt)) {
+            if (1 === preg_match($pattern, $txt)) {
                 return $txt;
             }
         }

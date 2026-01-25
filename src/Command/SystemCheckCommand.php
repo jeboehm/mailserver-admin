@@ -53,7 +53,7 @@ class SystemCheckCommand extends Command
             $startTime = time();
             $endTime = $startTime + $timeout;
 
-            $output->writeln(sprintf('Waiting for dependencies to become available (timeout: %ds)...', $timeout));
+            $output->writeln(\sprintf('Waiting for dependencies to become available (timeout: %ds)...', $timeout));
 
             while (time() < $endTime) {
                 $results = $this->connectionCheckService->checkAll($all, $allowEmptyDatabase);
@@ -82,7 +82,7 @@ class SystemCheckCommand extends Command
                 sleep(1);
             }
 
-            $output->writeln(sprintf('<fg=red>[ERROR]</> Timeout reached after %ds. Dependencies are still not available.', $timeout));
+            $output->writeln(\sprintf('<fg=red>[ERROR]</> Timeout reached after %ds. Dependencies are still not available.', $timeout));
         }
 
         $results = $this->connectionCheckService->checkAll($all, $allowEmptyDatabase);
@@ -95,7 +95,7 @@ class SystemCheckCommand extends Command
         } else {
             $hasErrors = true;
             $output->writeln('<fg=red>[ERROR]</> Your MySQL connection failed because of:');
-            $output->writeln(sprintf('<fg=red>%s</>', $results['mysql']));
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['mysql']));
         }
 
         // Check Redis
@@ -104,7 +104,7 @@ class SystemCheckCommand extends Command
         } else {
             $hasErrors = true;
             $output->writeln('<fg=red>[ERROR]</> Your Redis connection failed because of:');
-            $output->writeln(sprintf('<fg=red>%s</>', $results['redis']));
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['redis']));
         }
 
         // Check Doveadm (only if --all flag is set)
@@ -114,7 +114,7 @@ class SystemCheckCommand extends Command
             } else {
                 $hasErrors = true;
                 $output->writeln('<fg=red>[ERROR]</> Your Doveadm connection failed because of:');
-                $output->writeln(sprintf('<fg=red>%s</>', $results['doveadm']));
+                $output->writeln(\sprintf('<fg=red>%s</>', $results['doveadm']));
             }
 
             // Check Rspamd
@@ -123,7 +123,7 @@ class SystemCheckCommand extends Command
             } else {
                 $hasErrors = true;
                 $output->writeln('<fg=red>[ERROR]</> Your Rspamd connection failed because of:');
-                $output->writeln(sprintf('<fg=red>%s</>', $results['rspamd']));
+                $output->writeln(\sprintf('<fg=red>%s</>', $results['rspamd']));
             }
         }
 

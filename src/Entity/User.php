@@ -75,11 +75,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function __toString(): string
     {
         if (null !== $this->domain) {
-            return sprintf('%s@%s', $this->name, $this->domain->getName());
+            return \sprintf('%s@%s', $this->name, $this->domain->getName());
         }
 
         if (null !== $this->domainName) {
-            return sprintf('%s@%s', $this->name, $this->domainName);
+            return \sprintf('%s@%s', $this->name, $this->domainName);
         }
 
         return '';

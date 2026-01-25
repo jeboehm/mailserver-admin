@@ -34,7 +34,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testListUsers(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
         $userId = $user->getId();
@@ -76,7 +76,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testCreateUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -96,7 +96,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneBy(['name' => 'newuser', 'domain' => $domain]);
         static::assertInstanceOf(User::class, $user);
         static::assertEquals('newuser', $user->getName());
@@ -107,7 +107,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testEditUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -133,7 +133,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $updatedUser = $userRepository->find($user->getId());
         static::assertInstanceOf(User::class, $updatedUser);
         static::assertEquals(2000, $updatedUser->getQuota());
@@ -144,7 +144,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testEditUserWithoutPassword(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -170,7 +170,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $userRepository = $this->entityManager->getRepository(User::class);
-        assert($userRepository instanceof UserRepository);
+        \assert($userRepository instanceof UserRepository);
         $updatedUser = $userRepository->find($user->getId());
         static::assertInstanceOf(User::class, $updatedUser);
         static::assertStringStartsWith('$2y$', $updatedUser->getPassword());
@@ -180,7 +180,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testCreateDuplicateUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        assert($domainRepository instanceof DomainRepository);
+        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
