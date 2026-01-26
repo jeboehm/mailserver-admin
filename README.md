@@ -17,6 +17,8 @@ authentication.
 - **Fetchmail Configuration**: Set up and manage Fetchmail to retrieve emails from external servers.
 - **OAuth2 Integration**: Secure the interface with OAuth2 authentication, allowing you to use your existing OAuth2 provider for login.
 - **DNS Setup Wizard**: A wizard to help you set up your DNS records for your mail server.
+- **iOS/MacOS Profile**: Generates iOS/macOS email profiles for your mail server.
+- **Observability**: Monitoring and statistics for Dovecot and Rspamd services.
 
 ## Documentation
 
@@ -42,3 +44,7 @@ You can find the documentation for `mailserver-admin` in the [docker-mailserver 
 ### DNS Validation Wizard
 
 ![DNS Validation Wizard](https://jeboehm.github.io/docker-mailserver/images/admin/dns_wizard.png)
+
+### Observability
+
+![Observability for Rspamd](https://jeboehm.github.io/docker-mailserver/images/admin/obs_rspamd.png)
