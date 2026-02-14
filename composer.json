@@ -14,7 +14,7 @@
     "doctrine/orm": "3.6.2",
     "easycorp/easyadmin-bundle": "v4.28.1",
     "hwi/oauth-bundle": "v2.4.0",
-    "predis/predis": "v3.3.0",
+    "predis/predis": "v3.4.0",
     "symfony/asset-mapper": "*",
     "symfony/console": "v7.4.4",
     "symfony/dotenv": "v7.4.0",
