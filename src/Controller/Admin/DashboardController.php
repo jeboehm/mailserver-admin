@@ -10,10 +10,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
-use App\Entity\Alias;
-use App\Entity\Domain;
-use App\Entity\FetchmailAccount;
-use App\Entity\User;
+use App\Controller\User\FetchmailAccountController;
 use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -79,21 +76,20 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Manage')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
-        yield MenuItem::linkToCrud('Domain', 'fa fa-globe', Domain::class)
+        yield MenuItem::linkTo(DomainCrudController::class, 'Domain', 'fa fa-globe')
             ->setPermission(Roles::ROLE_ADMIN);
-        yield MenuItem::linkToCrud('User', 'fa fa-user', User::class)
+        yield MenuItem::linkTo(UserCrudController::class, 'User', 'fa fa-user')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
-        yield MenuItem::linkToCrud('Alias', 'fa fa-list-alt', Alias::class)
+        yield MenuItem::linkTo(AliasCrudController::class, 'Alias', 'fa fa-list-alt')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
 
         yield MenuItem::section('External');
-        yield MenuItem::linkToCrud('Fetchmail', 'fa fa-envelope', FetchmailAccount::class)
+        yield MenuItem::linkTo(FetchmailAccountController::class, 'Fetchmail', 'fa fa-envelope')
             ->setPermission(Roles::ROLE_USER);
 
         yield MenuItem::section('Security');
         yield MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index');
-        yield MenuItem::linkToCrud('DKIM', 'fa fa-shield-alt', Domain::class)
-            ->setController(DKIMCrudController::class)
+        yield MenuItem::linkTo(DKIMCrudController::class, 'DKIM', 'fa fa-shield-alt')
             ->setPermission(Roles::ROLE_ADMIN);
 
         yield MenuItem::section('Tools');
