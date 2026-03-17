@@ -33,6 +33,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/** @extends AbstractCrudController<FetchmailAccount> */
 #[AdminRoute(path: '/fetchmail-account', name: 'fetchmail')]
 #[IsGranted(Roles::ROLE_USER)]
 class FetchmailAccountController extends AbstractCrudController
@@ -150,7 +151,6 @@ class FetchmailAccountController extends AbstractCrudController
     {
         $entity = parent::createEntity($entityFqcn);
         $user = $this->getUser();
-        \assert($entity instanceof FetchmailAccount);
 
         if ($user instanceof User) {
             $entity->setUser($user);

@@ -27,9 +27,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/** @extends AbstractCrudController<Alias> */
 #[AdminRoute(path: '/alias', name: 'alias')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
-/** @extends AbstractCrudController<Alias> */
 class AliasCrudController extends AbstractCrudController
 {
     #[\Override]
@@ -70,7 +70,6 @@ class AliasCrudController extends AbstractCrudController
     public function createEntity(string $entityFqcn): Alias
     {
         $entity = parent::createEntity($entityFqcn);
-        \assert($entity instanceof Alias);
 
         $user = $this->getUser();
 

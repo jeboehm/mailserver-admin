@@ -18,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
+/** @extends AbstractCrudTestCase<DomainCrudController> */
 class DomainCrudControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
@@ -98,6 +99,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         $this->assertGlobalActionExists('new');
     }
 
+    /** @return class-string<DomainCrudController> */
     protected function getControllerFqcn(): string
     {
         return DomainCrudController::class;

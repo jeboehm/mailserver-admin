@@ -21,6 +21,7 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
+/** @extends AbstractCrudTestCase<DKIMCrudController> */
 class DKIMCrudControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
@@ -162,6 +163,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertNotEmpty($updatedDomain->getDkimPrivateKey());
     }
 
+    /** @return class-string<DKIMCrudController> */
     protected function getControllerFqcn(): string
     {
         return DKIMCrudController::class;

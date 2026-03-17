@@ -66,7 +66,7 @@ readonly class DoveadmHttpClient
             $commands = $this->listCommands();
 
             // Verify that we got a list of commands (non-empty array)
-            if (!\is_array($commands) || empty($commands)) {
+            if (empty($commands)) {
                 return DoveadmHealthDto::formatError('Expected list of commands, got empty or invalid response');
             }
 
@@ -148,11 +148,6 @@ readonly class DoveadmHttpClient
             }
 
             $data = $response->toArray();
-
-            // The response should be an array of commands
-            if (!\is_array($data)) {
-                throw new DoveadmResponseException('Expected array response, got ' . \gettype($data));
-            }
 
             return $data;
         } catch (TransportExceptionInterface $e) {
@@ -378,10 +373,6 @@ readonly class DoveadmHttpClient
         $counters = [];
 
         foreach ($response as $metric) {
-            if (!\is_array($metric)) {
-                continue;
-            }
-
             $metricName = $metric['metric_name'] ?? null;
             $field = $metric['field'] ?? null;
 

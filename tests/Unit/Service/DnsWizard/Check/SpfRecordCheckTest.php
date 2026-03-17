@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class SpfRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private MockObject&DnsLookupInterface $dns;
     private SpfRecordCheck $check;
 
     protected function setUp(): void
@@ -53,7 +53,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['v=spf1 -all']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -76,7 +75,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['v=spf1 ip4:1.2.3.4 -all']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -93,7 +91,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn([]);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -111,7 +108,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['some other txt record']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -129,7 +125,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['some other txt record', 'v=spf1 -all', 'another record']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -146,7 +141,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['V=SPF1 -ALL']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -163,7 +157,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['  v=spf1 -all  ']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -180,7 +173,6 @@ class SpfRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('example.com')
             ->willReturn(['']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);

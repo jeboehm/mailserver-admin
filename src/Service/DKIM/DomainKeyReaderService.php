@@ -21,6 +21,8 @@ readonly class DomainKeyReaderService
 
     /**
      * @throws DomainKeyNotFoundException
+     *
+     * @return array<string, string>
      */
     public function getDomainKey(string $domain, string $selector): array
     {

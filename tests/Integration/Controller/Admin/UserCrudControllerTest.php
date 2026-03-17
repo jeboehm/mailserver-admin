@@ -20,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
+/** @extends AbstractCrudTestCase<UserCrudController> */
 class UserCrudControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
@@ -209,6 +210,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertSelectorTextContains('.invalid-feedback', 'This value is already used.');
     }
 
+    /** @return class-string<UserCrudController> */
     protected function getControllerFqcn(): string
     {
         return UserCrudController::class;

@@ -28,6 +28,7 @@ class FetchmailAccount
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
+    /** @phpstan-ignore-next-line */
     private ?int $id = null;
 
     #[Assert\NotNull]

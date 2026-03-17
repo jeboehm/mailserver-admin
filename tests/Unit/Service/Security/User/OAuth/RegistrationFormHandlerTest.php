@@ -314,6 +314,7 @@ class RegistrationFormHandlerTest extends TestCase
         $this->subject->process($request, $this->form, $this->userInformation);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function invalidEmailProvider(): array
     {
         return [

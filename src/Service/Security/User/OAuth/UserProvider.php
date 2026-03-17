@@ -22,6 +22,7 @@ use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
+/** @implements UserProviderInterface<User> */
 readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProviderInterface
 {
     public function __construct(
@@ -34,7 +35,7 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
 
     public function loadUserByOAuthUserResponse(UserResponseInterface $response): User
     {
-        $emailAddress = method_exists($response, 'getUserIdentifier') ? $response->getUserIdentifier() : $response->getUsername();
+        $emailAddress = $response->getUserIdentifier();
 
         if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
             throw $this->createUserNotFoundException(username: $emailAddress, message: 'No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');

@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/** @extends Voter<string, User|Alias|null> */
 final class DomainAdminVoter extends Voter
 {
     public const string VIEW = 'domain_related_entity_view';
@@ -32,8 +33,6 @@ final class DomainAdminVoter extends Voter
         if (null === $subject) {
             return true;
         }
-
-        \assert($subject instanceof User || $subject instanceof Alias);
 
         if (\in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
             return true;

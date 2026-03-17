@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class PtrRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private MockObject&DnsLookupInterface $dns;
     private PtrRecordCheck $check;
 
     protected function setUp(): void
@@ -43,7 +43,6 @@ class PtrRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupPtr')
-            ->with('1.2.3.4')
             ->willReturn(['mail.example.com.']);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -65,7 +64,6 @@ class PtrRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupPtr')
-            ->with('1.2.3.4')
             ->willReturn(['other.example.com.']);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -103,7 +101,6 @@ class PtrRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupPtr')
-            ->with('1.2.3.4')
             ->willReturn(['MAIL.EXAMPLE.COM.']);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -119,7 +116,6 @@ class PtrRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupPtr')
-            ->with('1.2.3.4')
             ->willReturn(['mail.example.com']);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);

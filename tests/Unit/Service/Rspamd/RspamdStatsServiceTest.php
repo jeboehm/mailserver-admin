@@ -206,7 +206,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
-        self::assertIsArray($thresholds);
         self::assertCount(3, $thresholds);
         self::assertInstanceOf(ActionThresholdDto::class, $thresholds[0]);
         self::assertEquals('reject', $thresholds[0]->action);
@@ -225,7 +224,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
-        self::assertIsArray($thresholds);
         self::assertEmpty($thresholds);
     }
 
@@ -244,7 +242,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
-        self::assertIsArray($counters);
         self::assertCount(2, $counters);
         self::assertInstanceOf(SymbolCounterDto::class, $counters[0]);
         self::assertEquals('SYMBOL1', $counters[0]->name);
@@ -281,7 +278,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
-        self::assertIsArray($counters);
         self::assertEmpty($counters);
     }
 
@@ -311,7 +307,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
-        self::assertIsArray($history);
         self::assertCount(1, $history);
         self::assertInstanceOf(HistoryRowDto::class, $history[0]);
         self::assertEquals('reject', $history[0]->action);
@@ -330,7 +325,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
-        self::assertIsArray($history);
         self::assertEmpty($history);
     }
 

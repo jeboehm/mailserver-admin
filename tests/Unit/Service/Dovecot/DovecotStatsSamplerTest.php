@@ -80,7 +80,7 @@ final class DovecotStatsSamplerTest extends TestCase
 
         $samples = $this->sampler->getSamples();
 
-        self::assertIsArray($samples);
+        self::assertCount(0, $samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenAllowFetchIsFalse(): void
@@ -102,7 +102,7 @@ final class DovecotStatsSamplerTest extends TestCase
 
         $samples = $this->sampler->getSamples(allowFetch: false);
 
-        self::assertIsArray($samples);
+        self::assertCount(0, $samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenNotConfigured(): void
@@ -129,7 +129,7 @@ final class DovecotStatsSamplerTest extends TestCase
 
         $samples = $this->sampler->getSamples();
 
-        self::assertIsArray($samples);
+        self::assertCount(0, $samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenIntervalNotPassed(): void
@@ -162,7 +162,7 @@ final class DovecotStatsSamplerTest extends TestCase
 
         $samples = $this->sampler->getSamples();
 
-        self::assertIsArray($samples);
+        self::assertCount(0, $samples);
     }
 
     public function testGetLatestSampleReturnsNullWhenNoSamples(): void

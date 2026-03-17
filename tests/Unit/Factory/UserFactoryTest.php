@@ -98,6 +98,7 @@ class UserFactoryTest extends TestCase
         $factory->createFromEmailAddress($invalidEmail);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function invalidEmailProvider(): array
     {
         return [

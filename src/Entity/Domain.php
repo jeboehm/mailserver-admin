@@ -28,6 +28,7 @@ class Domain implements \Stringable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(name: 'id', type: Types::INTEGER)]
+    /** @phpstan-ignore-next-line */
     private ?int $id = null;
     #[Assert\NotBlank]
     #[DomainName]

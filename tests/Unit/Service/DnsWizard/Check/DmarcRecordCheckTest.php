@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class DmarcRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private MockObject&DnsLookupInterface $dns;
     private DmarcRecordCheck $check;
 
     protected function setUp(): void
@@ -53,7 +53,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['v=DMARC1; p=none']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -76,7 +75,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -93,7 +91,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -111,7 +108,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['some other txt record']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -129,7 +125,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['some other txt record', 'v=DMARC1; p=none', 'another record']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -146,7 +141,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['v=dmarc1; p=none']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -163,7 +157,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['  v=DMARC1; p=none  ']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);
@@ -180,7 +173,6 @@ class DmarcRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupTxt')
-            ->with('_dmarc.example.com')
             ->willReturn(['']);
 
         $result = $this->check->validateDomain('mail.example.com', $expectedAll, $domain);

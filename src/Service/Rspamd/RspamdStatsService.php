@@ -265,7 +265,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseGraphData(array $data, string $type): TimeSeriesDto
     {
@@ -283,7 +283,7 @@ readonly class RspamdStatsService
     /**
      * Check if data is in new format: array of arrays with {x: timestamp, y: value} objects.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function isNewGraphFormat(array $data): bool
     {
@@ -293,7 +293,7 @@ readonly class RspamdStatsService
     /**
      * Check if data is in legacy format: array of objects with timestamp and action counts.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function isLegacyGraphFormat(array $data): bool
     {
@@ -303,7 +303,7 @@ readonly class RspamdStatsService
     /**
      * Parse new graph format: [[{x: timestamp, y: value}, ...], ...].
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseNewGraphFormat(array $data, string $type): TimeSeriesDto
     {
@@ -317,7 +317,7 @@ readonly class RspamdStatsService
     /**
      * Parse legacy graph format: array of objects with timestamp and action counts.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseLegacyGraphFormat(array $data, string $type): TimeSeriesDto
     {
@@ -352,7 +352,7 @@ readonly class RspamdStatsService
     /**
      * Extract and sample timestamps from graph data.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      *
      * @return list<int>
      */
@@ -404,8 +404,8 @@ readonly class RspamdStatsService
     /**
      * Extract series data from graph format.
      *
-     * @param array<string, mixed> $data
-     * @param list<int>            $timestampKeys
+     * @param array<int|string, mixed> $data
+     * @param list<int>                $timestampKeys
      *
      * @return array<string, list<float>>
      */

@@ -23,6 +23,8 @@ interface DnsCheckInterface
     public static function getDefaultPriority(): int;
 
     /**
+     * @param string[] $expectedAll
+     *
      * @return DnsWizardRow[]
      */
     public function validateMailHost(string $mailname, ExpectedHostIps $expectedHostIps, array $expectedAll): array;

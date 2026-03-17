@@ -204,6 +204,10 @@ readonly class RspamdChartFactory
 
     /**
      * Create a dataset configuration for a line chart.
+     *
+     * @param array<mixed> $values
+     *
+     * @return array<string, mixed>
      */
     private function createDataset(string $name, array $values, bool $isAction): array
     {

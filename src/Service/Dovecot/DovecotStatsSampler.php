@@ -83,7 +83,7 @@ readonly class DovecotStatsSampler
     {
         return $this->cacheApp->get(
             self::CACHE_KEY_LAST_SAMPLE_TIME,
-            static function (ItemInterface $item): ?\DateTimeImmutable {
+            static function (ItemInterface $item): \DateTimeImmutable {
                 $item->expiresAfter(new \DateInterval('PT10S')); // Trigger refetch
 
                 return new \DateTimeImmutable();

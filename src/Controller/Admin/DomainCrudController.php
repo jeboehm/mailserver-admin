@@ -21,6 +21,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/** @extends AbstractCrudController<Domain> */
 #[AdminRoute(path: '/domain', name: 'domain')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DomainCrudController extends AbstractCrudController

@@ -25,6 +25,7 @@ class Alias implements \Stringable
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
+    /** @phpstan-ignore-next-line */
     private ?int $id = null;
     #[Assert\NotNull]
     #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'aliases')]

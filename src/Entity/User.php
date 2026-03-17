@@ -96,6 +96,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     /**
      * @see PasswordAuthenticatedUserInterface
      */
+    /** @param array<mixed> $data */
     public function __unserialize(array $data): void
     {
         [$this->id, $this->password, $this->domainName, $this->admin, $this->domainAdmin, $this->name] = $data;

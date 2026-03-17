@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class MxRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private MockObject&DnsLookupInterface $dns;
     private MxRecordCheck $check;
 
     protected function setUp(): void
@@ -54,7 +54,6 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['mail.example.com']);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
@@ -78,15 +77,12 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['mx.example.com']);
 
         $this->dns->method('lookupA')
-            ->with('mx.example.com')
             ->willReturn(['1.2.3.4']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mx.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
@@ -105,15 +101,12 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['mx.example.com']);
 
         $this->dns->method('lookupA')
-            ->with('mx.example.com')
             ->willReturn(['5.6.7.8']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mx.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
@@ -132,7 +125,6 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn([]);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
@@ -151,7 +143,6 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['mx1.example.com', 'mx2.example.com']);
 
         $this->dns->method('lookupA')
@@ -181,7 +172,6 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['MAIL.EXAMPLE.COM']);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
@@ -199,7 +189,6 @@ class MxRecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupMx')
-            ->with('example.com')
             ->willReturn(['mail.example.com.']);
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);

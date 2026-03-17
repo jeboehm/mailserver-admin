@@ -67,23 +67,19 @@ class InitSetupCommandTest extends TestCase
             ->expects($matcher)
             ->method('persist')->willReturnCallback(function (...$parameters) use ($matcher) {
                 if (1 === $matcher->numberOfInvocations()) {
-                    $callback = function (Domain $domain) {
+                    $callback = function (Domain $domain): void {
                         $this->assertEquals('example.com', $domain->getName());
-
-                        return true;
                     };
-                    $this->assertTrue($callback($parameters[0]));
+                    $callback($parameters[0]);
                 }
                 if (2 === $matcher->numberOfInvocations()) {
-                    $callback = function (User $user) {
+                    $callback = function (User $user): void {
                         $this->assertEquals('jeff', $user->getName());
                         $this->assertEquals('123456789', $user->getPlainPassword());
                         $this->assertTrue($user->isAdmin());
                         $this->assertEquals('example.com', $user->getDomain()?->getName());
-
-                        return true;
                     };
-                    $this->assertTrue($callback($parameters[0]));
+                    $callback($parameters[0]);
                 }
             });
 
@@ -299,21 +295,17 @@ class InitSetupCommandTest extends TestCase
             ->expects($matcher)
             ->method('persist')->willReturnCallback(function (...$parameters) use ($matcher) {
                 if (1 === $matcher->numberOfInvocations()) {
-                    $callback = function (Domain $domain) {
+                    $callback = function (Domain $domain): void {
                         $this->assertEquals('test-domain.org', $domain->getName());
-
-                        return true;
                     };
-                    $this->assertTrue($callback($parameters[0]));
+                    $callback($parameters[0]);
                 }
                 if (2 === $matcher->numberOfInvocations()) {
-                    $callback = function (User $user) {
+                    $callback = function (User $user): void {
                         $this->assertEquals('admin', $user->getName());
                         $this->assertEquals('test-domain.org', $user->getDomain()->getName());
-
-                        return true;
                     };
-                    $this->assertTrue($callback($parameters[0]));
+                    $callback($parameters[0]);
                 }
             });
 

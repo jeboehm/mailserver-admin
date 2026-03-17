@@ -461,6 +461,7 @@ class DovecotStatsControllerTest extends TestCase
         );
     }
 
+    /** @param array<string, int|float> $counters */
     private function createSampleWithCounters(array $counters): StatsDumpDto
     {
         return new StatsDumpDto(

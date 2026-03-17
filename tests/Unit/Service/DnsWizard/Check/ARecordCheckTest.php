@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class ARecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private MockObject&DnsLookupInterface $dns;
     private ARecordCheck $check;
 
     protected function setUp(): void
@@ -43,11 +43,9 @@ class ARecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mail.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -69,11 +67,9 @@ class ARecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->with('mail.example.com')
             ->willReturn(['5.6.7.8']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mail.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -90,11 +86,9 @@ class ARecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->with('mail.example.com')
             ->willReturn(['5.6.7.8']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -111,11 +105,9 @@ class ARecordCheckTest extends TestCase
         $expectedAll = [];
 
         $this->dns->method('lookupA')
-            ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mail.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);
@@ -133,11 +125,9 @@ class ARecordCheckTest extends TestCase
         $expectedAll = ['1.2.3.4'];
 
         $this->dns->method('lookupA')
-            ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
         $this->dns->method('lookupAaaa')
-            ->with('mail.example.com')
             ->willReturn([]);
 
         $result = $this->check->validateMailHost('mail.example.com', $expectedHostIps, $expectedAll);

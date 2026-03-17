@@ -67,6 +67,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedContain, $result);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function mysqlErrorProvider(): array
     {
         return [
@@ -153,6 +154,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedContain, $result);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function redisErrorProvider(): array
     {
         return [
@@ -216,6 +218,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedMessage, $result);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function doveadmErrorProvider(): array
     {
         return [
@@ -260,6 +263,7 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedMessage, $result);
     }
 
+    /** @return array<string, array<mixed>> */
     public static function rspamdErrorProvider(): array
     {
         return [

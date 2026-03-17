@@ -26,11 +26,9 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupA('example.com');
 
-        self::assertIsArray($result);
         // example.com should have at least one A record
         if (\count($result) > 0) {
             foreach ($result as $ip) {
-                self::assertIsString($ip);
                 self::assertNotEmpty($ip);
                 // Verify it's a valid IPv4 address
                 self::assertNotFalse(filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4));
@@ -43,7 +41,6 @@ class NativeDnsLookupTest extends TestCase
         // Use a domain that definitely doesn't exist
         $result = $this->lookup->lookupA('this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -51,11 +48,9 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupAaaa('example.com');
 
-        self::assertIsArray($result);
         // May or may not have AAAA records, but if present, should be valid IPv6
         if (\count($result) > 0) {
             foreach ($result as $ip) {
-                self::assertIsString($ip);
                 self::assertNotEmpty($ip);
                 // Verify it's a valid IPv6 address
                 self::assertNotFalse(filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6));
@@ -67,7 +62,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupAaaa('this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -75,11 +69,9 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupMx('example.com');
 
-        self::assertIsArray($result);
         // example.com should have MX records
         if (\count($result) > 0) {
             foreach ($result as $target) {
-                self::assertIsString($target);
                 self::assertNotEmpty($target);
             }
         }
@@ -89,7 +81,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupMx('this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -97,11 +88,9 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupTxt('example.com');
 
-        self::assertIsArray($result);
         // May or may not have TXT records
         if (\count($result) > 0) {
             foreach ($result as $txt) {
-                self::assertIsString($txt);
                 self::assertNotEmpty($txt);
             }
         }
@@ -111,7 +100,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupTxt('this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -120,11 +108,9 @@ class NativeDnsLookupTest extends TestCase
         // Use a well-known IP that should have a PTR record
         $result = $this->lookup->lookupPtr('8.8.8.8');
 
-        self::assertIsArray($result);
         // May or may not have PTR records, but if present, should be valid hostnames
         if (\count($result) > 0) {
             foreach ($result as $target) {
-                self::assertIsString($target);
                 self::assertNotEmpty($target);
             }
         }
@@ -135,11 +121,9 @@ class NativeDnsLookupTest extends TestCase
         // Use Google's public DNS IPv6
         $result = $this->lookup->lookupPtr('2001:4860:4860::8888');
 
-        self::assertIsArray($result);
         // May or may not have PTR records
         if (\count($result) > 0) {
             foreach ($result as $target) {
-                self::assertIsString($target);
                 self::assertNotEmpty($target);
             }
         }
@@ -149,7 +133,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupPtr('not-an-ip');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -157,15 +140,14 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupPtr('999.999.999.999');
 
-        self::assertIsArray($result);
         // Should return empty array for invalid IP
+        self::assertEmpty($result);
     }
 
     public function testLookupPtrWithMalformedIpv4(): void
     {
         $result = $this->lookup->lookupPtr('1.2.3');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -173,8 +155,8 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupPtr('2001:db8::');
 
-        self::assertIsArray($result);
         // May return empty or have results depending on DNS
+        self::assertGreaterThanOrEqual(0, \count($result));
     }
 
     public function testLookupSrvWithValidName(): void
@@ -182,19 +164,13 @@ class NativeDnsLookupTest extends TestCase
         // Test with a common SRV record (e.g., _sip._tcp.example.com)
         $result = $this->lookup->lookupSrv('_sip._tcp.example.com');
 
-        self::assertIsArray($result);
         // May or may not have SRV records
         if (\count($result) > 0) {
             foreach ($result as $record) {
-                self::assertIsArray($record);
                 self::assertArrayHasKey('priority', $record);
                 self::assertArrayHasKey('weight', $record);
                 self::assertArrayHasKey('port', $record);
                 self::assertArrayHasKey('target', $record);
-                self::assertIsInt($record['priority']);
-                self::assertIsInt($record['weight']);
-                self::assertIsInt($record['port']);
-                self::assertIsString($record['target']);
                 self::assertNotEmpty($record['target']);
             }
         }
@@ -204,7 +180,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupSrv('_service._tcp.this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -213,11 +188,9 @@ class NativeDnsLookupTest extends TestCase
         // Test with a host that might have a CNAME
         $result = $this->lookup->lookupCname('www.example.com');
 
-        self::assertIsArray($result);
         // May or may not have CNAME records
         if (\count($result) > 0) {
             foreach ($result as $target) {
-                self::assertIsString($target);
                 self::assertNotEmpty($target);
             }
         }
@@ -227,7 +200,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupCname('this-domain-definitely-does-not-exist-' . time() . '.com');
 
-        self::assertIsArray($result);
         self::assertEmpty($result);
     }
 
@@ -237,7 +209,6 @@ class NativeDnsLookupTest extends TestCase
         // We can't easily force duplicates from real DNS, but we verify the structure
         $result = $this->lookup->lookupA('example.com');
 
-        self::assertIsArray($result);
         // Verify no duplicates by comparing count with unique count
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
@@ -247,7 +218,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupAaaa('example.com');
 
-        self::assertIsArray($result);
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
@@ -256,7 +226,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupMx('example.com');
 
-        self::assertIsArray($result);
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
@@ -265,7 +234,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupTxt('example.com');
 
-        self::assertIsArray($result);
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
@@ -274,7 +242,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupPtr('8.8.8.8');
 
-        self::assertIsArray($result);
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
@@ -283,7 +250,6 @@ class NativeDnsLookupTest extends TestCase
     {
         $result = $this->lookup->lookupCname('example.com');
 
-        self::assertIsArray($result);
         $uniqueCount = \count(array_unique($result));
         self::assertSame($uniqueCount, \count($result));
     }
@@ -292,23 +258,23 @@ class NativeDnsLookupTest extends TestCase
     {
         // Test with boundary IPv4 addresses
         $result1 = $this->lookup->lookupPtr('0.0.0.0');
-        self::assertIsArray($result1);
+        self::assertGreaterThanOrEqual(0, \count($result1));
 
         $result2 = $this->lookup->lookupPtr('255.255.255.255');
-        self::assertIsArray($result2);
+        self::assertGreaterThanOrEqual(0, \count($result2));
     }
 
     public function testLookupPtrWithIpv6CompressedFormat(): void
     {
         // Test with compressed IPv6 format
         $result = $this->lookup->lookupPtr('::1');
-        self::assertIsArray($result);
+        self::assertGreaterThanOrEqual(0, \count($result));
     }
 
     public function testLookupPtrWithIpv6FullFormat(): void
     {
         // Test with full IPv6 format
         $result = $this->lookup->lookupPtr('2001:0db8:0000:0000:0000:0000:0000:0001');
-        self::assertIsArray($result);
+        self::assertGreaterThanOrEqual(0, \count($result));
     }
 }

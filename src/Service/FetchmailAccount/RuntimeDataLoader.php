@@ -35,10 +35,6 @@ readonly class RuntimeDataLoader
 
         $runtimeData = $this->serializer->deserialize($data, RuntimeData::class, 'json');
 
-        if (!$runtimeData instanceof RuntimeData) {
-            return;
-        }
-
         $fetchmailAccount->lastRun = $runtimeData->lastRun;
         $fetchmailAccount->isSuccess = $runtimeData->isSuccess;
         $fetchmailAccount->lastLog = $runtimeData->lastLog;

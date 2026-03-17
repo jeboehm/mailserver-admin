@@ -295,7 +295,6 @@ class MobileConfigServiceTest extends TestCase
 
         $result = $service->generateSignedProfile($user);
 
-        $this->assertIsString($result);
         $this->assertNotEmpty($result);
         // Signed profile should be in DER format (binary)
         $this->assertGreaterThan(\strlen($expectedXml), \strlen($result));

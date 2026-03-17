@@ -20,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Integration\Helper\UserTrait;
 
+/** @extends AbstractCrudTestCase<FetchmailAccountController> */
 class FetchmailAccountControllerTest extends AbstractCrudTestCase
 {
     use UserTrait;
@@ -349,6 +350,7 @@ class FetchmailAccountControllerTest extends AbstractCrudTestCase
         static::assertEquals($user->getId(), $account->getUser()->getId());
     }
 
+    /** @return class-string<FetchmailAccountController> */
     protected function getControllerFqcn(): string
     {
         return FetchmailAccountController::class;

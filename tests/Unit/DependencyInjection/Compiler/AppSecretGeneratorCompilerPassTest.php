@@ -19,7 +19,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
 {
     private string $tempDir;
     private AppSecretGeneratorCompilerPass $compilerPass;
-    private MockObject|ContainerBuilder $containerBuilderMock;
+    private MockObject&ContainerBuilder $containerBuilderMock;
 
     protected function setUp(): void
     {
@@ -48,7 +48,6 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
         file_put_contents($this->tempDir . '/app.secret', $existingSecret);
 
         $this->containerBuilderMock->method('getParameter')
-            ->with('kernel.cache_dir')
             ->willReturn($this->tempDir);
 
         $this->containerBuilderMock->expects($this->once())
@@ -64,7 +63,6 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
         file_put_contents($this->tempDir . '/app.secret', $shortSecret);
 
         $this->containerBuilderMock->method('getParameter')
-            ->with('kernel.cache_dir')
             ->willReturn($this->tempDir);
 
         $this->containerBuilderMock->expects($this->once())
@@ -84,7 +82,6 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
     public function testProcessWithNoSecret(): void
     {
         $this->containerBuilderMock->method('getParameter')
-            ->with('kernel.cache_dir')
             ->willReturn($this->tempDir);
 
         $this->containerBuilderMock->expects($this->once())

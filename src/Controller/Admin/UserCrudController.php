@@ -34,6 +34,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/** @extends AbstractCrudController<User> */
 #[AdminRoute(path: '/user', name: 'user')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class UserCrudController extends AbstractCrudController
@@ -97,8 +98,6 @@ class UserCrudController extends AbstractCrudController
     #[\Override]
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
-        \assert($entityInstance instanceof User);
-
         if (!empty($entityInstance->getPlainPassword())) {
             $entityInstance->setPassword(''); // set password to trigger LifeCycleCallbacks
         }
@@ -123,7 +122,6 @@ class UserCrudController extends AbstractCrudController
     public function createEntity(string $entityFqcn): User
     {
         $entity = parent::createEntity($entityFqcn);
-        \assert($entity instanceof User);
 
         $user = $this->getUser();
 
@@ -168,7 +166,7 @@ class UserCrudController extends AbstractCrudController
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
             ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($loggedInUser): Action {
-                $action->displayIf(static fn (User $user) => $user->getId() !== $loggedInUser?->getId());
+                $action->displayIf(static fn (User $user) => $user->getId() !== $loggedInUser->getId());
 
                 return $action;
             });
