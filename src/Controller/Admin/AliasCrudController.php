@@ -29,6 +29,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute(path: '/alias', name: 'alias')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
+/** @extends AbstractCrudController<Alias> */
 class AliasCrudController extends AbstractCrudController
 {
     #[\Override]

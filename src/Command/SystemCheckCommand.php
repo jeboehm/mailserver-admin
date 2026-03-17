@@ -149,8 +149,7 @@ class SystemCheckCommand extends Command
         return match ($unit) {
             's' => $value,
             'm' => $value * 60,
-            'h' => $value * 3600,
-            default => 60,
+            default => $value * 3600,
         };
     }
 }

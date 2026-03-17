@@ -113,6 +113,9 @@ class InitSetupCommand extends Command
         return 0;
     }
 
+    /**
+     * @return array<string>
+     */
     private function getEmailAddress(
         QuestionHelper $questionHelper,
         InputInterface $input,
