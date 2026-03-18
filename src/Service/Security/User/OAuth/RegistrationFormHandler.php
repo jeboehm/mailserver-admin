@@ -28,7 +28,9 @@ readonly class RegistrationFormHandler implements RegistrationFormHandlerInterfa
 
     public function process(Request $request, FormInterface $form, UserResponseInterface $userInformation): bool
     {
-        $emailAddress = $userInformation->getUserIdentifier();
+        // @phpstan-ignore-next-line (getUserIdentifier is a @method annotation only, not always available at runtime)
+        $emailAddress = method_exists($userInformation, 'getUserIdentifier')
+            ? $userInformation->getUserIdentifier() : $userInformation->getUsername();
 
         if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');

@@ -35,7 +35,9 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
 
     public function loadUserByOAuthUserResponse(UserResponseInterface $response): User
     {
-        $emailAddress = $response->getUserIdentifier();
+        // @phpstan-ignore-next-line (getUserIdentifier is a @method annotation only, not always available at runtime)
+        $emailAddress = method_exists($response, 'getUserIdentifier')
+            ? $response->getUserIdentifier() : $response->getUsername();
 
         if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
             throw $this->createUserNotFoundException(username: $emailAddress, message: 'No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
