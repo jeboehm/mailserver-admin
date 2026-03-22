@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8f4036ffe057e42b00ef35658058a470",
+    "content-hash": "0b838d896fd66d39341218c7dc444667",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -243,16 +243,16 @@
         },
         {
             "name": "doctrine/dbal",
-            "version": "4.4.2",
+            "version": "4.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "476f7f0fa6ea4aa5364926db7fabdf6049075722"
+                "reference": "61e730f1658814821a85f2402c945f3883407dec"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/476f7f0fa6ea4aa5364926db7fabdf6049075722",
-                "reference": "476f7f0fa6ea4aa5364926db7fabdf6049075722",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/61e730f1658814821a85f2402c945f3883407dec",
+                "reference": "61e730f1658814821a85f2402c945f3883407dec",
                 "shasum": ""
             },
             "require": {
@@ -329,7 +329,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/4.4.2"
+                "source": "https://github.com/doctrine/dbal/tree/4.4.3"
             },
             "funding": [
                 {
@@ -345,7 +345,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-26T12:12:19+00:00"
+            "time": "2026-03-20T08:52:12+00:00"
         },
         {
             "name": "doctrine/deprecations",
@@ -6278,16 +6278,16 @@
         },
         {
             "name": "symfony/stimulus-bundle",
-            "version": "v2.32.0",
+            "version": "v2.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stimulus-bundle.git",
-                "reference": "dfbf6b443bb381cb611e06f64dc23603b614b575"
+                "reference": "581fe67a2a85c10ce315aeba15425d5a7002526d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/dfbf6b443bb381cb611e06f64dc23603b614b575",
-                "reference": "dfbf6b443bb381cb611e06f64dc23603b614b575",
+                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/581fe67a2a85c10ce315aeba15425d5a7002526d",
+                "reference": "581fe67a2a85c10ce315aeba15425d5a7002526d",
                 "shasum": ""
             },
             "require": {
@@ -6327,7 +6327,7 @@
                 "symfony-ux"
             ],
             "support": {
-                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.32.0"
+                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.33.0"
             },
             "funding": [
                 {
@@ -6347,7 +6347,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-02T07:12:06+00:00"
+            "time": "2026-03-15T07:57:29+00:00"
         },
         {
             "name": "symfony/stopwatch",
@@ -7033,16 +7033,16 @@
         },
         {
             "name": "symfony/ux-chartjs",
-            "version": "v2.32.0",
+            "version": "v2.33.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-chartjs.git",
-                "reference": "5d65b055255a546801eec8a6d48eca7b98d4c613"
+                "reference": "2d8f75651865e13d3fe128fc10431e998a22b42c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-chartjs/zipball/5d65b055255a546801eec8a6d48eca7b98d4c613",
-                "reference": "5d65b055255a546801eec8a6d48eca7b98d4c613",
+                "url": "https://api.github.com/repos/symfony/ux-chartjs/zipball/2d8f75651865e13d3fe128fc10431e998a22b42c",
+                "reference": "2d8f75651865e13d3fe128fc10431e998a22b42c",
                 "shasum": ""
             },
             "require": {
@@ -7093,7 +7093,7 @@
                 "symfony-ux"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-chartjs/tree/v2.32.0"
+                "source": "https://github.com/symfony/ux-chartjs/tree/v2.33.0"
             },
             "funding": [
                 {
@@ -7113,7 +7113,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-12-16T07:08:36+00:00"
+            "time": "2026-03-15T07:57:29+00:00"
         },
         {
             "name": "symfony/ux-twig-component",
