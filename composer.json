@@ -7,7 +7,7 @@
     "php": ">=8.4",
     "ext-iconv": "*",
     "ext-openssl": "*",
-    "composer/ca-bundle": "1.5.10",
+    "composer/ca-bundle": "1.5.11",
     "doctrine/dbal": "4.4.3",
     "doctrine/doctrine-bundle": "3.2.2",
     "doctrine/doctrine-migrations-bundle": "4.0.0",
