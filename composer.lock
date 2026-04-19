@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7d1cb9ebda7e69466430e3c85324c3d5",
+    "content-hash": "2ab4aad8f62ae7c4768a069a2c05547a",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -1270,16 +1270,16 @@
         },
         {
             "name": "easycorp/easyadmin-bundle",
-            "version": "v5.0.4",
+            "version": "v5.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/EasyCorp/EasyAdminBundle.git",
-                "reference": "d56826d50887eea7a65afa2bd3157aed6c87e0ea"
+                "reference": "4fb17c9bb7251dd51d08d8dd6b19383ae81c102d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/d56826d50887eea7a65afa2bd3157aed6c87e0ea",
-                "reference": "d56826d50887eea7a65afa2bd3157aed6c87e0ea",
+                "url": "https://api.github.com/repos/EasyCorp/EasyAdminBundle/zipball/4fb17c9bb7251dd51d08d8dd6b19383ae81c102d",
+                "reference": "4fb17c9bb7251dd51d08d8dd6b19383ae81c102d",
                 "shasum": ""
             },
             "require": {
@@ -1316,6 +1316,7 @@
             "require-dev": {
                 "dama/doctrine-test-bundle": "^8.2",
                 "doctrine/doctrine-fixtures-bundle": "^3.4|3.5.x-dev|^4.0",
+                "league/flysystem": "^3.0",
                 "moneyphp/money": "^4.8",
                 "phpstan/extension-installer": "^1.4",
                 "phpstan/phpstan": "^2.0",
@@ -1364,7 +1365,7 @@
             ],
             "support": {
                 "issues": "https://github.com/EasyCorp/EasyAdminBundle/issues",
-                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v5.0.4"
+                "source": "https://github.com/EasyCorp/EasyAdminBundle/tree/v5.0.5"
             },
             "funding": [
                 {
@@ -1372,7 +1373,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-04-01T18:44:07+00:00"
+            "time": "2026-04-15T18:04:41+00:00"
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
@@ -6255,16 +6256,16 @@
         },
         {
             "name": "symfony/stimulus-bundle",
-            "version": "v2.34.0",
+            "version": "v2.35.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/stimulus-bundle.git",
-                "reference": "d610a2e021cf63f955838b4bfe40da7e4cafe850"
+                "reference": "05af0259f201dbbd15c103bea289989a4b483b5b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/d610a2e021cf63f955838b4bfe40da7e4cafe850",
-                "reference": "d610a2e021cf63f955838b4bfe40da7e4cafe850",
+                "url": "https://api.github.com/repos/symfony/stimulus-bundle/zipball/05af0259f201dbbd15c103bea289989a4b483b5b",
+                "reference": "05af0259f201dbbd15c103bea289989a4b483b5b",
                 "shasum": ""
             },
             "require": {
@@ -6304,7 +6305,7 @@
                 "symfony-ux"
             ],
             "support": {
-                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.34.0"
+                "source": "https://github.com/symfony/stimulus-bundle/tree/v2.35.0"
             },
             "funding": [
                 {
@@ -6324,7 +6325,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-21T22:29:11+00:00"
+            "time": "2026-03-22T22:21:50+00:00"
         },
         {
             "name": "symfony/stopwatch",
@@ -7011,16 +7012,16 @@
         },
         {
             "name": "symfony/ux-chartjs",
-            "version": "v2.34.0",
+            "version": "v2.35.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/ux-chartjs.git",
-                "reference": "0da83c34958713b0574e5d90c6a738101a0d1500"
+                "reference": "7ff8a3409b24af7477b516a673ee7c9a63d385a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/ux-chartjs/zipball/0da83c34958713b0574e5d90c6a738101a0d1500",
-                "reference": "0da83c34958713b0574e5d90c6a738101a0d1500",
+                "url": "https://api.github.com/repos/symfony/ux-chartjs/zipball/7ff8a3409b24af7477b516a673ee7c9a63d385a1",
+                "reference": "7ff8a3409b24af7477b516a673ee7c9a63d385a1",
                 "shasum": ""
             },
             "require": {
@@ -7028,7 +7029,7 @@
                 "symfony/config": "^5.4|^6.0|^7.0|^8.0",
                 "symfony/dependency-injection": "^5.4|^6.0|^7.0|^8.0",
                 "symfony/http-kernel": "^5.4|^6.0|^7.0|^8.0",
-                "symfony/stimulus-bundle": "^2.9.1"
+                "symfony/stimulus-bundle": "^2.9.1|^3.0"
             },
             "conflict": {
                 "symfony/flex": "<1.13"
@@ -7071,7 +7072,7 @@
                 "symfony-ux"
             ],
             "support": {
-                "source": "https://github.com/symfony/ux-chartjs/tree/v2.34.0"
+                "source": "https://github.com/symfony/ux-chartjs/tree/v2.35.0"
             },
             "funding": [
                 {
@@ -7091,7 +7092,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-21T22:29:11+00:00"
+            "time": "2026-04-03T05:13:59+00:00"
         },
         {
             "name": "symfony/ux-twig-component",
