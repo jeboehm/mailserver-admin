@@ -102,7 +102,7 @@ class RspamdStatsControllerTest extends TestCase
     public function testThroughputWithValidType(): void
     {
         $series = new TimeSeriesDto(TimeSeriesDto::TYPE_DAY, ['00:00'], ['spam' => [10]]);
-        $chart = $this->createMock(Chart::class);
+        $chart = $this->createStub(Chart::class);
 
         $this->statsService
             ->expects($this->once())
@@ -134,7 +134,7 @@ class RspamdStatsControllerTest extends TestCase
     public function testThroughputWithInvalidType(): void
     {
         $series = TimeSeriesDto::empty('day');
-        $chart = $this->createMock(Chart::class);
+        $chart = $this->createStub(Chart::class);
 
         $this->statsService
             ->expects($this->once())
@@ -161,7 +161,7 @@ class RspamdStatsControllerTest extends TestCase
     public function testActionsPie(): void
     {
         $distribution = new ActionDistributionDto(['reject' => 100]);
-        $chart = $this->createMock(Chart::class);
+        $chart = $this->createStub(Chart::class);
 
         $this->statsService
             ->expects($this->once())

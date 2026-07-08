@@ -215,8 +215,8 @@ class DovecotStatsControllerTest extends TestCase
             'auth_failures' => new RateSeriesDto('auth_failures', '/min', [], []),
         ];
         $mailDeliveryRates = new RateSeriesDto('mail_deliveries', '/min', [], []);
-        $authChart = $this->createMock(Chart::class);
-        $mailDeliveriesChart = $this->createMock(Chart::class);
+        $authChart = $this->createStub(Chart::class);
+        $mailDeliveriesChart = $this->createStub(Chart::class);
 
         $this->sampler
             ->expects($this->once())

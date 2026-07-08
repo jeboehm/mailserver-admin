@@ -16,12 +16,14 @@ use App\Service\Security\User\OAuth\UserProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use HWI\Bundle\OAuthBundle\OAuth\Response\PathUserResponse;
 use HWI\Bundle\OAuthBundle\Security\Core\Exception\AccountNotLinkedException;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class UserProviderTest extends TestCase
 {
     private MockObject&UserRepository $userRepository;

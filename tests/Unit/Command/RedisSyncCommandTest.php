@@ -23,8 +23,17 @@ class RedisSyncCommandTest extends TestCase
 {
     private CommandTester $commandTester;
 
+    /**
+     * @var MockObject&Manager
+     */
     private MockObject $managerMock;
+    /**
+     * @var MockObject&AccountWriter
+     */
     private MockObject $accountWriterMock;
+    /**
+     * @var MockObject&ConnectionCheckService
+     */
     private MockObject $connectionCheckServiceMock;
 
     protected function setUp(): void
