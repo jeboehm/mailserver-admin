@@ -46,7 +46,8 @@ class DashboardController extends AbstractDashboardController
     {
         return Dashboard::new()
             ->setTitle('mailserver-admin')
-            ->setFaviconPath('favicon.svg');
+            ->setFaviconPath('favicon.svg')
+            ->generateRelativeUrls();
     }
 
     #[\Override]

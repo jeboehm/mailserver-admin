@@ -162,6 +162,25 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertNotEmpty($updatedDomain->getDkimPrivateKey());
     }
 
+    public function testRecreateKeyRelativeFormUrl(): void
+    {
+        $this->loginClient($this->client);
+
+        $domainRepository = $this->entityManager->getRepository(Domain::class);
+        \assert($domainRepository instanceof DomainRepository);
+        $domain = $domainRepository->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        static::assertResponseIsSuccessful();
+
+        $form = $this->client->getCrawler()->filter('form.action-recreateKey');
+        $action = $form->attr('action');
+
+        static::assertStringStartsNotWith('http://', $action, 'Relative URL configuration is required for the DashboardController.');
+        static::assertStringStartsNotWith('https://', $action, 'Relative URL configuration is required for the DashboardController.');
+    }
+
     protected function getControllerFqcn(): string
     {
         return DKIMCrudController::class;

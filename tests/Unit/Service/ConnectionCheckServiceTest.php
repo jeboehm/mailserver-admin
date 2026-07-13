@@ -101,7 +101,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(Result::class));
+            ->willReturn($this->createStub(Result::class));
 
         $this->entityManager
             ->expects($this->once())
@@ -404,7 +404,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(Result::class));
+            ->willReturn($this->createStub(Result::class));
 
         $this->entityManager
             ->expects($this->once())
@@ -438,7 +438,7 @@ class ConnectionCheckServiceTest extends TestCase
             ->expects($this->once())
             ->method('executeQuery')
             ->with('SELECT 1')
-            ->willReturn($this->createMock(Result::class));
+            ->willReturn($this->createStub(Result::class));
 
         $this->entityManager
             ->expects($this->once())
