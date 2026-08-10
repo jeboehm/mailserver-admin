@@ -6,4 +6,5 @@ vendor/
 public/build/
 docker-*
 Dockerfile*
-.env
+.env.local
+.env.*.local
