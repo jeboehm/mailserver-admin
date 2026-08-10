@@ -53,7 +53,7 @@ class RedisSyncCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $this->managerMock->expects($this->once())->method('refresh');
         $this->accountWriterMock->expects($this->once())->method('write');

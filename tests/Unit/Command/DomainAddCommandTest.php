@@ -42,7 +42,7 @@ class DomainAddCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(new DomainAddCommand($this->managerMock, $this->validatorMock, $this->connectionCheckServiceMock));

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -17,12 +18,30 @@ class Version20180322081734 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        // Only installations that came through the 2018 rename have this table;
+        // fresh ones get their schema from the baseline migration instead.
+        if (!$schema->hasTable('mail_domains')) {
+            return;
+        }
+
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL COLLATE utf8_unicode_ci');
         $this->addSql('ALTER TABLE mail_users ADD admin TINYINT(1) NOT NULL');
     }
 
     public function down(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        if (!$schema->hasTable('mail_domains')) {
+            return;
+        }
+
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL COLLATE utf8_general_ci');
         $this->addSql('ALTER TABLE mail_users DROP admin');
     }

@@ -22,10 +22,10 @@ trait ConnectionCheckTrait
         $results = $connectionCheckService->checkAll();
         $hasErrors = false;
 
-        if (null !== $results['mysql']) {
+        if (null !== $results['database']) {
             $hasErrors = true;
-            $output->writeln('<fg=red>[ERROR]</> Your MySQL connection failed because of:');
-            $output->writeln(\sprintf('<fg=red>%s</>', $results['mysql']));
+            $output->writeln('<fg=red>[ERROR]</> Your database connection failed because of:');
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['database']));
         }
 
         if (null !== $results['redis']) {

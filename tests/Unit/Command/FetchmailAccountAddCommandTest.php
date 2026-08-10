@@ -42,7 +42,7 @@ class FetchmailAccountAddCommandTest extends TestCase
 
         $this->connectionCheckService
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(

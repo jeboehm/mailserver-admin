@@ -33,7 +33,10 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
 
     public function findOneByEmailAddress(string $emailAddress): ?User
     {
-        $parts = explode('@', $emailAddress, 2);
+        // Addresses are stored lowercase. Normalising here keeps lookups case
+        // insensitive on PostgreSQL, whose default collation compares case
+        // sensitively, unlike the MySQL collations used so far.
+        $parts = explode('@', mb_strtolower($emailAddress), 2);
 
         if (2 !== \count($parts)) {
             return null;

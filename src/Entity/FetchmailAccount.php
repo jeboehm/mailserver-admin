@@ -36,12 +36,12 @@ class FetchmailAccount
 
     #[Assert\Hostname]
     #[Assert\NotBlank]
-    #[ORM\Column(name: 'config_host', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'config_host', type: Types::STRING)]
     private string $host = '';
 
     #[Assert\Choice(choices: ['imap', 'pop3'])]
     #[Assert\NotBlank]
-    #[ORM\Column(name: 'config_protocol', type: Types::STRING, length: 50, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'config_protocol', type: Types::STRING, length: 50)]
     private string $protocol = 'imap';
 
     #[Assert\Range(min: 1, max: 65535)]
@@ -51,12 +51,12 @@ class FetchmailAccount
 
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
-    #[ORM\Column(name: 'config_username', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'config_username', type: Types::STRING)]
     private string $username = '';
 
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
-    #[ORM\Column(name: 'config_password', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'config_password', type: Types::STRING)]
     private ?string $password = '';
 
     #[Assert\NotNull]

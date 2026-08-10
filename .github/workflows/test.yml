@@ -8,7 +8,9 @@ permissions:
   contents: read
   pull-requests: write
 env:
-  PHP_EXTENSIONS: mbstring, xml, ctype, iconv, intl, mysql
+  PHP_EXTENSIONS: mbstring, xml, ctype, iconv, intl, mysql, pgsql, pdo_pgsql
+  # Lets the kernel boot in build and static-analysis; those jobs never connect.
+  # The phpunit job overrides this per matrix leg.
   DATABASE_URL: mysql://root:symfony@127.0.0.1:3306/symfony
   REDIS_HOST: localhost
   APP_ENV: test
@@ -55,20 +57,14 @@ jobs:
     name: Static code analysis
     runs-on: ubuntu-latest
     needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        php-versions:
-          - "8.4"
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Setup PHP, with composer and extensions
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: "8.4"
           extensions: ${{ env.PHP_EXTENSIONS }}
-          coverage: xdebug
       - name: Download build artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
@@ -85,7 +81,7 @@ jobs:
       - name: PHPStan
         run: composer run phpstan
   phpunit:
-    name: PHPUnit (PHP ${{ matrix.php-versions }})
+    name: PHPUnit (PHP ${{ matrix.php-versions }}, ${{ matrix.database }})
     runs-on: ubuntu-latest
     needs: build
     services:
@@ -98,6 +94,15 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      postgres:
+        image: postgres:18-alpine@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+        env:
+          POSTGRES_USER: symfony
+          POSTGRES_PASSWORD: symfony
+          POSTGRES_DB: symfony
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready -U symfony" --health-interval=10s --health-timeout=5s --health-retries=3
       redis:
         image: redis@sha256:344e3945a0b431c8ff1eecd58c5573538126bd756f02fc7e218ddf1fc2546366
         ports:
@@ -109,6 +114,17 @@ jobs:
         php-versions:
           - "8.4"
           - "8.5"
+        database:
+          - mysql
+          - postgres
+        # Both service containers always run; this picks the one under test.
+        include:
+          - database: mysql
+            database-url: "mysql://root:symfony@127.0.0.1:3306/symfony?serverVersion=8.4"
+          - database: postgres
+            database-url: "postgresql://symfony:symfony@127.0.0.1:5432/symfony?serverVersion=18&charset=utf8"
+    env:
+      DATABASE_URL: ${{ matrix.database-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -127,16 +143,31 @@ jobs:
         run: tar -xzf build-artifacts.tar.gz
       - name: Cleanup archive
         run: rm build-artifacts.tar.gz
-      - name: Prepare database
+      # Mirrors the bootstrap docker-mailserver runs on container start.
+      - name: Check connections against an empty database
+        run: bin/console system:check --wait --allow-empty-database
+      - name: Migrate from an empty database
+        run: bin/console doctrine:migrations:migrate -n
+      - name: Migrating again must be a no-op
+        run: bin/console doctrine:migrations:migrate -n
+      # schema:validate reports doctrine's own migration_versions table as
+      # drift; migrations:diff excludes it, so it is the usable gate here.
+      # The pipe masks the exit code on purpose, grep is the gate.
+      - name: Schema must match the mapping
         run: |
-          bin/console doctrine:schema:create
+          bin/console doctrine:migrations:diff 2>&1 | tee diff.log
+          grep -q 'No changes detected' diff.log
+      - name: Seed the migrated schema
+        run: |
           bin/console domain:add example.com
           bin/console user:add --password=changeme --admin --enable admin example.com
           bin/console dkim:setup --enable --selector dkim example.com
+      - name: Migrated schema must be usable
+        run: bin/console system:check
       - name: Run tests
         run: php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-cobertura=coverage.xml
       - name: Create code coverage report
-        if: ${{ matrix.php-versions == '8.4' }}
+        if: ${{ matrix.php-versions == '8.4' && matrix.database == 'mysql' }}
         uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
         with:
           filename: coverage.xml
@@ -148,7 +179,7 @@ jobs:
           output: both
           thresholds: '60 80'
       - name: Add Coverage PR Comment
-        if: ${{ matrix.php-versions == '8.4' }}
+        if: ${{ matrix.php-versions == '8.4' && matrix.database == 'mysql' }}
         uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2
         with:
           recreate: true

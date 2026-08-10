@@ -43,7 +43,7 @@ class InitSetupCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));
@@ -108,7 +108,7 @@ class InitSetupCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => 'Connection refused', 'redis' => null]);
+            ->willReturn(['database' => 'Connection refused', 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(new InitSetupCommand($this->validatorMock, $this->managerMock, $this->connectionCheckServiceMock));

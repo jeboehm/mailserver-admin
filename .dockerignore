@@ -6,4 +6,7 @@ vendor/
 public/build/
 docker-*
 Dockerfile*
-.env
+# .env holds the committed defaults the application needs to boot and is part
+# of every release; only the local overrides must stay out of build contexts.
+.env.local
+.env.*.local

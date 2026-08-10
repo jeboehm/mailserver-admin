@@ -52,8 +52,8 @@ class ConnectionCheckServiceTest extends TestCase
         );
     }
 
-    #[DataProvider('mysqlErrorProvider')]
-    public function testCheckMySQLErrors(string $errorMessage, string $expectedContain): void
+    #[DataProvider('databaseErrorProvider')]
+    public function testCheckDatabaseErrors(string $errorMessage, string $expectedContain): void
     {
         $this->userRepository
             ->expects($this->once())
@@ -61,17 +61,21 @@ class ConnectionCheckServiceTest extends TestCase
             ->with([], null, 1)
             ->willThrowException(new \RuntimeException($errorMessage));
 
-        $result = $this->service->checkMySQL();
+        $result = $this->service->checkDatabase();
 
         $this->assertNotNull($result);
         $this->assertStringContainsString($expectedContain, $result);
     }
 
-    public static function mysqlErrorProvider(): array
+    public static function databaseErrorProvider(): array
     {
         return [
             'access denied' => ['Access denied for user', 'Authentication failed'],
+            'postgres authentication' => ['FATAL: password authentication failed for user "mail"', 'Authentication failed'],
             'unknown database' => ['Unknown database', 'Database not found'],
+            'postgres unknown database' => ['FATAL: database "mailserver" does not exist', 'Database not found'],
+            'missing schema' => ['Base table or view not found: 1146', 'Database schema is missing'],
+            'postgres missing schema' => ['SQLSTATE[42P01]: ERROR: relation "mail_users" does not exist', 'Database schema is missing'],
             'connection refused' => ['Connection refused', 'Cannot connect to database server'],
             'no connection' => ['No connection', 'Cannot connect to database server'],
             'connection timeout' => ['Connection timed out', 'Connection to database server timed out'],
@@ -81,7 +85,7 @@ class ConnectionCheckServiceTest extends TestCase
         ];
     }
 
-    public function testCheckMySQLSuccess(): void
+    public function testCheckDatabaseSuccess(): void
     {
         $this->userRepository
             ->expects($this->once())
@@ -89,12 +93,12 @@ class ConnectionCheckServiceTest extends TestCase
             ->with([], null, 1)
             ->willReturn([]);
 
-        $result = $this->service->checkMySQL();
+        $result = $this->service->checkDatabase();
 
         $this->assertNull($result);
     }
 
-    public function testCheckMySQLWithAllowEmptyDatabaseSuccess(): void
+    public function testCheckDatabaseWithAllowEmptyDatabaseSuccess(): void
     {
         $connection = $this->createMock(Connection::class);
         $connection
@@ -110,13 +114,13 @@ class ConnectionCheckServiceTest extends TestCase
 
         $this->userRepository->expects($this->never())->method('findBy');
 
-        $result = $this->service->checkMySQL(true);
+        $result = $this->service->checkDatabase(true);
 
         $this->assertNull($result);
     }
 
-    #[DataProvider('mysqlErrorProvider')]
-    public function testCheckMySQLWithAllowEmptyDatabaseErrors(string $errorMessage, string $expectedContain): void
+    #[DataProvider('databaseErrorProvider')]
+    public function testCheckDatabaseWithAllowEmptyDatabaseErrors(string $errorMessage, string $expectedContain): void
     {
         $connection = $this->createMock(Connection::class);
         $connection
@@ -132,7 +136,7 @@ class ConnectionCheckServiceTest extends TestCase
 
         $this->userRepository->expects($this->never())->method('findBy');
 
-        $result = $this->service->checkMySQL(true);
+        $result = $this->service->checkDatabase(true);
 
         $this->assertNotNull($result);
         $this->assertStringContainsString($expectedContain, $result);
@@ -287,11 +291,11 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll();
 
-        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('database', $result);
         $this->assertArrayHasKey('redis', $result);
         $this->assertArrayNotHasKey('doveadm', $result);
         $this->assertArrayNotHasKey('rspamd', $result);
-        $this->assertNull($result['mysql']);
+        $this->assertNull($result['database']);
         $this->assertNull($result['redis']);
     }
 
@@ -321,11 +325,11 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(true);
 
-        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('database', $result);
         $this->assertArrayHasKey('redis', $result);
         $this->assertArrayHasKey('doveadm', $result);
         $this->assertArrayHasKey('rspamd', $result);
-        $this->assertNull($result['mysql']);
+        $this->assertNull($result['database']);
         $this->assertNull($result['redis']);
         if (isset($result['doveadm'])) {
             $this->assertNull($result['doveadm']);
@@ -351,9 +355,9 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll();
 
-        $this->assertNotNull($result['mysql']);
+        $this->assertNotNull($result['database']);
         $this->assertNotNull($result['redis']);
-        $this->assertStringContainsString('Cannot connect to database server', $result['mysql']);
+        $this->assertStringContainsString('Cannot connect to database server', $result['database']);
         $this->assertStringContainsString('Cannot connect to Redis server', $result['redis']);
     }
 
@@ -383,9 +387,9 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(true);
 
-        $this->assertNotNull($result['mysql']);
+        $this->assertNotNull($result['database']);
         $this->assertNotNull($result['redis']);
-        $this->assertStringContainsString('Cannot connect to database server', $result['mysql']);
+        $this->assertStringContainsString('Cannot connect to database server', $result['database']);
         $this->assertStringContainsString('Cannot connect to Redis server', $result['redis']);
         if (isset($result['doveadm'])) {
             $this->assertNotNull($result['doveadm']);
@@ -423,11 +427,11 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(false, true);
 
-        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('database', $result);
         $this->assertArrayHasKey('redis', $result);
         $this->assertArrayNotHasKey('doveadm', $result);
         $this->assertArrayNotHasKey('rspamd', $result);
-        $this->assertNull($result['mysql']);
+        $this->assertNull($result['database']);
         $this->assertNull($result['redis']);
     }
 
@@ -465,11 +469,11 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(true, true);
 
-        $this->assertArrayHasKey('mysql', $result);
+        $this->assertArrayHasKey('database', $result);
         $this->assertArrayHasKey('redis', $result);
         $this->assertArrayHasKey('doveadm', $result);
         $this->assertArrayHasKey('rspamd', $result);
-        $this->assertNull($result['mysql']);
+        $this->assertNull($result['database']);
         $this->assertNull($result['redis']);
         if (isset($result['doveadm'])) {
             $this->assertNull($result['doveadm']);

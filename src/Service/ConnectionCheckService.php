@@ -50,14 +50,14 @@ readonly class ConnectionCheckService
     }
 
     /**
-     * Check both MySQL and Redis connections.
+     * Check both database and Redis connections.
      *
-     * @return array{mysql: string|null, redis: string|null}|array{mysql: string|null, redis: string|null, doveadm: string|null, rspamd: string|null}
+     * @return array{database: string|null, redis: string|null}|array{database: string|null, redis: string|null, doveadm: string|null, rspamd: string|null}
      */
     public function checkAll(bool $all = false, bool $allowEmptyDatabase = false): array
     {
         $result = [
-            'mysql' => $this->checkMySQL($allowEmptyDatabase),
+            'database' => $this->checkDatabase($allowEmptyDatabase),
             'redis' => $this->checkRedis(),
         ];
 
@@ -69,7 +69,7 @@ readonly class ConnectionCheckService
         return $result;
     }
 
-    public function checkMySQL(bool $allowEmptyDatabase = false): ?string
+    public function checkDatabase(bool $allowEmptyDatabase = false): ?string
     {
         try {
             if ($allowEmptyDatabase) {
@@ -84,7 +84,7 @@ readonly class ConnectionCheckService
                 );
             }
         } catch (\Throwable $e) {
-            return $this->formatMySQLError($e);
+            return $this->formatDatabaseError($e);
         }
 
         return null;
@@ -101,21 +101,27 @@ readonly class ConnectionCheckService
         return null;
     }
 
-    private function formatMySQLError(\Throwable $e): string
+    private function formatDatabaseError(\Throwable $e): string
     {
         $message = $e->getMessage();
 
-        // Extract user-friendly error message
-        if (str_contains($message, 'Access denied')) {
+        // Extract user-friendly error message. Each engine words the same
+        // condition differently, so both spellings are matched.
+        if (str_contains($message, 'Access denied') || str_contains($message, 'password authentication failed')) {
             return 'Authentication failed. Please check your database username and password.';
         }
 
-        if (str_contains($message, 'Unknown database')) {
+        if (str_contains($message, 'Unknown database')
+            || (str_contains($message, 'database "') && str_contains($message, 'does not exist'))) {
             return 'Database not found. Please ensure the database exists.';
         }
 
+        if (str_contains($message, 'Base table or view not found') || str_contains($message, 'relation "')) {
+            return 'Database schema is missing. Please run "bin/console doctrine:migrations:migrate".';
+        }
+
         if (str_contains($message, 'Connection refused') || str_contains($message, 'No connection')) {
-            return 'Cannot connect to database server. Please check if MySQL is running and the host/port are correct.';
+            return 'Cannot connect to database server. Please check if it is running and the host/port are correct.';
         }
 
         if (str_contains($message, 'Connection timed out')) {

@@ -48,7 +48,7 @@ class DKIMSetupCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(

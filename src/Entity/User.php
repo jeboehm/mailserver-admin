@@ -36,9 +36,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     private ?Domain $domain = null;
     #[Assert\NotBlank]
     #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
-    #[ORM\Column(name: 'name', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING)]
     private string $name = '';
-    #[ORM\Column(name: 'password', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'password', type: Types::STRING)]
     private string $password = '';
     #[Assert\Length(min: 6, max: 5000, groups: ['default', 'change-password', 'register'])]
     #[Assert\NotBlank(groups: ['change-password', 'register'])]

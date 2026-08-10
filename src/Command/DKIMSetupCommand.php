@@ -113,7 +113,7 @@ class DKIMSetupCommand extends Command
 
     private function getDomain(InputInterface $input, OutputInterface $output): ?Domain
     {
-        $name = $input->getArgument('domain');
+        $name = mb_strtolower($input->getArgument('domain'));
         $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -17,6 +18,16 @@ class Version20180320171339 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        // Only installations that came through the 2018 rename have this table;
+        // fresh ones get their schema from the baseline migration instead.
+        if (!$schema->hasTable('mail_domains')) {
+            return;
+        }
+
         $this->addSql('ALTER TABLE mail_aliases RENAME INDEX idx_5f12bb39115f0ee5 TO IDX_85AF3A56115F0EE5');
         $this->addSql('ALTER TABLE mail_domains CHANGE name name VARCHAR(255) NOT NULL');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_56C63EF25E237E06 ON mail_domains (name)');

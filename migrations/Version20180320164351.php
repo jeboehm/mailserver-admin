@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -21,12 +22,30 @@ class Version20180320164351 extends AbstractMigration
 
     public function preUp(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        // Fresh installations have no pre-2018 schema to carry over; they skip
+        // the whole MySQL history and get their schema from the baseline.
+        if (!$schema->hasTable('virtual_domains')) {
+            return;
+        }
+
         $this->fillUsers();
         $this->fillAliases();
     }
 
     public function up(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        if (!$schema->hasTable('virtual_domains')) {
+            return;
+        }
+
         $this->addSql('SET FOREIGN_KEY_CHECKS = 0');
 
         $this->addSql('RENAME TABLE virtual_domains TO mail_domains');
@@ -49,6 +68,14 @@ class Version20180320164351 extends AbstractMigration
 
     public function postUp(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        if (!$schema->hasTable('virtual_domains')) {
+            return;
+        }
+
         foreach ($this->users as $user) {
             $this->connection->insert('mail_users', $user);
         }

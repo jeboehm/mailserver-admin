@@ -3,7 +3,7 @@
 {
   languages.php.enable = true;
   languages.php.package = pkgs.php84.buildEnv {
-    extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql xdebug ];
+    extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql pdo_pgsql xdebug ];
     extraConfig = ''
       memory_limit = -1
       max_execution_time = 0
@@ -33,6 +33,17 @@
       }
   ];
 
+  # The application supports PostgreSQL as well. Enable this service and point
+  # DATABASE_URL at it from devenv.local.nix to develop against it.
+  services.postgres.enable = false;
+  services.postgres.package = pkgs.postgresql_18;
+  services.postgres.listen_addresses = "127.0.0.1";
+  services.postgres.initialDatabases = [
+      {
+        name = "app";
+      }
+  ];
+
   services.redis.enable = true;
   services.caddy.enable = true;
   services.caddy.virtualHosts.":8000" = {
@@ -44,6 +55,11 @@
   };
 
   env.DATABASE_URL = "mysql://root@127.0.0.1/app?version=mariadb-10.11.5";
+  # PostgreSQL alternative. Enable services.postgres and override this from
+  # devenv.local.nix, where both definitions need lib.mkForce. initdb creates a
+  # superuser named after your Unix account; spell it out, env values are not
+  # shell-expanded:
+  # env.DATABASE_URL = "postgresql://youruser@127.0.0.1:5432/app?serverVersion=18";
   env.REDIS_DSN = "redis://localhost:6379/0";
 
   enterShell = ''
