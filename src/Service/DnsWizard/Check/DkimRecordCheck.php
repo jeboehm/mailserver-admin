@@ -50,21 +50,24 @@ readonly class DkimRecordCheck implements DnsCheckInterface
         }
 
         $status = $this->statusService->getStatus($domain);
+        $issues = $status->getIssues();
         $message = 'DKIM record valid';
 
         if (!$status->isDkimRecordFound()) {
             $message = 'DKIM record missing or empty';
         } elseif (!$status->isDkimRecordValid()) {
-            $message = 'DKIM record mismatch';
+            $message = $issues[0] ?? 'DKIM record mismatch';
         }
+
+        $expectedRecord = $status->getExpectedRecord();
 
         return [
             new DnsWizardRow(
                 scope: Scopes::SCOPE_DOMAIN,
                 subject: \sprintf('%s._domainkey.%s', $domain->getDkimSelector(), $domain),
                 recordType: 'TXT',
-                expectedValues: ['Valid DKIM record'],
-                actualValues: [$status->getCurrentRecord()],
+                expectedValues: '' === $expectedRecord ? ['Valid DKIM record'] : [$expectedRecord],
+                actualValues: '' === $status->getCurrentRecord() ? [] : [$status->getCurrentRecord()],
                 status: $status->isDkimRecordValid() ? DnsWizardStatus::OK : DnsWizardStatus::ERROR,
                 message: $message,
             ),

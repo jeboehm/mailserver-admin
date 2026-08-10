@@ -10,13 +10,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\DKIM;
 
+use App\Exception\DKIM\DomainKeyNotFoundException;
 use App\Service\DKIM\DomainKeyReaderService;
+use App\Service\DKIM\RecordParser;
 use App\Service\DnsWizard\DnsLookupInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class DomainKeyReaderServiceTest extends TestCase
 {
+    private const string PUBLIC_KEY = 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5SuczaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxbh/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB';
+
     /**
      * @var MockObject&DnsLookupInterface
      */
@@ -27,54 +31,111 @@ class DomainKeyReaderServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->resolver = $this->createMock(DnsLookupInterface::class);
-        $this->instance = new DomainKeyReaderService($this->resolver);
+        $this->instance = new DomainKeyReaderService($this->resolver, new RecordParser());
     }
 
     public function testGetDomainKey(): void
     {
-        $this->resolver
-            ->expects($this->once())
-            ->method('lookupTxt')
-            ->with('04042017._domainkey.icloud.com')
-            ->willReturn(
-                [
-                    'v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5SuczaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxbh/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB',
-                ],
-            );
+        $record = \sprintf('v=DKIM1; k=rsa; p=%s', self::PUBLIC_KEY);
+
+        $this->expectLookup([$record]);
+
+        $key = $this->instance->getDomainKey('icloud.com', '04042017');
 
         $this->assertEquals(
             [
                 'v' => 'DKIM1',
                 'k' => 'rsa',
-                'p' => 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5SuczaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxbh/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB',
+                'p' => self::PUBLIC_KEY,
             ],
-            $this->instance->getDomainKey('icloud.com', '04042017')
+            $key->tags
         );
+        $this->assertSame($record, $key->raw);
     }
 
     public function testGetDomainKeyWithEntriesAnswer(): void
+    {
+        $this->expectLookup([
+            'v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5Su',
+            'czaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxb',
+            'h/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+',
+            '/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4',
+            'bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB',
+        ]);
+
+        $key = $this->instance->getDomainKey('icloud.com', '04042017');
+
+        $this->assertEquals(
+            [
+                'v' => 'DKIM1',
+                'k' => 'rsa',
+                'p' => self::PUBLIC_KEY,
+            ],
+            $key->tags
+        );
+    }
+
+    public function testGetDomainKeyIgnoresUnrelatedRecordsAtTheSameName(): void
+    {
+        $record = \sprintf('v=DKIM1; k=rsa; p=%s', self::PUBLIC_KEY);
+
+        $this->expectLookup([
+            'google-site-verification=abcdef',
+            $record,
+            'some-other-verification=123456',
+        ]);
+
+        $key = $this->instance->getDomainKey('icloud.com', '04042017');
+
+        $this->assertSame($record, $key->raw);
+        $this->assertSame(self::PUBLIC_KEY, $key->getTag('p'));
+    }
+
+    public function testGetDomainKeyAcceptsRecordWithTrailingSemicolon(): void
+    {
+        $this->expectLookup([\sprintf('v=DKIM1; k=rsa; p=%s;', self::PUBLIC_KEY)]);
+
+        $key = $this->instance->getDomainKey('icloud.com', '04042017');
+
+        $this->assertSame(self::PUBLIC_KEY, $key->getTag('p'));
+    }
+
+    public function testGetDomainKeyAcceptsRevokedKey(): void
+    {
+        $this->expectLookup(['v=DKIM1; p=']);
+
+        $key = $this->instance->getDomainKey('icloud.com', '04042017');
+
+        $this->assertSame('', $key->getTag('p'));
+    }
+
+    public function testGetDomainKeyThrowsWhenNoRecordIsPublished(): void
+    {
+        $this->expectLookup([]);
+
+        $this->expectException(DomainKeyNotFoundException::class);
+
+        $this->instance->getDomainKey('icloud.com', '04042017');
+    }
+
+    public function testGetDomainKeyThrowsWhenOnlyUnrelatedRecordsArePublished(): void
+    {
+        $this->expectLookup(['google-site-verification=abcdef']);
+
+        $this->expectException(DomainKeyNotFoundException::class);
+
+        $this->instance->getDomainKey('icloud.com', '04042017');
+    }
+
+    /**
+     * @param list<string> $values
+     */
+    private function expectLookup(array $values): void
     {
         $this->resolver
             ->expects($this->once())
             ->method('lookupTxt')
             ->with('04042017._domainkey.icloud.com')
-            ->willReturn(
-                [
-                    'v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5Su',
-                    'czaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxb',
-                    'h/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+',
-                    '/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4',
-                    'bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB',
-                ],
-            );
-
-        $this->assertEquals(
-            [
-                'v' => 'DKIM1',
-                'k' => 'rsa',
-                'p' => 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0L+7FmA0bMPXHC0j0aiSQ5SuczaET8W2b0/XLnw3p5oPlezyKbUih7K2fbUItZrL7NZ6+gWgksVe0vsyw0oB6tTQmvfizu1t6E/LwzCLFQH8Hkxbh/boaV3rSMJ67e45R9Yk5xijCrnaWgVS2EWL++6TStzLZb0oss1DvkWPMJFo+SBr+9Y9AGQAbJZ+8Aigjwsx//8rh+/zbYOlK+1sbH3b0myuf4CL6K0eHU0gBKSSzS8mx7hFLo9vrWuakL3BaQuaDujKAI2ia4nTyBnppYYotsVgkdG+w4bF48Hl5hNEwlDFvVC3fR8K9wrQ4w/5hYeKfuIpoPvnHFJm9/Z6/wIDAQAB',
-            ],
-            $this->instance->getDomainKey('icloud.com', '04042017')
-        );
+            ->willReturn($values);
     }
 }

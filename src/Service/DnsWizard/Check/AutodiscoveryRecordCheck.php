@@ -16,6 +16,7 @@ use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\Scopes;
+use App\Service\MailPorts;
 
 readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
 {
@@ -53,9 +54,11 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             $this->validateAOrCname($domainName, 'imap', $expectedAll),
             $this->validateAOrCname($domainName, 'smtp', $expectedAll),
             $this->validateMailconfTxt($domainName),
-            $this->validateSrv($domainName, '_imaps._tcp', 993, $mailname),
-            $this->validateSrv($domainName, '_submission._tcp', 465, $mailname),
-            $this->validateSrv($domainName, '_autodiscover._tcp', 443, \sprintf('autodiscover.%s', $domainName)),
+            $this->validateSrv($domainName, '_imap._tcp', MailPorts::IMAP, $mailname),
+            $this->validateSrv($domainName, '_imaps._tcp', MailPorts::IMAPS, $mailname),
+            $this->validateSrv($domainName, '_submission._tcp', MailPorts::SUBMISSION, $mailname),
+            $this->validateSrv($domainName, '_submissions._tcp', MailPorts::SUBMISSIONS, $mailname),
+            $this->validateSrv($domainName, '_autodiscover._tcp', MailPorts::AUTODISCOVER, \sprintf('autodiscover.%s', $domainName)),
         ];
     }
 
@@ -157,17 +160,17 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
         $found = false;
         $actualValues = [];
 
+        $expectedTargetNormalized = $this->normalizeHostname($expectedTarget);
+
         foreach ($srvRecords as $record) {
-            $target = $this->normalizeHostname($record['target']);
-            $expectedTargetNormalized = $this->normalizeHostname($expectedTarget);
             $srvString = \sprintf('%d %d %d %s', $record['priority'], $record['weight'], $record['port'], $record['target']);
             $actualValues[] = $srvString;
 
+            // Priority and weight are up to the administrator and carry no meaning for a single
+            // target, so only port and target decide whether the record is correct.
             if (
-                0 === $record['priority']
-                && 0 === $record['weight']
-                && $record['port'] === $expectedPort
-                && $target === $expectedTargetNormalized
+                $record['port'] === $expectedPort
+                && $this->normalizeHostname($record['target']) === $expectedTargetNormalized
             ) {
                 $found = true;
             }
@@ -182,7 +185,7 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             expectedValues: [$expectedString],
             actualValues: $actualValues,
             status: $found ? DnsWizardStatus::OK : DnsWizardStatus::WARNING,
-            message: $found ? 'SRV record found' : (0 === \count($srvRecords) ? 'SRV record missing' : 'SRV record does not match expected values'),
+            message: $found ? 'SRV record found' : (0 === \count($srvRecords) ? 'SRV record missing' : \sprintf('SRV record does not point to port %d on %s', $expectedPort, $expectedTarget)),
         );
     }
 

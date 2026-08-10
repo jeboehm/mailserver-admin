@@ -75,10 +75,16 @@ class AutodiscoveryRecordCheckTest extends TestCase
         $this->dns->method('lookupSrv')
             ->willReturnCallback(static function (string $name) use ($mailname) {
                 return match ($name) {
+                    '_imap._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 143, 'target' => $mailname],
+                    ],
                     '_imaps._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 993, 'target' => $mailname],
                     ],
                     '_submission._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 587, 'target' => $mailname],
+                    ],
+                    '_submissions._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 465, 'target' => $mailname],
                     ],
                     '_autodiscover._tcp.example.com' => [
@@ -90,7 +96,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(8, $result);
+        self::assertCount(10, $result);
 
         // Check autoconfig A record
         $row = $result[0];
@@ -123,20 +129,36 @@ class AutodiscoveryRecordCheckTest extends TestCase
         self::assertSame('TXT', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
-        // Check _imaps._tcp SRV record
+        // Check _imap._tcp SRV record
         $row = $result[5];
-        self::assertSame('_imaps._tcp.example.com', $row->subject);
+        self::assertSame('_imap._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
+        self::assertSame(['0 0 143 mail.example.com'], $row->expectedValues);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
-        // Check _submission._tcp SRV record
+        // Check _imaps._tcp SRV record
         $row = $result[6];
+        self::assertSame('_imaps._tcp.example.com', $row->subject);
+        self::assertSame('SRV', $row->recordType);
+        self::assertSame(['0 0 993 mail.example.com'], $row->expectedValues);
+        self::assertSame(DnsWizardStatus::OK, $row->status);
+
+        // Check _submission._tcp SRV record, which has to point to the STARTTLS submission port
+        $row = $result[7];
         self::assertSame('_submission._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
+        self::assertSame(['0 0 587 mail.example.com'], $row->expectedValues);
+        self::assertSame(DnsWizardStatus::OK, $row->status);
+
+        // Check _submissions._tcp SRV record, which has to point to the implicit TLS submission port
+        $row = $result[8];
+        self::assertSame('_submissions._tcp.example.com', $row->subject);
+        self::assertSame('SRV', $row->recordType);
+        self::assertSame(['0 0 465 mail.example.com'], $row->expectedValues);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
         // Check _autodiscover._tcp SRV record
-        $row = $result[7];
+        $row = $result[9];
         self::assertSame('_autodiscover._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
@@ -158,7 +180,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(8, $result);
+        self::assertCount(10, $result);
 
         // Check that A records are marked as ERROR
         self::assertSame(DnsWizardStatus::WARNING, $result[0]->status); // autoconfig
@@ -249,10 +271,46 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        $srvRow = $result[5];
+        $srvRow = $result[6];
+        self::assertSame('_imaps._tcp.example.com', $srvRow->subject);
         self::assertSame('SRV', $srvRow->recordType);
         self::assertSame(DnsWizardStatus::WARNING, $srvRow->status);
-        self::assertStringContainsString('does not match', $srvRow->message);
+        self::assertSame('SRV record does not point to port 993 on mail.example.com', $srvRow->message);
+    }
+
+    /**
+     * Priority and weight are up to the administrator, so a record that differs only in those two
+     * numbers still points clients at the right server.
+     */
+    public function testValidateDomainAcceptsSrvRecordWithCustomPriorityAndWeight(): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.com');
+        $mailname = 'mail.example.com';
+        $expectedAll = ['1.2.3.4'];
+
+        $this->dns->method('lookupA')->willReturn($expectedAll);
+        $this->dns->method('lookupAaaa')->willReturn([]);
+        $this->dns->method('lookupCname')->willReturn([]);
+        $this->dns->method('lookupMx')->willReturn([$mailname]);
+        $this->dns->method('lookupTxt')->willReturn([]);
+        $this->dns->method('lookupSrv')
+            ->willReturnCallback(static function (string $name) use ($mailname) {
+                return match ($name) {
+                    '_submission._tcp.example.com' => [
+                        ['priority' => 10, 'weight' => 5, 'port' => 587, 'target' => $mailname . '.'],
+                    ],
+                    default => [],
+                };
+            });
+
+        $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
+
+        $srvRow = $result[7];
+        self::assertSame('_submission._tcp.example.com', $srvRow->subject);
+        self::assertSame(DnsWizardStatus::OK, $srvRow->status);
+        self::assertSame('SRV record found', $srvRow->message);
+        self::assertSame(['10 5 587 mail.example.com.'], $srvRow->actualValues);
     }
 
     public function testValidateDomainWithMissingSrvRecord(): void
@@ -271,7 +329,8 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        $srvRow = $result[6];
+        $srvRow = $result[7];
+        self::assertSame('_submission._tcp.example.com', $srvRow->subject);
         self::assertSame('SRV', $srvRow->recordType);
         self::assertSame(DnsWizardStatus::WARNING, $srvRow->status);
         self::assertStringContainsString('missing', $srvRow->message);

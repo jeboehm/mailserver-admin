@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Service\MobileConfig;
 
 use App\Entity\User;
+use App\Service\MailPorts;
 use Composer\CaBundle\CaBundle;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Uid\Uuid;
@@ -71,6 +72,8 @@ readonly class MobileConfigService
             'mailServerHost' => $mailServerHost,
             'uuid1' => $this->generateUuid(),
             'uuid2' => $this->generateUuid(),
+            'imapPort' => MailPorts::IMAP,
+            'submissionPort' => MailPorts::SUBMISSION,
         ]);
     }
 

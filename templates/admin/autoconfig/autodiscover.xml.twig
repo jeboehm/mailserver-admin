@@ -10,7 +10,7 @@
             <Protocol>
                 <Type>IMAP</Type>
                 <Server>{{ mailname }}</Server>
-                <Port>143</Port>
+                <Port>{{ imapPort }}</Port>
                 <LoginName>{{ emailaddress }}</LoginName>
                 <DomainRequired>off</DomainRequired>
                 <SPA>on</SPA>
@@ -22,7 +22,7 @@
             <Protocol>
                 <Type>SMTP</Type>
                 <Server>{{ mailname }}</Server>
-                <Port>587</Port>
+                <Port>{{ submissionPort }}</Port>
                 <LoginName>{{ emailaddress }}</LoginName>
                 <DomainRequired>off</DomainRequired>
                 <SPA>on</SPA>

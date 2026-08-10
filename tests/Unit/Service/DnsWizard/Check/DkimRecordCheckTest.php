@@ -57,7 +57,8 @@ class DkimRecordCheckTest extends TestCase
             dkimEnabled: true,
             dkimRecordFound: true,
             dkimRecordValid: true,
-            currentRecord: 'v=DKIM1; p=abc123'
+            currentRecord: 'v=DKIM1; p=abc123',
+            expectedRecord: 'v=DKIM1; h=sha256; t=s; p=abc123'
         );
 
         $this->statusService
@@ -74,7 +75,7 @@ class DkimRecordCheckTest extends TestCase
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
-        self::assertSame(['Valid DKIM record'], $row->expectedValues);
+        self::assertSame(['v=DKIM1; h=sha256; t=s; p=abc123'], $row->expectedValues);
         self::assertSame(['v=DKIM1; p=abc123'], $row->actualValues);
         self::assertSame(DnsWizardStatus::OK, $row->status);
         self::assertSame('DKIM record valid', $row->message);
@@ -91,7 +92,8 @@ class DkimRecordCheckTest extends TestCase
             dkimEnabled: true,
             dkimRecordFound: false,
             dkimRecordValid: false,
-            currentRecord: ''
+            currentRecord: '',
+            expectedRecord: 'v=DKIM1; h=sha256; t=s; p=abc123'
         );
 
         $this->statusService
@@ -108,8 +110,8 @@ class DkimRecordCheckTest extends TestCase
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
-        self::assertSame(['Valid DKIM record'], $row->expectedValues);
-        self::assertSame([''], $row->actualValues);
+        self::assertSame(['v=DKIM1; h=sha256; t=s; p=abc123'], $row->expectedValues);
+        self::assertSame([], $row->actualValues);
         self::assertSame(DnsWizardStatus::ERROR, $row->status);
         self::assertSame('DKIM record missing or empty', $row->message);
     }
@@ -125,7 +127,9 @@ class DkimRecordCheckTest extends TestCase
             dkimEnabled: true,
             dkimRecordFound: true,
             dkimRecordValid: false,
-            currentRecord: 'v=DKIM1; p=wrongkey'
+            currentRecord: 'v=DKIM1; p=wrongkey',
+            expectedRecord: 'v=DKIM1; h=sha256; t=s; p=abc123',
+            issues: ['The published public key belongs to a different key pair.']
         );
 
         $this->statusService
@@ -142,10 +146,34 @@ class DkimRecordCheckTest extends TestCase
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
-        self::assertSame(['Valid DKIM record'], $row->expectedValues);
+        self::assertSame(['v=DKIM1; h=sha256; t=s; p=abc123'], $row->expectedValues);
         self::assertSame(['v=DKIM1; p=wrongkey'], $row->actualValues);
         self::assertSame(DnsWizardStatus::ERROR, $row->status);
-        self::assertSame('DKIM record mismatch', $row->message);
+        self::assertSame('The published public key belongs to a different key pair.', $row->message);
+    }
+
+    public function testValidateDomainFallsBackToAGenericMessageWithoutIssues(): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.com');
+        $domain->setDkimEnabled(true);
+        $domain->setDkimSelector('dkim');
+
+        $this->statusService
+            ->expects($this->once())
+            ->method('getStatus')
+            ->with($domain)
+            ->willReturn(new DKIMStatus(
+                dkimEnabled: true,
+                dkimRecordFound: true,
+                dkimRecordValid: false,
+                currentRecord: 'v=DKIM1; p=wrongkey'
+            ));
+
+        $result = $this->check->validateDomain('mail.example.com', [], $domain);
+
+        self::assertSame(['Valid DKIM record'], $result[0]->expectedValues);
+        self::assertSame('DKIM record mismatch', $result[0]->message);
     }
 
     public function testValidateMailHostReturnsEmptyArray(): void

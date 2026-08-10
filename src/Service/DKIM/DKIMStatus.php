@@ -12,8 +12,17 @@ namespace App\Service\DKIM;
 
 class DKIMStatus
 {
-    public function __construct(private readonly bool $dkimEnabled, private readonly bool $dkimRecordFound, private readonly bool $dkimRecordValid, private readonly string $currentRecord)
-    {
+    /**
+     * @param list<string> $issues human-readable reasons why the published record is not valid
+     */
+    public function __construct(
+        private readonly bool $dkimEnabled,
+        private readonly bool $dkimRecordFound,
+        private readonly bool $dkimRecordValid,
+        private readonly string $currentRecord,
+        private readonly string $expectedRecord = '',
+        private readonly array $issues = [],
+    ) {
     }
 
     public function isDkimEnabled(): bool
@@ -34,5 +43,18 @@ class DKIMStatus
     public function getCurrentRecord(): string
     {
         return $this->currentRecord;
+    }
+
+    public function getExpectedRecord(): string
+    {
+        return $this->expectedRecord;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getIssues(): array
+    {
+        return $this->issues;
     }
 }
