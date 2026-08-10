@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Autoconfig;
 
+use App\Service\MailPorts;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,6 +35,8 @@ readonly class AutoconfigAction
             content: $this->twig->render('admin/autoconfig/autoconfig.xml.twig', [
                 'mailname' => $mailname,
                 'emailaddress' => $this->getEmailAddress($request) ?? '%EMAILADDRESS%',
+                'imapPort' => MailPorts::IMAP,
+                'submissionPort' => MailPorts::SUBMISSION,
             ]),
             headers: [
                 'Content-Type' => 'application/xml; charset=utf-8',

@@ -38,7 +38,7 @@
             <key>IncomingMailServerHostName</key>
             <string>{{ mailServerHost|e }}</string>
             <key>IncomingMailServerPortNumber</key>
-            <integer>143</integer>
+            <integer>{{ imapPort }}</integer>
             <key>IncomingMailServerUseSSL</key>
             <false/>
             <key>IncomingMailServerUsername</key>
@@ -48,7 +48,7 @@
             <key>OutgoingMailServerHostName</key>
             <string>{{ mailServerHost|e }}</string>
             <key>OutgoingMailServerPortNumber</key>
-            <integer>587</integer>
+            <integer>{{ submissionPort }}</integer>
             <key>OutgoingMailServerUseSSL</key>
             <false/>
             <key>OutgoingMailServerUsername</key>

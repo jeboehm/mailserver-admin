@@ -7,6 +7,13 @@
         {% set alert_context = 'danger' %}
         {% set alert_text %}
             DKIM is enabled but not correctly configured. This may result in your emails being rejected by recipients. Please verify your DNS settings.
+            {% if entity.instance.dkimStatus.issues is not empty %}
+                <ul class="mb-0 mt-2">
+                    {% for issue in entity.instance.dkimStatus.issues %}
+                        <li>{{ issue }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         {% endset %}
     {% endif %}
 
@@ -54,19 +61,27 @@
                 <div class="col-2">
                     Expected value:
                 </div>
-                <div class="col-10">
-                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace">
-                        {{- entity.instance.expectedDnsRecord }}
-                    </div>
+                <div class="col-10" data-controller="clipboard">
+                    {# The value is whitespace sensitive: pre-wrap would render surrounding
+                       indentation as leading and trailing blank lines. #}
+                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace"
+                         data-clipboard-target="source">{{- entity.instance.expectedDnsRecord -}}</div>
+                    <button type="button" class="btn btn-secondary mt-2"
+                            data-clipboard-target="button"
+                            data-action="clipboard#copy">
+                        Copy
+                    </button>
+                    <p class="text-muted small mt-2 mb-0">
+                        Paste this value unchanged into your DNS provider. Only if you edit a BIND zone file by hand,
+                        escape the semicolons as <code>\;</code> or put the whole value in quotes.
+                    </p>
                 </div>
 
                 <div class="col-2">
                     Current value:
                 </div>
                 <div class="col-10">
-                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace">
-                        {{- entity.instance.currentDnsRecord }}
-                    </div>
+                    <div style="white-space: pre-wrap; word-wrap: anywhere; font-family: monospace">{{- entity.instance.currentDnsRecord -}}</div>
                 </div>
 
                 <div class="col-12">

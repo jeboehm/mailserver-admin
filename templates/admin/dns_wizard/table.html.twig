@@ -1,5 +1,8 @@
 <div class="table-responsive">
-    <table class="table table-striped align-middle mb-0">
+    {# Fixed layout makes the column widths below authoritative. Without it the browser sizes
+       columns to their content, and the unbreakable base64 of a DKIM key (~400 characters)
+       stretches the table far beyond the viewport. #}
+    <table class="table table-striped align-middle mb-0" style="table-layout: fixed">
         <thead>
         <tr>
             <th style="width: 20%">Name</th>
@@ -18,20 +21,20 @@
                 (status == 'warning' ? 'bg-warning text-dark' : 'bg-danger')
             %}
             <tr>
-                <td><code>{{ row.subject }}</code></td>
+                <td class="text-break"><code>{{ row.subject }}</code></td>
                 <td><span class="badge bg-secondary">{{ row.recordType }}</span></td>
-                <td class="small">
+                <td class="small text-break">
                     {% if row.expectedValues is empty %}
                         <span class="text-muted">—</span>
                     {% else %}
-                        {{ row.expectedValues|join('<br>')|raw }}
+                        {{ row.expectedValues|map(value => value|e)|join('<br>')|raw }}
                     {% endif %}
                 </td>
-                <td class="small" style="max-width: 200px; overflow-x: auto; word-break: break-all;">
+                <td class="small text-break">
                     {% if row.actualValues is empty %}
                         <span class="text-muted">—</span>
                     {% else %}
-                        {{ row.actualValues|join('<br>')|raw }}
+                        {{ row.actualValues|map(value => value|e)|join('<br>')|raw }}
                     {% endif %}
                 </td>
                 <td>
