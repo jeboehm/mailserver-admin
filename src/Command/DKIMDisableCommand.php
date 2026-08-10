@@ -49,7 +49,7 @@ class DKIMDisableCommand extends Command
             return 1;
         }
 
-        $name = $input->getArgument('domain');
+        $name = mb_strtolower($input->getArgument('domain'));
         $domain = $this->domainRepository->findOneBy(['name' => $name]);
 
         if (null === $domain) {

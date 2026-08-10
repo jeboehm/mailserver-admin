@@ -20,7 +20,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
     name: 'system:check',
-    description: 'Check MySQL and Redis connection status.',
+    description: 'Check database and Redis connection status.',
 )]
 class SystemCheckCommand extends Command
 {
@@ -59,7 +59,7 @@ class SystemCheckCommand extends Command
                 $results = $this->connectionCheckService->checkAll($all, $allowEmptyDatabase);
 
                 $hasErrors = false;
-                if (null !== $results['mysql'] || null !== $results['redis']) {
+                if (null !== $results['database'] || null !== $results['redis']) {
                     $hasErrors = true;
                 }
 
@@ -69,7 +69,7 @@ class SystemCheckCommand extends Command
 
                 if (!$hasErrors) {
                     $output->writeln('<fg=green>[OK]</> All dependencies are now available.');
-                    $output->writeln('<fg=green>[OK]</> MySQL connection is working.');
+                    $output->writeln('<fg=green>[OK]</> Database connection is working.');
                     $output->writeln('<fg=green>[OK]</> Redis connection is working.');
                     if ($all) {
                         $output->writeln('<fg=green>[OK]</> Doveadm connection is working.');
@@ -89,13 +89,13 @@ class SystemCheckCommand extends Command
 
         $hasErrors = false;
 
-        // Check MySQL
-        if (null === $results['mysql']) {
-            $output->writeln('<fg=green>[OK]</> MySQL connection is working.');
+        // Check the database
+        if (null === $results['database']) {
+            $output->writeln('<fg=green>[OK]</> Database connection is working.');
         } else {
             $hasErrors = true;
-            $output->writeln('<fg=red>[ERROR]</> Your MySQL connection failed because of:');
-            $output->writeln(\sprintf('<fg=red>%s</>', $results['mysql']));
+            $output->writeln('<fg=red>[ERROR]</> Your database connection failed because of:');
+            $output->writeln(\sprintf('<fg=red>%s</>', $results['database']));
         }
 
         // Check Redis

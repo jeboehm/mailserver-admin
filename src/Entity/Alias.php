@@ -30,11 +30,11 @@ class Alias implements \Stringable
     #[ORM\ManyToOne(targetEntity: Domain::class, inversedBy: 'aliases')]
     private ?Domain $domain = null;
     #[Assert\Regex(pattern: '/^[a-z0-9\-\_.]{1,50}$/')]
-    #[ORM\Column(name: 'name', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING)]
     private string $name = '';
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[ORM\Column(name: 'destination', type: Types::STRING, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'destination', type: Types::STRING)]
     private string $destination = '';
 
     #[\Override]

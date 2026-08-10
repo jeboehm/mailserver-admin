@@ -45,7 +45,7 @@ This document provides essential context for AI agents working on the mailserver
 
 ### Infrastructure
 
-- **MySQL/MariaDB**: Database (via Doctrine)
+- **MySQL/MariaDB or PostgreSQL**: Database (via Doctrine)
 - **Redis**: Caching and data synchronization
 - **Caddy**: Web server (development)
 - **PHP-FPM**: PHP execution (development)
@@ -71,7 +71,7 @@ The application integrates with multiple external services:
    - Caching for performance
    - Runtime data storage
 
-4. **MySQL**
+4. **Database**
    - Primary data storage for domains, users, aliases
    - Doctrine ORM for database operations
 
@@ -150,8 +150,8 @@ mailserver-admin/
    ```
 
    This starts:
-   - PHP 8.4 with Redis, PDO MySQL, Xdebug extensions
-   - MySQL database server
+   - PHP 8.4 with Redis, PDO MySQL, PDO PostgreSQL, Xdebug extensions
+   - MySQL database server (PostgreSQL optionally, see devenv.nix)
    - Redis server
    - Caddy web server on port 8000
 
@@ -257,7 +257,7 @@ This ensures:
 
 Key environment variables (see `.env` and `config/services.yaml`):
 
-- `DATABASE_URL`: MySQL connection string
+- `DATABASE_URL`: Database connection string (`mysql://` or `postgresql://`)
 - `REDIS_DSN`: Redis connection string
 - `OAUTH_ENABLED`: Enable/disable OAuth2
 - `OAUTH_BUTTON_TEXT`: OAuth button label
@@ -303,7 +303,44 @@ Key environment variables (see `.env` and `config/services.yaml`):
 1. Generate: `php bin/console doctrine:migrations:generate`
 2. Edit migration in `migrations/`
 3. Test: `php bin/console doctrine:migrations:migrate`
-4. Always test rollback: `php bin/console doctrine:migrations:migrate prev`
+4. Test rollback of your own migration: `php bin/console doctrine:migrations:migrate prev`.
+   Rolling back further does not work: three of the 2018 migrations never got a
+   `down()`, so `AbstractMigration` aborts there.
+5. Test against both engines, MySQL and PostgreSQL
+
+The migrations up to `Version20250403142933` describe the history of a MySQL
+schema that started out as a pre-2018 `virtual_*` schema. They are guarded twice:
+with `instanceof AbstractMySQLPlatform`, and with `$schema->hasTable(...)` so they
+only apply to installations that actually carry that history. Everything else —
+PostgreSQL, and any fresh MySQL database — reaches the baseline migration
+`Version20260212000000` with an empty database and gets the whole schema from
+there. The baseline in turn skips itself when `mail_domains` already exists.
+
+Both branches of the baseline are generated with `doctrine:schema:create
+--dump-sql`, run once per platform; take the output verbatim. In particular do
+not hand-write `DEFAULT CHARACTER SET` / `COLLATE` clauses — the mapping defines
+no collation, so whatever DBAL emits is what keeps `doctrine:migrations:diff`
+quiet.
+
+Consequences for new migrations:
+
+- Plain `CREATE TABLE` / `ADD COLUMN` statements must avoid MySQL-only syntax
+  (`TINYINT(1)`, `LONGTEXT`, `AUTO_INCREMENT`, `ENGINE`, backtick quoting) and
+  double-quoted string literals, which denote identifiers on PostgreSQL. Inside a
+  block that already branched on the platform, that syntax is fine and expected.
+- Anything referencing a constraint by name (`DROP FOREIGN KEY`, `DROP INDEX`)
+  must branch per platform: MySQL installations carry legacy constraint names
+  from before the 2018 table rename, PostgreSQL ones the canonical names.
+- Extend the baseline whenever the mapping changes; the `phpunit` CI job fails
+  otherwise.
+
+Note that `doctrine:schema:validate` reports doctrine's own `migration_versions`
+table as drift. Use `doctrine:migrations:diff`, which excludes it.
+
+CI builds the test schema exclusively from the migrations — `doctrine:schema:create`
+is only used to regenerate the baseline DDL, never to set up a database. Every
+`phpunit` matrix leg migrates an empty database, migrates a second time to prove
+idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 
 ## Documentation
 

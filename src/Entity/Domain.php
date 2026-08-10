@@ -31,7 +31,7 @@ class Domain implements \Stringable
     private ?int $id = null;
     #[Assert\NotBlank]
     #[DomainName]
-    #[ORM\Column(name: 'name', type: Types::STRING, unique: true, options: ['collation' => 'utf8_unicode_ci'])]
+    #[ORM\Column(name: 'name', type: Types::STRING, unique: true)]
     private string $name = '';
     #[ORM\Column(name: 'dkim_enabled', type: Types::BOOLEAN)]
     private bool $dkimEnabled = false;

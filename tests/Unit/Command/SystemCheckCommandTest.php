@@ -39,7 +39,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
             ]);
 
@@ -47,7 +47,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringNotContainsString('Doveadm', $output);
         $this->assertStringNotContainsString('Rspamd', $output);
@@ -60,7 +60,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, true)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
             ]);
 
@@ -68,20 +68,20 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringNotContainsString('Doveadm', $output);
         $this->assertStringNotContainsString('Rspamd', $output);
     }
 
-    public function testBasicCheckWithMySQLError(): void
+    public function testBasicCheckWithDatabaseError(): void
     {
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
             ->with(false, false)
             ->willReturn([
-                'mysql' => 'Connection refused',
+                'database' => 'Connection refused',
                 'redis' => null,
             ]);
 
@@ -89,19 +89,19 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[ERROR] Your MySQL connection failed', $output);
+        $this->assertStringContainsString('[ERROR] Your database connection failed', $output);
         $this->assertStringContainsString('Connection refused', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
 
-    public function testBasicCheckWithAllowEmptyDatabaseAndMySQLError(): void
+    public function testBasicCheckWithAllowEmptyDatabaseAndDatabaseError(): void
     {
         $this->connectionCheckService
             ->expects($this->once())
             ->method('checkAll')
             ->with(false, true)
             ->willReturn([
-                'mysql' => 'Connection refused',
+                'database' => 'Connection refused',
                 'redis' => null,
             ]);
 
@@ -109,7 +109,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[ERROR] Your MySQL connection failed', $output);
+        $this->assertStringContainsString('[ERROR] Your database connection failed', $output);
         $this->assertStringContainsString('Connection refused', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
@@ -121,7 +121,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => 'Authentication failed',
             ]);
 
@@ -129,7 +129,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[ERROR] Your Redis connection failed', $output);
         $this->assertStringContainsString('Authentication failed', $output);
     }
@@ -141,7 +141,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, false)
             ->willReturn([
-                'mysql' => 'Database not found',
+                'database' => 'Database not found',
                 'redis' => 'Connection refused',
             ]);
 
@@ -149,7 +149,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[ERROR] Your MySQL connection failed', $output);
+        $this->assertStringContainsString('[ERROR] Your database connection failed', $output);
         $this->assertStringContainsString('Database not found', $output);
         $this->assertStringContainsString('[ERROR] Your Redis connection failed', $output);
         $this->assertStringContainsString('Connection refused', $output);
@@ -162,7 +162,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => null,
                 'rspamd' => null,
@@ -172,7 +172,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
@@ -185,7 +185,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, true)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => null,
                 'rspamd' => null,
@@ -195,7 +195,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(0, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
@@ -208,7 +208,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => 'Connection failed',
                 'rspamd' => null,
@@ -218,7 +218,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[ERROR] Your Doveadm connection failed', $output);
         $this->assertStringContainsString('Connection failed', $output);
@@ -232,7 +232,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => null,
                 'rspamd' => 'Connection timeout',
@@ -242,7 +242,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
         $this->assertStringContainsString('[ERROR] Your Rspamd connection failed', $output);
@@ -256,7 +256,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, false)
             ->willReturn([
-                'mysql' => 'Database not found',
+                'database' => 'Database not found',
                 'redis' => 'Connection refused',
                 'doveadm' => 'Authentication failed',
                 'rspamd' => 'Connection timeout',
@@ -266,7 +266,7 @@ class SystemCheckCommandTest extends TestCase
 
         $this->assertEquals(1, $this->commandTester->getStatusCode());
         $output = $this->commandTester->getDisplay();
-        $this->assertStringContainsString('[ERROR] Your MySQL connection failed', $output);
+        $this->assertStringContainsString('[ERROR] Your database connection failed', $output);
         $this->assertStringContainsString('[ERROR] Your Redis connection failed', $output);
         $this->assertStringContainsString('[ERROR] Your Doveadm connection failed', $output);
         $this->assertStringContainsString('[ERROR] Your Rspamd connection failed', $output);
@@ -279,7 +279,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
             ]);
 
@@ -289,7 +289,7 @@ class SystemCheckCommandTest extends TestCase
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Waiting for dependencies to become available', $output);
         $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
 
@@ -300,7 +300,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(false, true)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
             ]);
 
@@ -310,7 +310,7 @@ class SystemCheckCommandTest extends TestCase
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Waiting for dependencies to become available', $output);
         $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
     }
 
@@ -325,13 +325,13 @@ class SystemCheckCommandTest extends TestCase
                 ++$callCount;
                 if (1 === $callCount) {
                     return [
-                        'mysql' => 'Connection refused',
+                        'database' => 'Connection refused',
                         'redis' => null,
                     ];
                 }
 
                 return [
-                    'mysql' => null,
+                    'database' => null,
                     'redis' => null,
                 ];
             });
@@ -351,7 +351,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, false)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => null,
                 'rspamd' => null,
@@ -363,7 +363,7 @@ class SystemCheckCommandTest extends TestCase
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Waiting for dependencies to become available', $output);
         $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
@@ -376,7 +376,7 @@ class SystemCheckCommandTest extends TestCase
             ->method('checkAll')
             ->with(true, true)
             ->willReturn([
-                'mysql' => null,
+                'database' => null,
                 'redis' => null,
                 'doveadm' => null,
                 'rspamd' => null,
@@ -388,7 +388,7 @@ class SystemCheckCommandTest extends TestCase
         $output = $this->commandTester->getDisplay();
         $this->assertStringContainsString('Waiting for dependencies to become available', $output);
         $this->assertStringContainsString('[OK] All dependencies are now available.', $output);
-        $this->assertStringContainsString('[OK] MySQL connection is working.', $output);
+        $this->assertStringContainsString('[OK] Database connection is working.', $output);
         $this->assertStringContainsString('[OK] Redis connection is working.', $output);
         $this->assertStringContainsString('[OK] Doveadm connection is working.', $output);
         $this->assertStringContainsString('[OK] Rspamd connection is working.', $output);
@@ -405,7 +405,7 @@ class SystemCheckCommandTest extends TestCase
                 ++$callCount;
                 if (1 === $callCount) {
                     return [
-                        'mysql' => null,
+                        'database' => null,
                         'redis' => null,
                         'doveadm' => 'Connection failed',
                         'rspamd' => null,
@@ -413,7 +413,7 @@ class SystemCheckCommandTest extends TestCase
                 }
 
                 return [
-                    'mysql' => null,
+                    'database' => null,
                     'redis' => null,
                     'doveadm' => null,
                     'rspamd' => null,

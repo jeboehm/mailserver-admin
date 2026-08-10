@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -22,8 +23,19 @@ final class Version20250219114000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if (!$this->platform instanceof AbstractMySQLPlatform) {
+            return;
+        }
+
+        // Only installations that came through the 2018 rename have this table;
+        // fresh ones get their schema from the baseline migration instead.
+        if (!$schema->hasTable('mail_domains')) {
+            return;
+        }
+
+        // Single quotes: double quotes denote an identifier under ANSI_QUOTES.
         $this->addSql(
-            'UPDATE mail_domains SET dkim_selector = "dkim"'
+            "UPDATE mail_domains SET dkim_selector = 'dkim'"
         );
     }
 

@@ -47,7 +47,7 @@ class UserAddCommandTest extends TestCase
         $this->connectionCheckServiceMock
             ->expects($this->once())
             ->method('checkAll')
-            ->willReturn(['mysql' => null, 'redis' => null]);
+            ->willReturn(['database' => null, 'redis' => null]);
 
         $application = new Application();
         $application->addCommand(new UserAddCommand($this->managerMock, $this->domainRepository, $this->validatorMock, $this->connectionCheckServiceMock));
