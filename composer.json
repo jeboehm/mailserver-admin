@@ -24,7 +24,6 @@
     "symfony/http-client": "v8.1.5",
     "symfony/intl": "8.1.5",
     "symfony/monolog-bundle": "v4.0.2",
-    "symfony/proxy-manager-bridge": "v6.4.28",
     "symfony/runtime": "v8.1.0",
     "symfony/security-bundle": "v8.1.2",
     "symfony/serializer": "v8.1.5",

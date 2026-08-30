@@ -126,9 +126,6 @@
             ".php-cs-fixer.dist.php"
         ]
     },
-    "friendsofphp/proxy-manager-lts": {
-        "version": "v1.0.3"
-    },
     "hwi/oauth-bundle": {
         "version": "2.3",
         "recipe": {
@@ -469,9 +466,6 @@
         "files": [
             "config/packages/property_info.yaml"
         ]
-    },
-    "symfony/proxy-manager-bridge": {
-        "version": "v6.0.6"
     },
     "symfony/routing": {
         "version": "7.4",
