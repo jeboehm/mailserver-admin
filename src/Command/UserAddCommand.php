@@ -16,6 +16,7 @@ use App\Entity\User;
 use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,6 +26,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AsCommand(name: 'user:add', description: 'Add users.')]
 class UserAddCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -42,8 +44,6 @@ class UserAddCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('user:add')
-            ->setDescription('Add users.')
             ->addArgument('name', InputArgument::REQUIRED, 'Local-part (before @)')
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @), has to be created already')
             ->addOption('admin', null, InputOption::VALUE_NONE, 'Allow login to management interface')
@@ -57,7 +57,7 @@ class UserAddCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $user = new User();
@@ -66,7 +66,7 @@ class UserAddCommand extends Command
         if (null === $domain) {
             $output->writeln(\sprintf('<error>Domain %s was not found.</error>', $input->getArgument('domain')));
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $user->setDomain($domain);
@@ -90,7 +90,7 @@ class UserAddCommand extends Command
             if ('' === $password) {
                 $output->writeln('<error>Please set a valid password.</error>');
 
-                return 1;
+                return Command::FAILURE;
             }
 
             $user->setPlainPassword($password);
@@ -106,13 +106,13 @@ class UserAddCommand extends Command
                 $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $this->manager->persist($user);
         $this->manager->flush();
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function getDomain(string $domain): ?Domain
