@@ -18,6 +18,7 @@ use App\Service\DKIM\Config\Manager;
 use App\Service\DKIM\FormatterService;
 use App\Service\DKIM\KeyGenerationService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,6 +26,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 
+#[AsCommand(name: 'dkim:setup')]
 class DKIMSetupCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -44,7 +46,6 @@ class DKIMSetupCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('dkim:setup')
             ->addArgument('domain')
             ->addOption('enable', null, InputOption::VALUE_NONE, 'Enable DKIM signing for outgoing mails.')
             ->addOption('regenerate', null, InputOption::VALUE_NONE, 'Regenerate private key.')
@@ -55,19 +56,19 @@ class DKIMSetupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $domain = $this->getDomain($input, $output);
 
         if (null === $domain) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $regenerateKey = (bool) $input->getOption('regenerate');
 
         if ($regenerateKey && !$this->warnOnKeyRegeneration($input, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         if (empty($domain->getDkimPrivateKey())) {
@@ -80,7 +81,7 @@ class DKIMSetupCommand extends Command
         if ('dkim' !== $selector) {
             $output->writeln('<error>Selector must be "dkim".</error>');
 
-            return 1;
+            return Command::FAILURE;
         }
 
         if ($regenerateKey) {
@@ -108,7 +109,7 @@ class DKIMSetupCommand extends Command
             $output->writeln('<info>DKIM is enabled.</info>');
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function getDomain(InputInterface $input, OutputInterface $output): ?Domain

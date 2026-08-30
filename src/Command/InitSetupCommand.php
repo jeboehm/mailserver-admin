@@ -15,6 +15,7 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,6 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AsCommand(name: 'init:setup', description: 'Does an initial setup for docker-mailserver.')]
 class InitSetupCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -35,18 +37,10 @@ class InitSetupCommand extends Command
     }
 
     #[\Override]
-    protected function configure(): void
-    {
-        $this
-            ->setName('init:setup')
-            ->setDescription('Does an initial setup for docker-mailserver.');
-    }
-
-    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         /** @var QuestionHelper $questionHelper */
@@ -85,7 +79,7 @@ class InitSetupCommand extends Command
 
             $output->writeln('<error>There were some errors. Please start over again.</error>');
 
-            return 1;
+            return Command::FAILURE;
         }
 
         if ($userValidationList->count() > 0) {
@@ -98,7 +92,7 @@ class InitSetupCommand extends Command
 
             $output->writeln('<error>There were some errors. Please start over again.</error>');
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $this->manager->persist($domain);
@@ -109,7 +103,7 @@ class InitSetupCommand extends Command
         $output->writeln(\sprintf('<info>Your new email address %s was successfully created.</info>', $user));
         $output->writeln('<info>You can now login using the previously set password.</info>');
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function getEmailAddress(

@@ -14,10 +14,12 @@ use App\Command\Trait\ConnectionCheckTrait;
 use App\Service\ConnectionCheckService;
 use App\Service\DKIM\Config\Manager;
 use App\Service\FetchmailAccount\AccountWriter;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'redis:sync', description: 'Persist DKIM data and fetchmail accounts to redis.', aliases: ['dkim:refresh'])]
 class RedisSyncCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -31,24 +33,15 @@ class RedisSyncCommand extends Command
     }
 
     #[\Override]
-    protected function configure(): void
-    {
-        $this
-            ->setName('redis:sync')
-            ->setAliases(['dkim:refresh'])
-            ->setDescription('Persist DKIM data and fetchmail accounts to redis.');
-    }
-
-    #[\Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $this->manager->refresh();
         $this->accountWriter->write();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
