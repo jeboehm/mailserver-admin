@@ -12,11 +12,13 @@ namespace App\Command;
 
 use App\Service\ApplicationVersionService;
 use App\Service\GitHubTagService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'version:check', description: 'Check current versions against latest GitHub releases.')]
 class VersionCheckCommand extends Command
 {
     public function __construct(
@@ -24,14 +26,6 @@ class VersionCheckCommand extends Command
         private readonly GitHubTagService $gitHubTagService,
     ) {
         parent::__construct();
-    }
-
-    #[\Override]
-    protected function configure(): void
-    {
-        $this
-            ->setName('version:check')
-            ->setDescription('Check current versions against latest GitHub releases.');
     }
 
     #[\Override]

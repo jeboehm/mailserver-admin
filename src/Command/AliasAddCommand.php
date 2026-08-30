@@ -16,6 +16,7 @@ use App\Entity\Domain;
 use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,6 +24,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AsCommand(name: 'alias:add', description: 'Add aliases.')]
 class AliasAddCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -40,8 +42,6 @@ class AliasAddCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('alias:add')
-            ->setDescription('Add aliases.')
             ->addOption('catchall', null, InputOption::VALUE_NONE, 'Catch all mails to this domain.')
             ->addArgument('from', InputArgument::REQUIRED, 'Address of the new alias.')
             ->addArgument('to', InputArgument::REQUIRED, 'Where mails to the new alias go to.');
@@ -51,7 +51,7 @@ class AliasAddCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $from = $input->getArgument('from');
@@ -64,7 +64,7 @@ class AliasAddCommand extends Command
                     \sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from'))
                 );
 
-                return 1;
+                return Command::FAILURE;
             }
         }
 
@@ -73,7 +73,7 @@ class AliasAddCommand extends Command
         if (!$to) {
             $output->writeln(\sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('to')));
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $alias = new Alias();
@@ -84,7 +84,7 @@ class AliasAddCommand extends Command
         if (2 !== \count($fromParts)) {
             $output->writeln(\sprintf('<error>%s is not a valid email address.</error>', $input->getArgument('from')));
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $domain = $this->getDomain($fromParts[1]);
@@ -92,7 +92,7 @@ class AliasAddCommand extends Command
         if (null === $domain) {
             $output->writeln(\sprintf('<error>Domain %s has to be created before.</error>', $fromParts[1]));
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $alias->setDomain($domain);
@@ -106,13 +106,13 @@ class AliasAddCommand extends Command
                 $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $this->manager->persist($alias);
         $this->manager->flush();
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     private function getDomain(string $domain): ?Domain

@@ -76,7 +76,7 @@ class SystemCheckCommand extends Command
                         $output->writeln('<fg=green>[OK]</> Rspamd connection is working.');
                     }
 
-                    return 0;
+                    return Command::SUCCESS;
                 }
 
                 sleep(1);

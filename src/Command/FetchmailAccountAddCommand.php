@@ -15,6 +15,7 @@ use App\Entity\FetchmailAccount;
 use App\Repository\UserRepository;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,6 +24,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AsCommand(name: 'fetchmail:account:add', description: 'Add fetchmail account.')]
 class FetchmailAccountAddCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -40,8 +42,6 @@ class FetchmailAccountAddCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('fetchmail:account:add')
-            ->setDescription('Add fetchmail account.')
             ->addArgument('user', InputArgument::REQUIRED, 'User to fetch mails for (user@domain)')
             ->addArgument('host', InputArgument::REQUIRED, 'Host to fetch mails from')
             ->addArgument('protocol', InputArgument::REQUIRED, 'Protocol, either imap or pop3')
@@ -56,7 +56,7 @@ class FetchmailAccountAddCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $user = $this->userRepository->findOneByEmailAddress(

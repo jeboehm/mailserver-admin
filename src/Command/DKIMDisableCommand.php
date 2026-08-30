@@ -14,6 +14,7 @@ use App\Command\Trait\ConnectionCheckTrait;
 use App\Repository\DomainRepository;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -21,6 +22,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
 
+#[AsCommand(name: 'dkim:disable', description: 'Disables DKIM for a specific domain.')]
 class DKIMDisableCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -37,8 +39,6 @@ class DKIMDisableCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('dkim:disable')
-            ->setDescription('Disables DKIM for a specific domain.')
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @)');
     }
 
@@ -46,7 +46,7 @@ class DKIMDisableCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $name = mb_strtolower($input->getArgument('domain'));
@@ -55,7 +55,7 @@ class DKIMDisableCommand extends Command
         if (null === $domain) {
             $output->writeln(\sprintf('<error>Domain "%s" was not found.</error>', $name));
 
-            return 1;
+            return Command::FAILURE;
         }
 
         /** @var QuestionHelper $questionHelper */
@@ -69,7 +69,7 @@ class DKIMDisableCommand extends Command
         if (!$result) {
             $output->writeln('Aborting.');
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $domain->setDkimEnabled(false);
@@ -78,6 +78,6 @@ class DKIMDisableCommand extends Command
 
         $output->writeln('Done.');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

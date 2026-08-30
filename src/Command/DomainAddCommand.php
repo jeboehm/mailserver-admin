@@ -14,12 +14,14 @@ use App\Command\Trait\ConnectionCheckTrait;
 use App\Entity\Domain;
 use App\Service\ConnectionCheckService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AsCommand(name: 'domain:add', description: 'Add domains.')]
 class DomainAddCommand extends Command
 {
     use ConnectionCheckTrait;
@@ -36,8 +38,6 @@ class DomainAddCommand extends Command
     protected function configure(): void
     {
         $this
-            ->setName('domain:add')
-            ->setDescription('Add domains.')
             ->addArgument('domain', InputArgument::REQUIRED, 'Domain-part (after @)');
     }
 
@@ -45,7 +45,7 @@ class DomainAddCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (!$this->checkConnections($this->connectionCheckService, $output)) {
-            return 1;
+            return Command::FAILURE;
         }
 
         $domain = new Domain();
@@ -59,12 +59,12 @@ class DomainAddCommand extends Command
                 $output->writeln(\sprintf('<error>%s: %s</error>', $item->getPropertyPath(), $item->getMessage()));
             }
 
-            return 1;
+            return Command::FAILURE;
         }
 
         $this->manager->persist($domain);
         $this->manager->flush();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
