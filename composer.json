@@ -32,7 +32,7 @@
     "symfony/ux-chartjs": "^2.32",
     "symfony/validator": "v8.1.7",
     "symfony/yaml": "v8.1.6",
-    "twig/extra-bundle": "v3.24.0",
+    "twig/extra-bundle": "v3.29.0",
     "twig/string-extra": "v3.24.0"
   },
   "require-dev": {
