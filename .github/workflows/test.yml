@@ -86,7 +86,7 @@ jobs:
     needs: build
     services:
       mysql:
-        image: mysql:lts@sha256:e2bde46db6563855d7177adb5f0b57b9dc663f5a20927a90f4259d3312068497
+        image: mysql:lts@sha256:c7cb87a9822f499375287930cbff71d6d3b201e346b45108b1115b435ee2df13
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: false
           MYSQL_ROOT_PASSWORD: symfony
