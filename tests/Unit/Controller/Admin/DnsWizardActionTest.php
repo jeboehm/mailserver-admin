@@ -17,8 +17,11 @@ use App\Repository\DomainRepository;
 use App\Service\DnsWizard\DnsWizardValidator;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\HostIpResolver;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\DomainPolicy;
 use App\Service\Security\Roles;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +35,7 @@ class DnsWizardActionTest extends TestCase
     private MockObject|DomainRepository $domainRepository;
     private MockObject|HostIpResolver $hostIpResolver;
     private MockObject|DnsWizardValidator $validator;
-    private MockObject|Security $security;
+    private Stub|Security $security;
     private MockObject|CacheInterface $cacheApp;
 
     protected function setUp(): void
@@ -41,7 +44,7 @@ class DnsWizardActionTest extends TestCase
         $this->domainRepository = $this->createMock(DomainRepository::class);
         $this->hostIpResolver = $this->createMock(HostIpResolver::class);
         $this->validator = $this->createMock(DnsWizardValidator::class);
-        $this->security = $this->createMock(Security::class);
+        $this->security = $this->createStub(Security::class);
         $this->cacheApp = $this->createMock(CacheInterface::class);
     }
 
@@ -58,7 +61,8 @@ class DnsWizardActionTest extends TestCase
             ->method('expiresAfter')
             ->with($this->isInstanceOf(\DateInterval::class));
 
-        $this->security->expects($this->once())->method('isGranted')->with(Roles::ROLE_ADMIN)->willReturn(true);
+        $this->security->method('getUser')->willReturn(new User());
+        $this->security->method('isGranted')->willReturnCallback(static fn (mixed $role): bool => Roles::ROLE_ADMIN === $role);
         $this->domainRepository->expects($this->once())->method('findBy')->with([], ['name' => 'ASC'])->willReturn([$domain]);
         $this->hostIpResolver->expects($this->once())->method('resolveExpectedHostIps')->willReturn($expectedIps);
         $this->validator
@@ -92,10 +96,10 @@ class DnsWizardActionTest extends TestCase
 
         $controller = new DnsWizardAction(
             twig: $this->twig,
-            domainRepository: $this->domainRepository,
             hostIpResolver: $this->hostIpResolver,
             validator: $this->validator,
-            security: $this->security,
+            currentActor: new CurrentActor($this->security),
+            domainPolicy: new DomainPolicy($this->domainRepository),
             cacheApp: $this->cacheApp,
             mailname: 'mail.example.com',
         );
@@ -121,8 +125,8 @@ class DnsWizardActionTest extends TestCase
             ->method('expiresAfter')
             ->with($this->isInstanceOf(\DateInterval::class));
 
-        $this->security->expects($this->once())->method('isGranted')->with(Roles::ROLE_ADMIN)->willReturn(false);
-        $this->security->expects($this->once())->method('getUser')->willReturn($user);
+        $this->security->method('isGranted')->willReturnCallback(static fn (mixed $role): bool => Roles::ROLE_DOMAIN_ADMIN === $role);
+        $this->security->method('getUser')->willReturn($user);
         $this->domainRepository->expects($this->never())->method('findBy');
         $this->hostIpResolver->expects($this->once())->method('resolveExpectedHostIps')->willReturn($expectedIps);
         $this->validator
@@ -148,10 +152,10 @@ class DnsWizardActionTest extends TestCase
 
         $controller = new DnsWizardAction(
             twig: $this->twig,
-            domainRepository: $this->domainRepository,
             hostIpResolver: $this->hostIpResolver,
             validator: $this->validator,
-            security: $this->security,
+            currentActor: new CurrentActor($this->security),
+            domainPolicy: new DomainPolicy($this->domainRepository),
             cacheApp: $this->cacheApp,
             mailname: 'mail.example.com',
         );

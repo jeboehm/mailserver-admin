@@ -11,14 +11,13 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Domain;
-use App\Entity\User;
-use App\Repository\DomainRepository;
 use App\Service\DnsWizard\DnsWizardValidator;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\HostIpResolver;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\DomainPolicy;
 use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,10 +32,10 @@ final readonly class DnsWizardAction
 {
     public function __construct(
         private Environment $twig,
-        private DomainRepository $domainRepository,
         private HostIpResolver $hostIpResolver,
         private DnsWizardValidator $validator,
-        private Security $security,
+        private CurrentActor $currentActor,
+        private DomainPolicy $domainPolicy,
         private CacheInterface $cacheApp,
         #[Autowire('%env(default::string:MAILNAME)%')]
         private ?string $mailname,
@@ -48,7 +47,7 @@ final readonly class DnsWizardAction
     {
         $mailname = $this->mailname ?? $request->getHost();
 
-        $domains = $this->getVisibleDomains();
+        $domains = $this->domainPolicy->domainsForDnsValidation($this->currentActor->get());
         $expectedIps = $this->hostIpResolver->resolveExpectedHostIps();
         $cacheKey = $this->getCacheKey($mailname, $expectedIps, $domains);
 
@@ -66,30 +65,6 @@ final readonly class DnsWizardAction
             'expectedIps' => $expectedIps,
             'result' => $result,
         ]));
-    }
-
-    /**
-     * @return list<Domain>
-     */
-    private function getVisibleDomains(): array
-    {
-        if ($this->security->isGranted(Roles::ROLE_ADMIN)) {
-            return $this->domainRepository->findBy([], ['name' => 'ASC']);
-        }
-
-        $user = $this->security->getUser();
-
-        if (!$user instanceof User) {
-            throw new \LogicException('User is not an instance of User');
-        }
-
-        $domain = $user->getDomain();
-
-        if (null === $domain) {
-            throw new \RuntimeException('Domain admin user has no domain');
-        }
-
-        return [$domain];
     }
 
     /**

@@ -11,7 +11,8 @@ declare(strict_types=1);
 namespace App\Controller\User;
 
 use App\Entity\FetchmailAccount;
-use App\Entity\User;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\FetchmailAccountPolicy;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\FetchmailAccountVoter;
 use Doctrine\ORM\QueryBuilder;
@@ -37,6 +38,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_USER)]
 class FetchmailAccountController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly CurrentActor $currentActor,
+        private readonly FetchmailAccountPolicy $policy,
+    ) {
+    }
+
     public static function getEntityFqcn(): string
     {
         return FetchmailAccount::class;
@@ -58,33 +65,16 @@ class FetchmailAccountController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        yield AssociationField::new('user')
-            ->setPermission(Roles::ROLE_DOMAIN_ADMIN)
-            ->setQueryBuilder(function (QueryBuilder $qb) {
-                if ($this->isGranted(Roles::ROLE_ADMIN)) {
+        $actor = $this->currentActor->get();
+
+        if ($this->policy->canChooseOwner($actor)) {
+            yield AssociationField::new('user')
+                ->setQueryBuilder(function (QueryBuilder $qb) use ($actor): QueryBuilder {
+                    $this->policy->restrictToAssignableOwners($qb, $actor);
+
                     return $qb;
-                }
-
-                $user = $this->getUser();
-
-                if ($user instanceof User) {
-                    if (null === $user->getDomain()) {
-                        throw new \RuntimeException('Domain admin user has no domain');
-                    }
-
-                    if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN)) {
-                        return $qb
-                            ->andWhere('entity.domain = :domain')
-                            ->setParameter('domain', $user->getDomain());
-                    }
-
-                    return $qb
-                        ->andWhere('entity.id = :id')
-                        ->setParameter('id', $user->getId());
-                }
-
-                throw new \RuntimeException('User is not an instance of User');
-            });
+                });
+        }
 
         yield TextField::new('host');
         yield NumberField::new('port')
@@ -149,12 +139,9 @@ class FetchmailAccountController extends AbstractCrudController
     public function createEntity(string $entityFqcn): FetchmailAccount
     {
         $entity = parent::createEntity($entityFqcn);
-        $user = $this->getUser();
         \assert($entity instanceof FetchmailAccount);
 
-        if ($user instanceof User) {
-            $entity->setUser($user);
-        }
+        $entity->setUser($this->policy->defaultOwner($this->currentActor->get()));
 
         return $entity;
     }
@@ -168,33 +155,8 @@ class FetchmailAccountController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
-        if ($this->isGranted(Roles::ROLE_ADMIN)) {
-            return $qb;
-        }
+        $this->policy->restrictToVisibleAccounts($qb, $this->currentActor->get());
 
-        $user = $this->getUser();
-
-        if ($user instanceof User) {
-            if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN)) {
-                if (null === $user->getDomain()) {
-                    throw new \RuntimeException('Domain admin user has no domain');
-                }
-
-                $qb
-                    ->andWhere('user.domain = :domain')
-                    ->join('entity.user', 'user')
-                    ->setParameter('domain', $user->getDomain());
-
-                return $qb;
-            }
-
-            $qb
-                ->andWhere('entity.user = :user')
-                ->setParameter('user', $this->getUser());
-
-            return $qb;
-        }
-
-        throw new \RuntimeException('User is not an instance of User');
+        return $qb;
     }
 }
