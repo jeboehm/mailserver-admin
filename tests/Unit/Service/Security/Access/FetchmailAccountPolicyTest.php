@@ -18,7 +18,9 @@ use App\Service\Security\Access\FetchmailAccountPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class FetchmailAccountPolicyTest extends TestCase
 {
@@ -136,6 +138,61 @@ class FetchmailAccountPolicyTest extends TestCase
     }
 
     /**
+     * @return iterable<string, array{ActorRole, bool, bool, bool}>
+     */
+    public static function accountDeleters(): iterable
+    {
+        yield 'admin deletes all' => [ActorRole::Admin, true, true, true];
+        yield 'domain admin deletes within their domain' => [ActorRole::DomainAdmin, true, true, false];
+        yield 'regular user deletes their own' => [ActorRole::User, true, false, false];
+    }
+
+    #[DataProvider('accountDeleters')]
+    public function testCanDelete(ActorRole $role, bool $own, bool $sameDomain, bool $foreignDomain): void
+    {
+        $domain = $this->domain();
+        $actor = $this->actor($role, $domain);
+
+        self::assertSame($own, $this->policy->canDelete($actor, $this->account($actor->user)));
+        self::assertSame($sameDomain, $this->policy->canDelete($actor, $this->account($this->user($domain))));
+        self::assertSame($foreignDomain, $this->policy->canDelete($actor, $this->account($this->user($this->domain('foreign.example')))));
+    }
+
+    /**
+     * @return iterable<string, array{ActorRole, bool}>
+     */
+    public static function ownerlessAccountDeleters(): iterable
+    {
+        yield 'admin' => [ActorRole::Admin, true];
+        yield 'domain admin' => [ActorRole::DomainAdmin, false];
+        yield 'regular user' => [ActorRole::User, false];
+    }
+
+    #[DataProvider('ownerlessAccountDeleters')]
+    public function testOnlyAdminsMayDeleteAnAccountWithoutOwner(ActorRole $role, bool $expected): void
+    {
+        self::assertSame($expected, $this->policy->canDelete($this->actor($role, $this->domain()), new FetchmailAccount()));
+    }
+
+    public function testDeletingAForeignAccountIsRejected(): void
+    {
+        $this->expectException(AccessDeniedException::class);
+
+        $this->policy->denyUnlessCanDelete(
+            $this->actor(ActorRole::User, $this->domain()),
+            $this->account($this->user($this->domain('foreign.example')))
+        );
+    }
+
+    #[DoesNotPerformAssertions]
+    public function testDeletingAnOwnAccountIsAllowed(): void
+    {
+        $actor = $this->actor(ActorRole::User, $this->domain());
+
+        $this->policy->denyUnlessCanDelete($actor, $this->account($actor->user));
+    }
+
+    /**
      * @return iterable<string, array{ActorRole, bool}>
      */
     public static function ownerChoosers(): iterable
@@ -157,6 +214,14 @@ class FetchmailAccountPolicyTest extends TestCase
         $actor = $this->actor($role, $this->domain());
 
         self::assertSame($actor->user, $this->policy->defaultOwner($actor));
+    }
+
+    private function account(User $owner): FetchmailAccount
+    {
+        $account = new FetchmailAccount();
+        $account->setUser($owner);
+
+        return $account;
     }
 
     /**
