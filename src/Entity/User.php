@@ -17,6 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -25,7 +26,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'mail_users')]
 #[ORM\UniqueConstraint(name: 'user_idx', columns: ['name', 'domain_id'])]
 #[UniqueEntity(['name', 'domain'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface, \Stringable
+class User implements UserInterface, PasswordAuthenticatedUserInterface, EquatableInterface, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -99,6 +100,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, \String
     public function __unserialize(array $data): void
     {
         [$this->id, $this->password, $this->domainName, $this->admin, $this->domainAdmin, $this->name] = $data;
+    }
+
+    /**
+     * Called on the user stored in the session with the user freshly loaded from the database. Returning
+     * false ends the session. This replaces Symfony's default comparison, so it has to cover the password,
+     * roles and identifier as well. `enabled` is not part of the session data, hence only the fresh user
+     * is read.
+     */
+    #[\Override]
+    public function isEqualTo(UserInterface $user): bool
+    {
+        return $user instanceof self
+            && $user->getEnabled()
+            && $this->password === $user->getPassword()
+            && $this->getRoles() === $user->getRoles()
+            && $this->getUserIdentifier() === $user->getUserIdentifier();
     }
 
     public function getDomain(): ?Domain

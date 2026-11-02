@@ -18,6 +18,7 @@ security:
     main:
       lazy: true
       provider: app_user_provider
+      user_checker: App\Service\Security\User\EnabledUserChecker
       entry_point: form_login
       form_login:
         login_path: app_login
