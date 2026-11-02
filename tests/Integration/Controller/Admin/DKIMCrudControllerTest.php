@@ -167,6 +167,81 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         static::assertNotEmpty($updatedDomain->getDkimPrivateKey());
     }
 
+    public function testRecreateKeyRejectsGet(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->findExampleDomain();
+        $originalPrivateKey = $domain->getDkimPrivateKey();
+
+        $this->client->request(Request::METHOD_GET, $this->getCrudUrl('recreateKey', $domain->getId()));
+
+        static::assertResponseStatusCodeSame(Response::HTTP_METHOD_NOT_ALLOWED);
+        static::assertSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+    }
+
+    public function testRecreateKeyRejectsPostWithoutToken(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->findExampleDomain();
+        $originalPrivateKey = $domain->getDkimPrivateKey();
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl('recreateKey', $domain->getId()));
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        static::assertSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+    }
+
+    public function testRecreateKeyRejectsPostWithInvalidToken(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->findExampleDomain();
+        $originalPrivateKey = $domain->getDkimPrivateKey();
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl('recreateKey', $domain->getId()), ['token' => 'not-a-valid-token']);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        static::assertSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+    }
+
+    public function testRecreateKeyAcceptsPostWithValidToken(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->findExampleDomain();
+        $originalPrivateKey = $domain->getDkimPrivateKey();
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), DKIMCrudController::RECREATE_KEY_CSRF_TOKEN_ID);
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl('recreateKey', $domain->getId()), ['token' => $token]);
+
+        static::assertResponseIsSuccessful();
+        static::assertNotSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+    }
+
+    public function testRecreateKeyAcceptsPostWithoutTokenWhenCsrfIsDisabled(): void
+    {
+        $this->withCsrfDisabled(function (): void {
+            $domain = $this->findExampleDomain();
+            $originalPrivateKey = $domain->getDkimPrivateKey();
+
+            $this->client->request(Request::METHOD_POST, $this->getCrudUrl('recreateKey', $domain->getId()));
+
+            static::assertResponseIsSuccessful();
+            static::assertNotSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+        });
+    }
+
+    public function testRecreateKeyRejectsGetWhenCsrfIsDisabled(): void
+    {
+        $this->withCsrfDisabled(function (): void {
+            $domain = $this->findExampleDomain();
+            $originalPrivateKey = $domain->getDkimPrivateKey();
+
+            $this->client->request(Request::METHOD_GET, $this->getCrudUrl('recreateKey', $domain->getId()));
+
+            static::assertResponseStatusCodeSame(Response::HTTP_METHOD_NOT_ALLOWED);
+            static::assertSame($originalPrivateKey, $this->reloadPrivateKey($domain));
+        });
+    }
+
     public function testRecreateKeyRelativeFormUrl(): void
     {
         $this->loginClient($this->client);
@@ -229,6 +304,44 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     protected function getDashboardFqcn(): string
     {
         return DashboardController::class;
+    }
+
+    private function withCsrfDisabled(callable $test): void
+    {
+        $previous = $_ENV['CSRF_ENABLED'] ?? null;
+        $_ENV['CSRF_ENABLED'] = 'false';
+
+        try {
+            static::ensureKernelShutdown();
+            $this->client = static::createClient();
+            $this->entityManager = static::getContainer()->get('doctrine')->getManager();
+            $this->loginClient($this->client);
+
+            $test();
+        } finally {
+            if (null === $previous) {
+                unset($_ENV['CSRF_ENABLED']);
+            } else {
+                $_ENV['CSRF_ENABLED'] = $previous;
+            }
+        }
+    }
+
+    private function findExampleDomain(): Domain
+    {
+        $domain = $this->entityManager->getRepository(Domain::class)->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        return $domain;
+    }
+
+    private function reloadPrivateKey(Domain $domain): string
+    {
+        $this->entityManager->clear();
+        $reloaded = $this->entityManager->find(Domain::class, $domain->getId());
+        static::assertInstanceOf(Domain::class, $reloaded);
+
+        return $reloaded->getDkimPrivateKey();
     }
 
     private function navigateToDomain(Domain $domain): Crawler

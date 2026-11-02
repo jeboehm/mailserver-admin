@@ -1,0 +1,18 @@
+{# @var action \EasyCorp\Bundle\EasyAdminBundle\Dto\ActionDto #}
+
+{# EasyAdmin's form action cannot carry hidden fields. The token stays out of the URL, where it
+   would reach access logs and the redirect target. #}
+<form action="{{ action.linkUrl }}" method="POST" class="{{ action.cssClass }}">
+    <input type="hidden" name="token" value="{{ csrf_token(constant('App\\Controller\\Admin\\DKIMCrudController::RECREATE_KEY_CSRF_TOKEN_ID')) }}">
+
+    <twig:ea:Button
+        variant="{{ action.variant }}"
+        class="{{ action.cssClass }}"
+        {{ ...action.htmlAttributes|ea_html_attrs|filter(v => v is not null) }}
+        htmlElement="button"
+        type="submit"
+        icon="{{ action.icon }}"
+    >
+        <span class="action-label">{{ action.label|trans }}</span>
+    </twig:ea:Button>
+</form>
