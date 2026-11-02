@@ -11,7 +11,10 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Domain;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\DomainPolicy;
 use App\Service\Security\Roles;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -25,6 +28,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DomainCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly CurrentActor $currentActor,
+        private readonly DomainPolicy $domainPolicy,
+    ) {
+    }
+
     #[\Override]
     public static function getEntityFqcn(): string
     {
@@ -42,16 +51,27 @@ class DomainCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $actor = $this->currentActor->get();
+        $domainPolicy = $this->domainPolicy;
+
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
             ->disable(Action::EDIT)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) {
-                $action->displayIf(
-                    static fn (Domain $domain) => 0 === $domain->getAliases()->count() && 0 === $domain->getUsers()->count()
-                );
+            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($actor, $domainPolicy) {
+                $action->displayIf(static fn (Domain $domain) => $domainPolicy->canDelete($actor, $domain));
 
                 return $action;
             });
+    }
+
+    #[\Override]
+    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        \assert($entityInstance instanceof Domain);
+
+        $this->domainPolicy->denyUnlessCanDelete($this->currentActor->get(), $entityInstance);
+
+        parent::deleteEntity($entityManager, $entityInstance);
     }
 
     #[\Override]

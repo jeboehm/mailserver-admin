@@ -12,14 +12,21 @@ namespace Tests\Integration\Controller\Admin;
 
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DomainCrudController;
+use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Entity\User;
 use App\Repository\DomainRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Tests\Integration\Helper\CsrfTokenTrait;
 use Tests\Integration\Helper\UserTrait;
 
 class DomainCrudControllerTest extends AbstractCrudTestCase
 {
+    use CsrfTokenTrait;
     use UserTrait;
 
     #[\Override]
@@ -98,6 +105,82 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         $this->assertGlobalActionExists('new');
     }
 
+    public function testCannotDeleteDomainWithUsers(): void
+    {
+        $domain = $this->createDomain('with-user.invalid');
+        $user = new User();
+        $user->setDomain($domain);
+        $user->setName('max');
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $domainId = (int) $domain->getId();
+        $userId = (int) $user->getId();
+
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $domainId), ['token' => $token]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->entityManager->clear();
+        static::assertInstanceOf(Domain::class, $this->entityManager->find(Domain::class, $domainId));
+        static::assertInstanceOf(User::class, $this->entityManager->find(User::class, $userId));
+    }
+
+    public function testCannotDeleteDomainWithAliases(): void
+    {
+        $domain = $this->createDomain('with-alias.invalid');
+        $alias = new Alias();
+        $alias->setDomain($domain);
+        $alias->setName('info');
+        $alias->setDestination('admin@example.com');
+        $this->entityManager->persist($alias);
+        $this->entityManager->flush();
+        $domainId = (int) $domain->getId();
+        $aliasId = (int) $alias->getId();
+
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $domainId), ['token' => $token]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->entityManager->clear();
+        static::assertInstanceOf(Domain::class, $this->entityManager->find(Domain::class, $domainId));
+        static::assertInstanceOf(Alias::class, $this->entityManager->find(Alias::class, $aliasId));
+    }
+
+    public function testCannotDeleteNonEmptyDomainThroughBatchDelete(): void
+    {
+        $domain = $this->createDomain('batch.invalid');
+        $user = new User();
+        $user->setDomain($domain);
+        $user->setName('max');
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $domainId = (int) $domain->getId();
+
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-batch-action-' . Action::BATCH_DELETE . '-' . Domain::class);
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::BATCH_DELETE), [
+            EA::BATCH_ACTION_NAME => Action::BATCH_DELETE,
+            EA::BATCH_ACTION_ENTITY_IDS => [$domainId],
+            EA::ENTITY_FQCN => Domain::class,
+            EA::BATCH_ACTION_CSRF_TOKEN => $token,
+        ]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->entityManager->clear();
+        static::assertInstanceOf(Domain::class, $this->entityManager->find(Domain::class, $domainId));
+    }
+
+    public function testCanStillDeleteEmptyDomain(): void
+    {
+        $domainId = (int) $this->createDomain('empty.invalid')->getId();
+
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $domainId), ['token' => $token]);
+
+        static::assertResponseIsSuccessful();
+        $this->entityManager->clear();
+        static::assertNull($this->entityManager->find(Domain::class, $domainId));
+    }
+
     protected function getControllerFqcn(): string
     {
         return DomainCrudController::class;
@@ -106,5 +189,15 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
     protected function getDashboardFqcn(): string
     {
         return DashboardController::class;
+    }
+
+    private function createDomain(string $name): Domain
+    {
+        $domain = new Domain();
+        $domain->setName($name);
+        $this->entityManager->persist($domain);
+        $this->entityManager->flush();
+
+        return $domain;
     }
 }

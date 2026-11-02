@@ -11,9 +11,9 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Domain;
-use App\Service\DKIM\KeyGenerationService;
+use App\Service\DKIM\KeyRecreationService;
+use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Roles;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -31,9 +31,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class DKIMCrudController extends AbstractCrudController
 {
     public function __construct(
-        private readonly KeyGenerationService $keyGenerationService,
+        private readonly KeyRecreationService $keyRecreationService,
+        private readonly CurrentActor $currentActor,
         private readonly AdminUrlGenerator $adminUrlGenerator,
-        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
@@ -82,12 +82,9 @@ class DKIMCrudController extends AbstractCrudController
 
         \assert($domain instanceof Domain);
 
-        $keyPair = $this->keyGenerationService->createKeyPair();
-        $domain->setDkimPrivateKey($keyPair->getPrivate());
+        $this->keyRecreationService->recreate($this->currentActor->get(), $domain);
 
         $this->addFlash('info', 'Private key successfully recreated. You need to update your DNS zone now.');
-
-        $this->entityManager->flush();
 
         $url = $this->adminUrlGenerator
             ->setController(self::class)
