@@ -23,6 +23,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -30,10 +32,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DKIMCrudController extends AbstractCrudController
 {
+    public const string RECREATE_KEY_CSRF_TOKEN_ID = 'dkim-recreate-key';
+
     public function __construct(
         private readonly KeyRecreationService $keyRecreationService,
         private readonly CurrentActor $currentActor,
         private readonly AdminUrlGenerator $adminUrlGenerator,
+        #[Autowire('%env(bool:CSRF_ENABLED)%')]
+        private readonly bool $csrfEnabled,
     ) {
     }
 
@@ -68,16 +74,21 @@ class DKIMCrudController extends AbstractCrudController
         $recreateKeyAction
             ->linkToCrudAction('recreateKey')
             ->asDangerAction()
-            ->renderAsForm();
+            ->renderAsForm()
+            ->setTemplatePath('admin/dkim/recreate_key_action.html.twig');
 
         return $actions
             ->add(Crud::PAGE_EDIT, $recreateKeyAction)
             ->disable(Action::NEW, Action::DELETE, Action::BATCH_DELETE);
     }
 
-    #[AdminRoute(path: '/recreate/{entityId}', name: 'recreate_key')]
+    #[AdminRoute(path: '/recreate/{entityId}', name: 'recreate_key', options: ['methods' => [Request::METHOD_POST]])]
     public function recreateKey(AdminContext $adminContext): Response
     {
+        if ($this->csrfEnabled && !$this->isCsrfTokenValid(self::RECREATE_KEY_CSRF_TOKEN_ID, $adminContext->getRequest()->request->getString('token'))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
         $domain = $adminContext->getEntity()->getInstance();
 
         \assert($domain instanceof Domain);
