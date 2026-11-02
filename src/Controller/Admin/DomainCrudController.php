@@ -10,23 +10,22 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\GuardedDeleteCrudController;
 use App\Entity\Domain;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\DomainPolicy;
 use App\Service\Security\Roles;
-use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute(path: '/domain', name: 'domain')]
 #[IsGranted(Roles::ROLE_ADMIN)]
-class DomainCrudController extends AbstractCrudController
+class DomainCrudController extends GuardedDeleteCrudController
 {
     public function __construct(
         private readonly CurrentActor $currentActor,
@@ -65,16 +64,6 @@ class DomainCrudController extends AbstractCrudController
     }
 
     #[\Override]
-    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
-    {
-        \assert($entityInstance instanceof Domain);
-
-        $this->domainPolicy->denyUnlessCanDelete($this->currentActor->get(), $entityInstance);
-
-        parent::deleteEntity($entityManager, $entityInstance);
-    }
-
-    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         yield TextField::new('name')
@@ -89,5 +78,13 @@ class DomainCrudController extends AbstractCrudController
         yield AssociationField::new('aliases')
             ->setSortable(false)
             ->hideOnForm();
+    }
+
+    #[\Override]
+    protected function denyUnlessCanDelete(object $entity): void
+    {
+        \assert($entity instanceof Domain);
+
+        $this->domainPolicy->denyUnlessCanDelete($this->currentActor->get(), $entity);
     }
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Controller\User;
 
+use App\Controller\GuardedDeleteCrudController;
 use App\Entity\FetchmailAccount;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\FetchmailAccountPolicy;
@@ -20,7 +21,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -36,7 +36,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute(path: '/fetchmail-account', name: 'fetchmail')]
 #[IsGranted(Roles::ROLE_USER)]
-class FetchmailAccountController extends AbstractCrudController
+class FetchmailAccountController extends GuardedDeleteCrudController
 {
     public function __construct(
         private readonly CurrentActor $currentActor,
@@ -158,5 +158,13 @@ class FetchmailAccountController extends AbstractCrudController
         $this->policy->restrictToVisibleAccounts($qb, $this->currentActor->get());
 
         return $qb;
+    }
+
+    #[\Override]
+    protected function denyUnlessCanDelete(object $entity): void
+    {
+        \assert($entity instanceof FetchmailAccount);
+
+        $this->policy->denyUnlessCanDelete($this->currentActor->get(), $entity);
     }
 }
