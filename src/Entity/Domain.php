@@ -126,4 +126,9 @@ class Domain implements \Stringable
     {
         return $this->aliases;
     }
+
+    public function isEmpty(): bool
+    {
+        return $this->users->isEmpty() && $this->aliases->isEmpty();
+    }
 }

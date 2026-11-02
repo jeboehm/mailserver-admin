@@ -40,7 +40,7 @@ class FetchmailAccountController extends GuardedDeleteCrudController
 {
     public function __construct(
         private readonly CurrentActor $currentActor,
-        private readonly FetchmailAccountPolicy $policy,
+        private readonly FetchmailAccountPolicy $fetchmailAccountPolicy,
     ) {
     }
 
@@ -67,10 +67,10 @@ class FetchmailAccountController extends GuardedDeleteCrudController
     {
         $actor = $this->currentActor->get();
 
-        if ($this->policy->canChooseOwner($actor)) {
+        if ($this->fetchmailAccountPolicy->canChooseOwner($actor)) {
             yield AssociationField::new('user')
                 ->setQueryBuilder(function (QueryBuilder $qb) use ($actor): QueryBuilder {
-                    $this->policy->restrictToAssignableOwners($qb, $actor);
+                    $this->fetchmailAccountPolicy->restrictToAssignableOwners($qb, $actor);
 
                     return $qb;
                 });
@@ -141,7 +141,7 @@ class FetchmailAccountController extends GuardedDeleteCrudController
         $entity = parent::createEntity($entityFqcn);
         \assert($entity instanceof FetchmailAccount);
 
-        $entity->setUser($this->policy->defaultOwner($this->currentActor->get()));
+        $entity->setUser($this->fetchmailAccountPolicy->defaultOwner($this->currentActor->get()));
 
         return $entity;
     }
@@ -155,7 +155,7 @@ class FetchmailAccountController extends GuardedDeleteCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
-        $this->policy->restrictToVisibleAccounts($qb, $this->currentActor->get());
+        $this->fetchmailAccountPolicy->restrictToVisibleAccounts($qb, $this->currentActor->get());
 
         return $qb;
     }
@@ -165,6 +165,6 @@ class FetchmailAccountController extends GuardedDeleteCrudController
     {
         \assert($entity instanceof FetchmailAccount);
 
-        $this->policy->denyUnlessCanDelete($this->currentActor->get(), $entity);
+        $this->fetchmailAccountPolicy->denyUnlessCanDelete($this->currentActor->get(), $entity);
     }
 }

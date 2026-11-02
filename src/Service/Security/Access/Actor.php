@@ -12,6 +12,7 @@ namespace App\Service\Security\Access;
 
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Exception\DomainAdminWithoutDomainException;
 
 /**
  * The authenticated user an access rule is evaluated for.
@@ -51,6 +52,16 @@ final readonly class Actor
             ActorRole::DomainAdmin => null !== $domain && $this->ownsDomain($domain),
             ActorRole::User => false,
         };
+    }
+
+    /**
+     * For rules that scope a domain admin to their domain, which they must have.
+     *
+     * @throws DomainAdminWithoutDomainException
+     */
+    public function ownDomain(): Domain
+    {
+        return $this->user->getDomain() ?? throw new DomainAdminWithoutDomainException();
     }
 
     private function ownsDomain(Domain $domain): bool

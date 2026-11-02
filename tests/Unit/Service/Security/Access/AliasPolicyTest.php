@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class AliasPolicyTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     /**
      * @return iterable<string, array{ActorRole, bool, bool}>

@@ -12,6 +12,7 @@ namespace App\Service\DKIM;
 
 use App\Entity\Domain;
 use App\Service\Security\Access\Actor;
+use App\Service\Security\Access\DkimPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -20,6 +21,7 @@ final readonly class KeyRecreationService
     public function __construct(
         private KeyGenerationService $keyGenerationService,
         private EntityManagerInterface $entityManager,
+        private DkimPolicy $dkimPolicy,
     ) {
     }
 
@@ -30,9 +32,7 @@ final readonly class KeyRecreationService
      */
     public function recreate(Actor $actor, Domain $domain): void
     {
-        if (!$actor->isAdmin()) {
-            throw new AccessDeniedException('Only admins may recreate a DKIM key.');
-        }
+        $this->dkimPolicy->denyUnlessCanRecreateKey($actor);
 
         $domain->setDkimPrivateKey($this->keyGenerationService->createKeyPair()->getPrivate());
 
