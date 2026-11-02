@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\GuardedDeleteCrudController;
 use App\Entity\Alias;
+use App\Service\Security\Access\AliasPolicy;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\DomainScopePolicy;
 use App\Service\Security\Roles;
@@ -20,7 +22,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -30,11 +31,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute(path: '/alias', name: 'alias')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
-class AliasCrudController extends AbstractCrudController
+class AliasCrudController extends GuardedDeleteCrudController
 {
     public function __construct(
         private readonly CurrentActor $currentActor,
         private readonly DomainScopePolicy $domainScopePolicy,
+        private readonly AliasPolicy $aliasPolicy,
     ) {
     }
 
@@ -99,5 +101,13 @@ class AliasCrudController extends AbstractCrudController
         $this->domainScopePolicy->restrictToVisibleDomains($qb, $this->currentActor->get());
 
         return $qb;
+    }
+
+    #[\Override]
+    protected function denyUnlessCanDelete(object $entity): void
+    {
+        \assert($entity instanceof Alias);
+
+        $this->aliasPolicy->denyUnlessCanDelete($this->currentActor->get(), $entity);
     }
 }

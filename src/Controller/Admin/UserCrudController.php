@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\GuardedDeleteCrudController;
 use App\Entity\User;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\DomainScopePolicy;
@@ -24,7 +25,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
@@ -39,7 +39,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[AdminRoute(path: '/user', name: 'user')]
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
-class UserCrudController extends AbstractCrudController
+class UserCrudController extends GuardedDeleteCrudController
 {
     public function __construct(
         private readonly CurrentActor $currentActor,
@@ -127,16 +127,6 @@ class UserCrudController extends AbstractCrudController
     }
 
     #[\Override]
-    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
-    {
-        \assert($entityInstance instanceof User);
-
-        $this->userPolicy->denyUnlessCanDelete($this->currentActor->get(), $entityInstance);
-
-        parent::deleteEntity($entityManager, $entityInstance);
-    }
-
-    #[\Override]
     public function createEntity(string $entityFqcn): User
     {
         $entity = parent::createEntity($entityFqcn);
@@ -177,5 +167,13 @@ class UserCrudController extends AbstractCrudController
 
                 return $action;
             });
+    }
+
+    #[\Override]
+    protected function denyUnlessCanDelete(object $entity): void
+    {
+        \assert($entity instanceof User);
+
+        $this->userPolicy->denyUnlessCanDelete($this->currentActor->get(), $entity);
     }
 }

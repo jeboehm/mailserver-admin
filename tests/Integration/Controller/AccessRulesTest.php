@@ -16,11 +16,14 @@ use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Tests\Integration\Helper\CsrfTokenTrait;
 use Tests\Integration\Helper\UserTrait;
 
 /**
@@ -29,6 +32,7 @@ use Tests\Integration\Helper\UserTrait;
  */
 class AccessRulesTest extends WebTestCase
 {
+    use CsrfTokenTrait;
     use UserTrait;
 
     private const string ADMIN = 'admin@example.com';
@@ -52,6 +56,10 @@ class AccessRulesTest extends WebTestCase
         $foreignDomain = new Domain();
         $foreignDomain->setName('foreign.invalid');
         $this->entityManager->persist($foreignDomain);
+
+        $emptyDomain = new Domain();
+        $emptyDomain->setName('empty.invalid');
+        $this->entityManager->persist($emptyDomain);
 
         $boss = $this->createUser($ownDomain, 'boss');
         $boss->setDomainAdmin(true);
@@ -423,6 +431,133 @@ class AccessRulesTest extends WebTestCase
         static::assertSame($key, $domain->getDkimPrivateKey());
     }
 
+    /**
+     * @return iterable<string, array{string, string, class-string, string}>
+     */
+    public static function forbiddenDeletions(): iterable
+    {
+        yield 'domain admin, alias of another domain' => [self::DOMAIN_ADMIN, '/alias', Alias::class, 'foreignalias'];
+        yield 'domain admin, user of another domain' => [self::DOMAIN_ADMIN, '/user', User::class, 'foreignuser'];
+        yield 'domain admin, themselves' => [self::DOMAIN_ADMIN, '/user', User::class, 'boss'];
+        yield 'domain admin, fetchmail account of another domain' => [self::DOMAIN_ADMIN, '/fetchmail-account', FetchmailAccount::class, 'foreign.example.net'];
+        yield 'domain admin, domain' => [self::DOMAIN_ADMIN, '/domain', Domain::class, 'empty.invalid'];
+        yield 'domain admin, domain through DKIM' => [self::DOMAIN_ADMIN, '/dkim', Domain::class, 'empty.invalid'];
+        yield 'regular user, fetchmail account of a neighbour' => [self::REGULAR_USER, '/fetchmail-account', FetchmailAccount::class, 'neighbour.example.net'];
+        yield 'regular user, fetchmail account of another domain' => [self::REGULAR_USER, '/fetchmail-account', FetchmailAccount::class, 'foreign.example.net'];
+        yield 'regular user, alias' => [self::REGULAR_USER, '/alias', Alias::class, 'ownalias'];
+        yield 'regular user, user' => [self::REGULAR_USER, '/user', User::class, 'neighbour'];
+        yield 'regular user, domain' => [self::REGULAR_USER, '/domain', Domain::class, 'empty.invalid'];
+        yield 'regular user, domain through DKIM' => [self::REGULAR_USER, '/dkim', Domain::class, 'empty.invalid'];
+        yield 'admin, domain through DKIM' => [self::ADMIN, '/dkim', Domain::class, 'empty.invalid'];
+        yield 'admin, themselves' => [self::ADMIN, '/user', User::class, 'admin'];
+        yield 'admin, domain with users' => [self::ADMIN, '/domain', Domain::class, 'foreign.invalid'];
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    #[DataProvider('forbiddenDeletions')]
+    public function testBatchDeleteIsRejected(string $login, string $path, string $entity, string $name): void
+    {
+        $id = $this->idOf($entity, $name);
+
+        $this->loginClient($this->client, $login);
+        $this->batchDelete($path, $entity, [$id]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertExists($entity, $id);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    #[DataProvider('forbiddenDeletions')]
+    public function testSingleDeleteIsRejected(string $login, string $path, string $entity, string $name): void
+    {
+        $id = $this->idOf($entity, $name);
+
+        $this->loginClient($this->client, $login);
+        $this->singleDelete($path, $id);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertExists($entity, $id);
+    }
+
+    /**
+     * Each batch holds an entry the actor may delete, followed by one they may not.
+     *
+     * @return iterable<string, array{string, string, class-string, string, string}>
+     */
+    public static function mixedBatches(): iterable
+    {
+        yield 'domain admin, aliases' => [self::DOMAIN_ADMIN, '/alias', Alias::class, 'ownalias', 'foreignalias'];
+        yield 'domain admin, users' => [self::DOMAIN_ADMIN, '/user', User::class, 'plainuser', 'foreignuser'];
+        yield 'domain admin, users including themselves' => [self::DOMAIN_ADMIN, '/user', User::class, 'plainuser', 'boss'];
+        yield 'domain admin, fetchmail accounts' => [self::DOMAIN_ADMIN, '/fetchmail-account', FetchmailAccount::class, 'plain.example.net', 'foreign.example.net'];
+        yield 'regular user, fetchmail accounts' => [self::REGULAR_USER, '/fetchmail-account', FetchmailAccount::class, 'plain.example.net', 'neighbour.example.net'];
+        yield 'admin, users including themselves' => [self::ADMIN, '/user', User::class, 'plainuser', 'admin'];
+        yield 'admin, domains' => [self::ADMIN, '/domain', Domain::class, 'empty.invalid', 'foreign.invalid'];
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    #[DataProvider('mixedBatches')]
+    public function testRejectedBatchDeleteRemovesNothing(string $login, string $path, string $entity, string $permitted, string $forbidden): void
+    {
+        $permittedId = $this->idOf($entity, $permitted);
+        $forbiddenId = $this->idOf($entity, $forbidden);
+
+        $this->loginClient($this->client, $login);
+        $this->batchDelete($path, $entity, [$permittedId, $forbiddenId]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertExists($entity, $permittedId);
+        $this->assertExists($entity, $forbiddenId);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, class-string, string}>
+     */
+    public static function permittedDeletions(): iterable
+    {
+        yield 'admin, alias of any domain' => [self::ADMIN, '/alias', Alias::class, 'foreignalias'];
+        yield 'admin, fetchmail account of any domain' => [self::ADMIN, '/fetchmail-account', FetchmailAccount::class, 'foreign.example.net'];
+        yield 'domain admin, alias of their domain' => [self::DOMAIN_ADMIN, '/alias', Alias::class, 'ownalias'];
+        yield 'domain admin, fetchmail account in their domain' => [self::DOMAIN_ADMIN, '/fetchmail-account', FetchmailAccount::class, 'neighbour.example.net'];
+        yield 'regular user, own fetchmail account' => [self::REGULAR_USER, '/fetchmail-account', FetchmailAccount::class, 'plain.example.net'];
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    #[DataProvider('permittedDeletions')]
+    public function testPermittedBatchDeleteRemovesTheEntry(string $login, string $path, string $entity, string $name): void
+    {
+        $id = $this->idOf($entity, $name);
+
+        $this->loginClient($this->client, $login);
+        $this->batchDelete($path, $entity, [$id]);
+
+        static::assertResponseIsSuccessful();
+        $this->assertGone($entity, $id);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    #[DataProvider('permittedDeletions')]
+    public function testPermittedSingleDeleteRemovesTheEntry(string $login, string $path, string $entity, string $name): void
+    {
+        $id = $this->idOf($entity, $name);
+
+        $this->loginClient($this->client, $login);
+        $this->singleDelete($path, $id);
+
+        static::assertResponseIsSuccessful();
+        $this->assertGone($entity, $id);
+    }
+
     private function createUser(Domain $domain, string $name): User
     {
         $user = new User();
@@ -453,6 +588,58 @@ class AccessRulesTest extends WebTestCase
         $account->setUsername('account');
         $account->setPassword('password');
         $this->entityManager->persist($account);
+    }
+
+    /**
+     * @param class-string $entity
+     * @param list<int>    $ids
+     */
+    private function batchDelete(string $path, string $entity, array $ids): void
+    {
+        $token = $this->issueCsrfToken($this->client, '/fetchmail-account', \sprintf('ea-batch-action-%s-%s', Action::BATCH_DELETE, $entity));
+
+        $this->client->request(Request::METHOD_POST, $path . '/batch-delete', [
+            EA::BATCH_ACTION_NAME => Action::BATCH_DELETE,
+            EA::BATCH_ACTION_ENTITY_IDS => $ids,
+            EA::ENTITY_FQCN => $entity,
+            EA::BATCH_ACTION_CSRF_TOKEN => $token,
+        ]);
+    }
+
+    private function singleDelete(string $path, int $id): void
+    {
+        $token = $this->issueCsrfToken($this->client, '/fetchmail-account', 'ea-delete');
+
+        $this->client->request(Request::METHOD_POST, \sprintf('%s/%d/delete', $path, $id), ['token' => $token]);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    private function idOf(string $entity, string $name): int
+    {
+        $found = $this->entityManager->getRepository($entity)->findOneBy([FetchmailAccount::class === $entity ? 'host' : 'name' => $name]);
+        \assert($found instanceof Alias || $found instanceof Domain || $found instanceof FetchmailAccount || $found instanceof User);
+
+        return (int) $found->getId();
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    private function assertExists(string $entity, int $id): void
+    {
+        $this->entityManager->clear();
+        static::assertNotNull($this->entityManager->find($entity, $id));
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    private function assertGone(string $entity, int $id): void
+    {
+        $this->entityManager->clear();
+        static::assertNull($this->entityManager->find($entity, $id));
     }
 
     private function findUser(string $emailAddress): User

@@ -11,8 +11,10 @@ declare(strict_types=1);
 namespace App\Service\Security\Access;
 
 use App\Entity\Domain;
+use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final readonly class FetchmailAccountPolicy
 {
@@ -68,6 +70,23 @@ final readonly class FetchmailAccountPolicy
     public function canAssignTo(Actor $actor, User $owner): bool
     {
         return $actor->isSelf($owner) || $actor->managesDomain($owner->getDomain());
+    }
+
+    public function canDelete(Actor $actor, FetchmailAccount $account): bool
+    {
+        $owner = $account->getUser();
+
+        return null === $owner ? $actor->isAdmin() : $this->canAssignTo($actor, $owner);
+    }
+
+    /**
+     * @throws AccessDeniedException
+     */
+    public function denyUnlessCanDelete(Actor $actor, FetchmailAccount $account): void
+    {
+        if (!$this->canDelete($actor, $account)) {
+            throw new AccessDeniedException('This fetchmail account cannot be deleted.');
+        }
     }
 
     public function canChooseOwner(Actor $actor): bool
