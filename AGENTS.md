@@ -367,3 +367,17 @@ idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 - **British English**: Use British spelling in documentation and comments
 - **Git Commits**: Follow conventional commits (fix:, feat:, docs:, etc.)
 - **Code Quality**: Follow clean code principles, DRY, single responsibility
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs are tracked in GitHub Issues on `jeboehm/mailserver-admin`, using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Uses the default label vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
