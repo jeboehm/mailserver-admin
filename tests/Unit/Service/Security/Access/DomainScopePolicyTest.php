@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\Security\Access;
 
+use App\Entity\Alias;
 use App\Entity\User;
+use App\Exception\DomainAdminWithoutDomainException;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\DomainScopePolicy;
@@ -21,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 
 class DomainScopePolicyTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     private DomainScopePolicy $policy;
 
@@ -61,7 +63,7 @@ class DomainScopePolicyTest extends TestCase
 
     public function testDomainAdminWithoutDomainIsAnError(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DomainAdminWithoutDomainException::class);
 
         $this->policy->restrictToVisibleDomains($this->queryBuilder(), new Actor(new User(), ActorRole::DomainAdmin));
     }
@@ -88,6 +90,29 @@ class DomainScopePolicyTest extends TestCase
         $domain = $this->domain();
 
         self::assertSame($domain, $this->policy->defaultDomain($this->actor($role, $domain)));
+    }
+
+    public function testApplyingTheDefaultSetsTheActorsDomainOnAliasesAndUsers(): void
+    {
+        $domain = $this->domain();
+        $actor = $this->actor(ActorRole::DomainAdmin, $domain);
+        $alias = new Alias();
+        $user = new User();
+
+        $this->policy->applyDefaultDomain($actor, $alias);
+        $this->policy->applyDefaultDomain($actor, $user);
+
+        self::assertSame($domain, $alias->getDomain());
+        self::assertSame($domain, $user->getDomain());
+    }
+
+    public function testApplyingTheDefaultOfAnActorWithoutDomainLeavesTheEntityAlone(): void
+    {
+        $alias = new Alias();
+
+        $this->policy->applyDefaultDomain(new Actor(new User(), ActorRole::Admin), $alias);
+
+        self::assertNull($alias->getDomain());
     }
 
     public function testActorWithoutDomainHasNoDefault(): void

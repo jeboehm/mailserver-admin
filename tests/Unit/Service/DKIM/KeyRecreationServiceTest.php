@@ -14,15 +14,16 @@ use App\Service\DKIM\KeyGenerationService;
 use App\Service\DKIM\KeyPair;
 use App\Service\DKIM\KeyRecreationService;
 use App\Service\Security\Access\ActorRole;
+use App\Service\Security\Access\DkimPolicy;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Tests\Unit\Service\Security\Access\ActorFixtures;
+use Tests\Unit\Service\Security\Access\ActorFixturesTrait;
 
 class KeyRecreationServiceTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     public function testAdminGetsANewPrivateKeySaved(): void
     {
@@ -34,7 +35,7 @@ class KeyRecreationServiceTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects($this->once())->method('flush');
 
-        new KeyRecreationService($keyGeneration, $entityManager)
+        new KeyRecreationService($keyGeneration, $entityManager, new DkimPolicy())
             ->recreate($this->actor(ActorRole::Admin, $domain), $domain);
 
         self::assertSame('new-key', $domain->getDkimPrivateKey());
@@ -61,7 +62,7 @@ class KeyRecreationServiceTest extends TestCase
         $entityManager->expects($this->never())->method('flush');
 
         try {
-            new KeyRecreationService($keyGeneration, $entityManager)
+            new KeyRecreationService($keyGeneration, $entityManager, new DkimPolicy())
                 ->recreate($this->actor($role, $domain), $domain);
             self::fail('Expected the recreation to be denied.');
         } catch (AccessDeniedException) {

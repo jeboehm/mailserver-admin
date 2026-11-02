@@ -12,6 +12,7 @@ namespace Tests\Unit\Service\Security\Access;
 
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Exception\DomainAdminWithoutDomainException;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,7 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 class ActorTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     /**
      * @return iterable<string, array{ActorRole, bool, bool}>
@@ -47,6 +48,26 @@ class ActorTest extends TestCase
 
         self::assertFalse($actor->managesDomain(null));
         self::assertFalse($actor->managesDomain($this->domain()));
+    }
+
+    public function testOwnDomainIsTheDomainOfTheUser(): void
+    {
+        $domain = $this->domain();
+
+        self::assertSame($domain, $this->actor(ActorRole::DomainAdmin, $domain)->ownDomain());
+    }
+
+    public function testOwnDomainOfADomainAdminWithoutDomainIsAnError(): void
+    {
+        $this->expectException(DomainAdminWithoutDomainException::class);
+        $this->expectExceptionMessage('Domain admin user has no domain');
+
+        new Actor(new User(), ActorRole::DomainAdmin)->ownDomain();
+    }
+
+    public function testTheErrorStaysARuntimeException(): void
+    {
+        self::assertInstanceOf(\RuntimeException::class, new DomainAdminWithoutDomainException());
     }
 
     public function testDomainComparisonSurvivesADetachedCopy(): void

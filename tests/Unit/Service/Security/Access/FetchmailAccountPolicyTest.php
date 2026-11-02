@@ -12,6 +12,7 @@ namespace Tests\Unit\Service\Security\Access;
 
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
+use App\Exception\DomainAdminWithoutDomainException;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\FetchmailAccountPolicy;
@@ -24,7 +25,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class FetchmailAccountPolicyTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     private FetchmailAccountPolicy $policy;
 
@@ -67,7 +68,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
     public function testDomainAdminWithoutDomainHasNoVisibleAccounts(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DomainAdminWithoutDomainException::class);
 
         $this->policy->restrictToVisibleAccounts(
             $this->queryBuilder(FetchmailAccount::class),
@@ -108,7 +109,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
     public function testDomainAdminWithoutDomainHasNoAssignableOwners(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DomainAdminWithoutDomainException::class);
 
         $this->policy->restrictToAssignableOwners(
             $this->queryBuilder(User::class),
@@ -135,6 +136,14 @@ class FetchmailAccountPolicyTest extends TestCase
         self::assertSame($self, $this->policy->canAssignTo($actor, $actor->user));
         self::assertSame($sameDomain, $this->policy->canAssignTo($actor, $this->user($domain)));
         self::assertSame($foreignDomain, $this->policy->canAssignTo($actor, $this->user($this->domain('foreign.example'))));
+    }
+
+    public function testDomainAdminWithoutDomainMayAssignToNobody(): void
+    {
+        $actor = new Actor(new User(), ActorRole::DomainAdmin);
+
+        self::assertFalse($this->policy->canAssignTo($actor, $actor->user));
+        self::assertFalse($this->policy->canAssignTo($actor, $this->user($this->domain())));
     }
 
     /**
