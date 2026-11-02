@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class UserPolicyTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     private UserPolicy $policy;
 

@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Entity;
 
+use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
 class DomainTest extends TestCase
@@ -21,5 +23,26 @@ class DomainTest extends TestCase
         $domain->setName('example.com');
 
         $this->assertEquals('example.com', (string) $domain);
+    }
+
+    public function testADomainWithoutUsersAndAliasesIsEmpty(): void
+    {
+        self::assertTrue(new Domain()->isEmpty());
+    }
+
+    public function testADomainWithAUserIsNotEmpty(): void
+    {
+        $domain = new Domain();
+        $domain->getUsers()->add(new User());
+
+        self::assertFalse($domain->isEmpty());
+    }
+
+    public function testADomainWithAnAliasIsNotEmpty(): void
+    {
+        $domain = new Domain();
+        $domain->getAliases()->add(new Alias());
+
+        self::assertFalse($domain->isEmpty());
     }
 }

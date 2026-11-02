@@ -12,6 +12,7 @@ namespace Tests\Unit\Service\Security\Access;
 
 use App\Entity\Alias;
 use App\Entity\User;
+use App\Exception\DomainAdminWithoutDomainException;
 use App\Repository\DomainRepository;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
@@ -22,7 +23,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class DomainPolicyTest extends TestCase
 {
-    use ActorFixtures;
+    use ActorFixturesTrait;
 
     /**
      * @return iterable<string, array{ActorRole, bool}>
@@ -116,7 +117,7 @@ class DomainPolicyTest extends TestCase
 
     public function testDomainAdminWithoutDomainIsAnErrorForDnsValidation(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(DomainAdminWithoutDomainException::class);
 
         $this->policy()->domainsForDnsValidation(new Actor(new User(), ActorRole::DomainAdmin));
     }

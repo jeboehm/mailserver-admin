@@ -80,11 +80,7 @@ class AliasCrudController extends GuardedDeleteCrudController
         $entity = parent::createEntity($entityFqcn);
         \assert($entity instanceof Alias);
 
-        $domain = $this->domainScopePolicy->defaultDomain($this->currentActor->get());
-
-        if (null !== $domain) {
-            $entity->setDomain($domain);
-        }
+        $this->domainScopePolicy->applyDefaultDomain($this->currentActor->get(), $entity);
 
         return $entity;
     }

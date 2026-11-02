@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Service\Security\Access;
 
+use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -33,15 +35,9 @@ final readonly class DomainScopePolicy
             return;
         }
 
-        $domain = $actor->user->getDomain();
-
-        if (null === $domain) {
-            throw new \RuntimeException('Domain admin user has no domain');
-        }
-
         $qb
             ->andWhere(\sprintf('%s.domain = :domain', $qb->getRootAliases()[0]))
-            ->setParameter('domain', $domain);
+            ->setParameter('domain', $actor->ownDomain());
     }
 
     public function canChooseDomain(Actor $actor): bool
@@ -52,5 +48,14 @@ final readonly class DomainScopePolicy
     public function defaultDomain(Actor $actor): ?Domain
     {
         return $actor->user->getDomain();
+    }
+
+    public function applyDefaultDomain(Actor $actor, Alias|User $entity): void
+    {
+        $domain = $this->defaultDomain($actor);
+
+        if (null !== $domain) {
+            $entity->setDomain($domain);
+        }
     }
 }

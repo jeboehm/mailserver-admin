@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace App\Service\Security\Access;
 
-use App\Entity\Domain;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use Doctrine\ORM\QueryBuilder;
@@ -23,24 +22,18 @@ final readonly class FetchmailAccountPolicy
      */
     public function restrictToVisibleAccounts(QueryBuilder $qb, Actor $actor): void
     {
-        if ($actor->isAdmin()) {
-            return;
-        }
-
         $alias = $qb->getRootAliases()[0];
 
-        if ($actor->isDomainAdmin()) {
-            $qb
+        match (OwnerScope::of($actor)) {
+            OwnerScope::Anyone => null,
+            OwnerScope::OwnDomain => $qb
                 ->andWhere('user.domain = :domain')
                 ->join(\sprintf('%s.user', $alias), 'user')
-                ->setParameter('domain', $this->ownDomain($actor));
-
-            return;
-        }
-
-        $qb
-            ->andWhere(\sprintf('%s.user = :user', $alias))
-            ->setParameter('user', $actor->user);
+                ->setParameter('domain', $actor->ownDomain()),
+            OwnerScope::OnlyThemselves => $qb
+                ->andWhere(\sprintf('%s.user = :user', $alias))
+                ->setParameter('user', $actor->user),
+        };
     }
 
     /**
@@ -48,28 +41,26 @@ final readonly class FetchmailAccountPolicy
      */
     public function restrictToAssignableOwners(QueryBuilder $qb, Actor $actor): void
     {
-        if ($actor->isAdmin()) {
-            return;
-        }
-
         $alias = $qb->getRootAliases()[0];
 
-        if ($actor->isDomainAdmin()) {
-            $qb
+        match (OwnerScope::of($actor)) {
+            OwnerScope::Anyone => null,
+            OwnerScope::OwnDomain => $qb
                 ->andWhere(\sprintf('%s.domain = :domain', $alias))
-                ->setParameter('domain', $this->ownDomain($actor));
-
-            return;
-        }
-
-        $qb
-            ->andWhere(\sprintf('%s = :owner', $alias))
-            ->setParameter('owner', $actor->user);
+                ->setParameter('domain', $actor->ownDomain()),
+            OwnerScope::OnlyThemselves => $qb
+                ->andWhere(\sprintf('%s = :owner', $alias))
+                ->setParameter('owner', $actor->user),
+        };
     }
 
     public function canAssignTo(Actor $actor, User $owner): bool
     {
-        return $actor->isSelf($owner) || $actor->managesDomain($owner->getDomain());
+        return match (OwnerScope::of($actor)) {
+            OwnerScope::Anyone => true,
+            OwnerScope::OwnDomain => $actor->managesDomain($owner->getDomain()),
+            OwnerScope::OnlyThemselves => $actor->isSelf($owner),
+        };
     }
 
     public function canDelete(Actor $actor, FetchmailAccount $account): bool
@@ -97,10 +88,5 @@ final readonly class FetchmailAccountPolicy
     public function defaultOwner(Actor $actor): User
     {
         return $actor->user;
-    }
-
-    private function ownDomain(Actor $actor): Domain
-    {
-        return $actor->user->getDomain() ?? throw new \RuntimeException('Domain admin user has no domain');
     }
 }

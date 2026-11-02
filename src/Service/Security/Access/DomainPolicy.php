@@ -22,9 +22,7 @@ final readonly class DomainPolicy
 
     public function canDelete(Actor $actor, Domain $domain): bool
     {
-        return $actor->isAdmin()
-            && 0 === $domain->getUsers()->count()
-            && 0 === $domain->getAliases()->count();
+        return $actor->isAdmin() && $domain->isEmpty();
     }
 
     /**
@@ -52,12 +50,6 @@ final readonly class DomainPolicy
             return [];
         }
 
-        $domain = $actor->user->getDomain();
-
-        if (null === $domain) {
-            throw new \RuntimeException('Domain admin user has no domain');
-        }
-
-        return [$domain];
+        return [$actor->ownDomain()];
     }
 }

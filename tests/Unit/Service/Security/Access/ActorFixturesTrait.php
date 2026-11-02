@@ -15,7 +15,7 @@ use App\Entity\User;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
 
-trait ActorFixtures
+trait ActorFixturesTrait
 {
     /**
      * @return iterable<string, array{ActorRole}>
