@@ -11,6 +11,9 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\User;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\DomainScopePolicy;
+use App\Service\Security\Access\UserPolicy;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,6 +41,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class UserCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly CurrentActor $currentActor,
+        private readonly DomainScopePolicy $domainScopePolicy,
+        private readonly UserPolicy $userPolicy,
+    ) {
+    }
+
     #[\Override]
     public static function getEntityFqcn(): string
     {
@@ -57,14 +67,19 @@ class UserCrudController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
+        $actor = $this->currentActor->get();
+
         yield FormField::addColumn();
         yield TextField::new('name')
             ->hideWhenUpdating();
-        yield AssociationField::new('domain')
-            ->setRequired(true)
-            ->hideWhenUpdating()
-            ->setPermission(Roles::ROLE_ADMIN)
-            ->setSortProperty('name');
+
+        if ($this->domainScopePolicy->canChooseDomain($actor)) {
+            yield AssociationField::new('domain')
+                ->setRequired(true)
+                ->hideWhenUpdating()
+                ->setSortProperty('name');
+        }
+
         yield IntegerField::new('quota')
             ->setHelp('How much space the account can use (in megabytes).')
             ->formatValue(static fn (?int $value) => $value ? \sprintf('%d MB', $value) : 'Unlimited');
@@ -85,8 +100,11 @@ class UserCrudController extends AbstractCrudController
 
         yield FormField::addColumn();
         yield BooleanField::new('enabled');
-        yield BooleanField::new('admin')
-            ->setPermission(Roles::ROLE_ADMIN);
+
+        if ($this->userPolicy->canSetAdminFlag($actor)) {
+            yield BooleanField::new('admin');
+        }
+
         yield BooleanField::new('domainAdmin')
             ->setHelp('Domain admins can manage all users in their domain')
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
@@ -103,20 +121,19 @@ class UserCrudController extends AbstractCrudController
             $entityInstance->setPassword(''); // set password to trigger LifeCycleCallbacks
         }
 
-        /*
-         * If user is trying to update themselves, we need to keep the permissions and enabled state.
-         */
-        $user = $this->getUser();
-        if ($user === $entityInstance) {
-            $entityInstance->setEnabled(true);
-            $entityInstance->setAdmin($this->isGranted(Roles::ROLE_ADMIN));
-            $entityInstance->setDomainAdmin(
-                $this->isGranted(Roles::ROLE_DOMAIN_ADMIN)
-                && !$this->isGranted(Roles::ROLE_ADMIN)
-            );
-        }
+        $this->userPolicy->keepOwnRoleAndEnabledState($this->currentActor->get(), $entityInstance);
 
         parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    #[\Override]
+    public function deleteEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        \assert($entityInstance instanceof User);
+
+        $this->userPolicy->denyUnlessCanDelete($this->currentActor->get(), $entityInstance);
+
+        parent::deleteEntity($entityManager, $entityInstance);
     }
 
     #[\Override]
@@ -125,10 +142,10 @@ class UserCrudController extends AbstractCrudController
         $entity = parent::createEntity($entityFqcn);
         \assert($entity instanceof User);
 
-        $user = $this->getUser();
+        $domain = $this->domainScopePolicy->defaultDomain($this->currentActor->get());
 
-        if ($user instanceof User && null !== $user->getDomain()) {
-            $entity->setDomain($user->getDomain());
+        if (null !== $domain) {
+            $entity->setDomain($domain);
         }
 
         return $entity;
@@ -143,32 +160,20 @@ class UserCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
-        if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN) && !$this->isGranted(Roles::ROLE_ADMIN)) {
-            $user = $this->getUser();
-
-            if ($user instanceof User) {
-                if (null === $user->getDomain()) {
-                    throw new \RuntimeException('Domain admin user has no domain');
-                }
-
-                $qb
-                    ->andWhere('entity.domain = :domain')
-                    ->setParameter('domain', $user->getDomain());
-            }
-        }
+        $this->domainScopePolicy->restrictToVisibleDomains($qb, $this->currentActor->get());
 
         return $qb;
     }
 
     public function configureActions(Actions $actions): Actions
     {
-        $loggedInUser = $this->getUser();
-        \assert($loggedInUser instanceof User);
+        $actor = $this->currentActor->get();
+        $userPolicy = $this->userPolicy;
 
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($loggedInUser): Action {
-                $action->displayIf(static fn (User $user) => $user->getId() !== $loggedInUser?->getId());
+            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($actor, $userPolicy): Action {
+                $action->displayIf(static fn (User $user) => $userPolicy->canDelete($actor, $user));
 
                 return $action;
             });

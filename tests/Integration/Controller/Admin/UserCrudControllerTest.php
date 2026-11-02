@@ -16,12 +16,17 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Repository\DomainRepository;
 use App\Repository\UserRepository;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Tests\Integration\Helper\CsrfTokenTrait;
 use Tests\Integration\Helper\UserTrait;
 
 class UserCrudControllerTest extends AbstractCrudTestCase
 {
+    use CsrfTokenTrait;
     use UserTrait;
 
     #[\Override]
@@ -209,6 +214,57 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertSelectorTextContains('.invalid-feedback', 'This value is already used.');
     }
 
+    public function testAdminCannotDeleteThemselves(): void
+    {
+        $adminId = $this->findUserId('admin@example.com');
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $adminId), ['token' => $token]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertUserExists($adminId);
+    }
+
+    public function testDomainAdminCannotDeleteThemselves(): void
+    {
+        $domainAdminId = $this->createDomainAdmin();
+        $this->loginClient($this->client, 'boss@example.com');
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $domainAdminId), ['token' => $token]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertUserExists($domainAdminId);
+    }
+
+    public function testAdminCannotDeleteThemselvesThroughBatchDelete(): void
+    {
+        $adminId = $this->findUserId('admin@example.com');
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-batch-action-' . Action::BATCH_DELETE . '-' . User::class);
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::BATCH_DELETE), [
+            EA::BATCH_ACTION_NAME => Action::BATCH_DELETE,
+            EA::BATCH_ACTION_ENTITY_IDS => [$adminId],
+            EA::ENTITY_FQCN => User::class,
+            EA::BATCH_ACTION_CSRF_TOKEN => $token,
+        ]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertUserExists($adminId);
+    }
+
+    public function testAdminCanStillDeleteOtherUsers(): void
+    {
+        $otherId = $this->createDomainAdmin();
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $otherId), ['token' => $token]);
+
+        static::assertResponseIsSuccessful();
+        $this->entityManager->clear();
+        static::assertNull($this->entityManager->find(User::class, $otherId));
+    }
+
     protected function getControllerFqcn(): string
     {
         return UserCrudController::class;
@@ -217,5 +273,38 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     protected function getDashboardFqcn(): string
     {
         return DashboardController::class;
+    }
+
+    private function findUserId(string $emailAddress): int
+    {
+        $userRepository = $this->entityManager->getRepository(User::class);
+        \assert($userRepository instanceof UserRepository);
+        $user = $userRepository->findOneByEmailAddress($emailAddress);
+        static::assertInstanceOf(User::class, $user);
+
+        return (int) $user->getId();
+    }
+
+    private function createDomainAdmin(): int
+    {
+        $domain = $this->entityManager->getRepository(Domain::class)->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+
+        $user = new User();
+        $user->setDomain($domain);
+        $user->setName('boss');
+        $user->setDomainAdmin(true);
+        $user->setPlainPassword('password123');
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return (int) $user->getId();
+    }
+
+    private function assertUserExists(int $userId): void
+    {
+        $this->entityManager->clear();
+        static::assertInstanceOf(User::class, $this->entityManager->find(User::class, $userId));
     }
 }

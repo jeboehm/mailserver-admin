@@ -11,7 +11,8 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Alias;
-use App\Entity\User;
+use App\Service\Security\Access\CurrentActor;
+use App\Service\Security\Access\DomainScopePolicy;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
 use Doctrine\ORM\QueryBuilder;
@@ -31,6 +32,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_DOMAIN_ADMIN)]
 class AliasCrudController extends AbstractCrudController
 {
+    public function __construct(
+        private readonly CurrentActor $currentActor,
+        private readonly DomainScopePolicy $domainScopePolicy,
+    ) {
+    }
+
     #[\Override]
     public static function getEntityFqcn(): string
     {
@@ -52,17 +59,17 @@ class AliasCrudController extends AbstractCrudController
     #[\Override]
     public function configureFields(string $pageName): iterable
     {
-        $domain = AssociationField::new('domain')
-            ->setRequired(true)
-            ->hideWhenUpdating()
-            ->setPermission(Roles::ROLE_ADMIN)
-            ->setSortProperty('name');
-        $name = TextField::new('name')
+        if ($this->domainScopePolicy->canChooseDomain($this->currentActor->get())) {
+            yield AssociationField::new('domain')
+                ->setRequired(true)
+                ->hideWhenUpdating()
+                ->setSortProperty('name');
+        }
+
+        yield TextField::new('name')
             ->setRequired(false)
             ->setHelp('Leave empty to create a catch all address.');
-        $destination = EmailField::new('destination');
-
-        return [$domain, $name, $destination];
+        yield EmailField::new('destination');
     }
 
     #[\Override]
@@ -71,10 +78,10 @@ class AliasCrudController extends AbstractCrudController
         $entity = parent::createEntity($entityFqcn);
         \assert($entity instanceof Alias);
 
-        $user = $this->getUser();
+        $domain = $this->domainScopePolicy->defaultDomain($this->currentActor->get());
 
-        if ($user instanceof User && null !== $user->getDomain()) {
-            $entity->setDomain($user->getDomain());
+        if (null !== $domain) {
+            $entity->setDomain($domain);
         }
 
         return $entity;
@@ -89,19 +96,7 @@ class AliasCrudController extends AbstractCrudController
     ): QueryBuilder {
         $qb = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
 
-        if ($this->isGranted(Roles::ROLE_DOMAIN_ADMIN) && !$this->isGranted(Roles::ROLE_ADMIN)) {
-            $user = $this->getUser();
-
-            if ($user instanceof User) {
-                if (null === $user->getDomain()) {
-                    throw new \RuntimeException('Domain admin user has no domain');
-                }
-
-                $qb
-                    ->andWhere('entity.domain = :domain')
-                    ->setParameter('domain', $user->getDomain());
-            }
-        }
+        $this->domainScopePolicy->restrictToVisibleDomains($qb, $this->currentActor->get());
 
         return $qb;
     }

@@ -16,13 +16,18 @@ use App\Entity\Domain;
 use App\Repository\DomainRepository;
 use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Tests\Integration\Helper\CsrfTokenTrait;
 use Tests\Integration\Helper\UserTrait;
 
 class DKIMCrudControllerTest extends AbstractCrudTestCase
 {
+    use CsrfTokenTrait;
     use UserTrait;
 
     #[\Override]
@@ -179,6 +184,41 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
 
         static::assertStringStartsNotWith('http://', $action, 'Relative URL configuration is required for the DashboardController.');
         static::assertStringStartsNotWith('https://', $action, 'Relative URL configuration is required for the DashboardController.');
+    }
+
+    public function testCannotDeleteADomainThroughThisController(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->entityManager->getRepository(Domain::class)->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+        $domainId = (int) $domain->getId();
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-delete');
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::DELETE, $domainId), ['token' => $token]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->entityManager->clear();
+        static::assertInstanceOf(Domain::class, $this->entityManager->find(Domain::class, $domainId));
+    }
+
+    public function testCannotBatchDeleteADomainThroughThisController(): void
+    {
+        $this->loginClient($this->client);
+        $domain = $this->entityManager->getRepository(Domain::class)->findOneBy(['name' => 'example.com']);
+        static::assertInstanceOf(Domain::class, $domain);
+        $domainId = (int) $domain->getId();
+        $token = $this->issueCsrfToken($this->client, $this->generateIndexUrl(), 'ea-batch-action-' . Action::BATCH_DELETE . '-' . Domain::class);
+
+        $this->client->request(Request::METHOD_POST, $this->getCrudUrl(Action::BATCH_DELETE), [
+            EA::BATCH_ACTION_NAME => Action::BATCH_DELETE,
+            EA::BATCH_ACTION_ENTITY_IDS => [$domainId],
+            EA::ENTITY_FQCN => Domain::class,
+            EA::BATCH_ACTION_CSRF_TOKEN => $token,
+        ]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->entityManager->clear();
+        static::assertInstanceOf(Domain::class, $this->entityManager->find(Domain::class, $domainId));
     }
 
     protected function getControllerFqcn(): string
