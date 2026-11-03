@@ -32,3 +32,11 @@ services:
                 host: '%env(REDIS_HOST)%'
                 port: '%env(REDIS_PORT)%'
                 password: '%env(REDIS_PASSWORD)%'
+
+    # The prefix is the one php.ini's phpredis handler uses, so sessions survive moving to this
+    # handler. Public for its test: mock storage in the test environment does not reference it.
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler:
+        public: true
+        arguments:
+            - '@Predis\ClientInterface'
+            - { prefix: 'PHPREDIS_SESSION:' }

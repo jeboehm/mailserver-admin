@@ -1,6 +1,8 @@
 framework:
     secret: '%env(APP_SECRET)%'
-    session: true
+    session:
+        # Replaces the handler from php.ini for this application, see services.yaml.
+        handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
 
 when@test:
