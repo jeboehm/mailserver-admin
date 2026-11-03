@@ -1,8 +1,11 @@
 name: Create Release
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    # Well ahead of docker-mailserver's 06:00 UTC release, so that its Renovate
+    # has time to pick this release up and merge it. Off the full hour, because
+    # GitHub may delay or drop scheduled runs at the start of an hour.
+    - cron: "17 1 * * *"
+  workflow_dispatch:
 concurrency:
   group: "${{ github.workflow }}-${{ github.ref }}"
   cancel-in-progress: true
@@ -25,7 +28,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           git-push: false
           output-file: "false"
-          skip-on-empty: true
+          skip-on-empty: ${{ github.event_name != 'workflow_dispatch' }}
           skip-git-pull: true
           skip-version-file: true
           skip-commit: true
@@ -37,6 +40,7 @@ jobs:
         with:
           php-version: 8.5
       - name: Get Composer Cache Directory
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
         id: composer-cache
         run: |
           echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
