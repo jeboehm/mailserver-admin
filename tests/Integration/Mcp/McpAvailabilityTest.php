@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Mcp;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,6 +49,52 @@ class McpAvailabilityTest extends WebTestCase
         $this->client->request(Request::METHOD_POST, '/no-such-page');
 
         self::assertSame($this->client->getResponse()->getStatusCode(), $endpoint);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function disabledRoutesByMethod(): iterable
+    {
+        foreach ([Request::METHOD_GET, Request::METHOD_HEAD, Request::METHOD_POST, Request::METHOD_PUT, Request::METHOD_PATCH, Request::METHOD_DELETE, Request::METHOD_OPTIONS] as $method) {
+            yield $method . ' /mcp' => [$method, '/mcp'];
+        }
+
+        yield 'PUT on a token page' => [Request::METHOD_PUT, '/api-token'];
+        yield 'GET on a POST-only token route' => [Request::METHOD_GET, '/api-token/revoke/1'];
+    }
+
+    #[DataProvider('disabledRoutesByMethod')]
+    public function testDisabledRouteAnswersEveryMethodLikeAnUnknownPage(string $method, string $path): void
+    {
+        $this->setEnvironment('MCP_ENABLED', 'false');
+        $this->client = static::createClient();
+
+        $this->client->request($method, $path);
+        $response = $this->client->getResponse();
+
+        self::assertSame(Response::HTTP_NOT_FOUND, $response->getStatusCode());
+        self::assertFalse($response->headers->has('Allow'));
+    }
+
+    public function testOtherRoutesKeepTheirMethodNotAllowedWhenDisabled(): void
+    {
+        $this->setEnvironment('MCP_ENABLED', 'false');
+        $this->client = static::createClient();
+
+        $this->client->request(Request::METHOD_GET, '/domain/1/delete');
+
+        self::assertSame(Response::HTTP_METHOD_NOT_ALLOWED, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testEnabledEndpointStillRefusesAMethodItDoesNotHave(): void
+    {
+        $this->enableMcp();
+        $this->client = static::createClient();
+
+        $this->client->request(Request::METHOD_PUT, '/mcp');
+
+        self::assertSame(Response::HTTP_METHOD_NOT_ALLOWED, $this->client->getResponse()->getStatusCode());
     }
 
     public function testDisabledEndpointIgnoresAWebSession(): void
