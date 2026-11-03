@@ -21,6 +21,7 @@ use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Exceptions\Exception as ImapException;
 use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
 use DirectoryTree\ImapEngine\Exceptions\ImapConnectionException;
+use DirectoryTree\ImapEngine\Exceptions\ImapParserException;
 use DirectoryTree\ImapEngine\Exceptions\ImapResponseException;
 use DirectoryTree\ImapEngine\Exceptions\ImapStreamException;
 use Psr\Log\LoggerInterface;
@@ -36,13 +37,22 @@ use Psr\Log\LoggerInterface;
 final readonly class ImapSessions
 {
     /** Server answers that go away by themselves: connection limits, auth trouble, a busy mailbox. */
-    public const string RETRYABLE_RESPONSE = '/\[(LIMIT|UNAVAILABLE|INUSE|SERVERBUG)\]/';
+    private const string RETRYABLE_RESPONSE = '/\[(LIMIT|UNAVAILABLE|INUSE|SERVERBUG)\]/';
 
     public function __construct(
         private MailboxCredentials $credentials,
         private ImapConnectionFactory $connections,
         private LoggerInterface $logger,
     ) {
+    }
+
+    /**
+     * Whether the server's answer says this goes away by itself. Only its answer counts: the text of
+     * the exception also holds the failed command with everything the caller put in it.
+     */
+    public static function isRetryableAnswer(ImapCommandException $e): bool
+    {
+        return 1 === preg_match(self::RETRYABLE_RESPONSE, (string) $e->response());
     }
 
     /**
@@ -71,8 +81,8 @@ final readonly class ImapSessions
         } catch (TooManyImapSessionsException) {
             throw MailboxUnavailableException::retryable();
         } catch (ImapException $e) {
-            // Only the message: a stack trace would carry the secret among the arguments of login().
-            $this->logger->warning('IMAP session failed: {message}', ['message' => $e->getMessage()]);
+            // No stack trace, which would carry the secret among the arguments of login().
+            $this->logger->warning('IMAP session failed: {message}', ['message' => $this->describe($e)]);
 
             throw $this->isRetryable($e) ? MailboxUnavailableException::retryable() : MailboxUnavailableException::failed();
         }
@@ -111,10 +121,23 @@ final readonly class ImapSessions
         }
     }
 
+    /**
+     * The text of a command exception holds the whole command, so a mail being saved or a search value,
+     * and a parser exception quotes what it read. ImapEngine only redacts the failed LOGIN.
+     */
+    private function describe(ImapException $e): string
+    {
+        return match (true) {
+            $e instanceof ImapCommandException => \sprintf('%s answered "%s"', $e->command()->command(), $e->response()),
+            $e instanceof ImapParserException => $e::class,
+            default => $e->getMessage(),
+        };
+    }
+
     private function isRetryable(ImapException $e): bool
     {
         return match (true) {
-            $e instanceof ImapCommandException => 1 === preg_match(self::RETRYABLE_RESPONSE, $e->getMessage()),
+            $e instanceof ImapCommandException => self::isRetryableAnswer($e),
             $e instanceof ImapConnectionException, $e instanceof ImapStreamException, $e instanceof ImapResponseException => true,
             default => false,
         };

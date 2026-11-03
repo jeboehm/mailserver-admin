@@ -87,7 +87,7 @@ final readonly class SentFolder
         try {
             $connection->append($encoded, $message, ['\Seen']);
         } catch (ImapCommandException $e) {
-            if (!str_contains($e->getMessage(), '[TRYCREATE]')) {
+            if (!str_contains((string) $e->response(), '[TRYCREATE]')) {
                 throw $e;
             }
 
@@ -104,7 +104,7 @@ final readonly class SentFolder
         try {
             $connection->create($encodedMailbox);
         } catch (ImapCommandException $e) {
-            if (!str_contains($e->getMessage(), '[ALREADYEXISTS]')) {
+            if (!str_contains((string) $e->response(), '[ALREADYEXISTS]')) {
                 throw $e;
             }
         }

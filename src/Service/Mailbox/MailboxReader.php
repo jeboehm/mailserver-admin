@@ -144,7 +144,7 @@ final readonly class MailboxReader
         try {
             $connection->examine(Str::toImapUtf7($mailbox));
         } catch (ImapCommandException $e) {
-            if (1 === preg_match(ImapSessions::RETRYABLE_RESPONSE, $e->getMessage())) {
+            if (ImapSessions::isRetryableAnswer($e)) {
                 throw $e;
             }
 
