@@ -29,6 +29,9 @@ final readonly class ToolEntityWriter
     /**
      * Only names the field and the constraint's message, never the rejected value: it can be a password.
      *
+     * A rejected entity goes back to what is stored. The calls of a JSON-RPC batch share one entity
+     * manager, so the next call's flush would otherwise save the values that were just rejected.
+     *
      * @param list<string>          $groups
      * @param array<string, string> $fieldNames entity property => name of the tool argument, where they differ
      *
@@ -44,6 +47,10 @@ final readonly class ToolEntityWriter
         }
 
         if ([] !== $problems) {
+            if ($this->entityManager->contains($entity)) {
+                $this->entityManager->refresh($entity);
+            }
+
             throw new ToolCallException(\sprintf('Validation failed. %s', implode(' ', $problems)));
         }
     }

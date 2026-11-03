@@ -239,16 +239,19 @@ final readonly class UserTools
     /**
      * The forms set an empty password to get the hashing listener to run, which does nothing for a
      * user whose password already is empty. Hashing right here works for everybody, and the plain
-     * password does not stay on the entity.
+     * password does not stay on the entity, also not after a rejection: it is no column, so reloading
+     * the entity would not clear it, and the next flush would hash it.
      *
      * @param list<string> $groups
      */
     private function save(User $user, array $groups): void
     {
-        $this->writer->validate($user, $groups, self::PASSWORD_FIELD);
-
-        $this->userChangeListener->processUserPassword($user);
-        $user->setPlainPassword(null);
+        try {
+            $this->writer->validate($user, $groups, self::PASSWORD_FIELD);
+            $this->userChangeListener->processUserPassword($user);
+        } finally {
+            $user->setPlainPassword(null);
+        }
 
         $this->writer->save($user);
     }

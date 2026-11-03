@@ -136,6 +136,47 @@ trait McpClientTrait
     }
 
     /**
+     * Sends the calls as one JSON-RPC batch: the SDK handles them in one PHP request, so they share
+     * one entity manager.
+     *
+     * @param list<array{0: string, 1: array<string, mixed>}> $calls tool name and arguments
+     *
+     * @return list<array<string, mixed>> the JSON-RPC results, in the order of the calls
+     */
+    private function callToolsInBatch(string $secret, string $sessionId, array $calls): array
+    {
+        $messages = [];
+
+        foreach ($calls as $index => [$tool, $arguments]) {
+            $messages[] = [
+                'jsonrpc' => '2.0',
+                'id' => $index + 1,
+                'method' => 'tools/call',
+                'params' => ['name' => $tool, 'arguments' => [] === $arguments ? new \stdClass() : $arguments],
+            ];
+        }
+
+        $this->client->request(Request::METHOD_POST, '/mcp', server: [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json, text/event-stream',
+            'HTTP_AUTHORIZATION' => 'Bearer ' . $secret,
+            'HTTP_MCP_SESSION_ID' => $sessionId,
+        ], content: json_encode($messages, \JSON_THROW_ON_ERROR));
+
+        $response = $this->client->getResponse();
+        self::assertSame(Response::HTTP_OK, $response->getStatusCode(), (string) $response->getContent());
+
+        $answers = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($answers);
+
+        $results = array_column($answers, 'result', 'id');
+        ksort($results);
+        self::assertCount(\count($calls), $results, (string) $response->getContent());
+
+        return array_values($results);
+    }
+
+    /**
      * @return list<string>
      */
     private function listTools(string $secret, string $sessionId): array
