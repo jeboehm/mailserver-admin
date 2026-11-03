@@ -12,6 +12,10 @@ use App\Kernel;
 
 require dirname(__DIR__) . '/bootstrap.php';
 
+// Parsing DQL needs the platform, and without a version in the URL DBAL connects to the server
+// to ask for it. Naming one here keeps the analysis independent of a running database.
+$_ENV['DATABASE_URL'] = $_SERVER['DATABASE_URL'] = 'mysql://phpstan@127.0.0.1/phpstan?serverVersion=8.4.0';
+
 $kernel = new Kernel('test', true);
 $kernel->boot();
 
