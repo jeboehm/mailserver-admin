@@ -12,28 +12,39 @@ namespace Tests\Unit\Service\DKIM\Config;
 
 use App\Entity\Domain;
 use App\Service\DKIM\Config\MapGenerator;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Predis\ClientInterface;
 
 class MapGeneratorTest extends TestCase
 {
-    private MockObject|ClientInterface $redis;
+    /** @var array<string, string> what the hash holds in Redis */
+    private array $stored = [];
     private MapGenerator $mapGenerator;
 
     protected function setUp(): void
     {
-        $this->redis = $this->createMock(ClientInterface::class);
-        $this->mapGenerator = new MapGenerator($this->redis);
+        $this->stored = [];
+
+        $redis = $this->createStub(ClientInterface::class);
+        $redis->method('__call')->willReturnCallback(function (string $command, array $arguments): mixed {
+            self::assertSame('dkim_keys', $arguments[0]);
+
+            return match ($command) {
+                'hmset' => $this->stored = [...$this->stored, ...$arguments[1]],
+                'hkeys' => array_keys($this->stored),
+                'hdel' => $this->stored = array_diff_key($this->stored, array_flip($arguments[1])),
+                default => self::fail(\sprintf('Unexpected Redis command "%s".', $command)),
+            };
+        });
+
+        $this->mapGenerator = new MapGenerator($redis);
     }
 
     public function testGenerateWithEmptyDomains(): void
     {
-        $this->redis
-            ->expects($this->never())
-            ->method('__call');
-
         $this->mapGenerator->generate();
+
+        self::assertSame([], $this->stored);
     }
 
     public function testGenerateWithDomainDkimDisabled(): void
@@ -44,11 +55,9 @@ class MapGeneratorTest extends TestCase
         $domain->setDkimSelector('dkim');
         $domain->setDkimPrivateKey('private-key-content');
 
-        $this->redis
-            ->expects($this->never())
-            ->method('__call');
-
         $this->mapGenerator->generate($domain);
+
+        self::assertSame([], $this->stored);
     }
 
     public function testGenerateWithDomainEmptyPrivateKey(): void
@@ -59,11 +68,9 @@ class MapGeneratorTest extends TestCase
         $domain->setDkimSelector('dkim');
         $domain->setDkimPrivateKey('');
 
-        $this->redis
-            ->expects($this->never())
-            ->method('__call');
-
         $this->mapGenerator->generate($domain);
+
+        self::assertSame([], $this->stored);
     }
 
     public function testGenerateWithDomainEmptySelector(): void
@@ -74,11 +81,9 @@ class MapGeneratorTest extends TestCase
         $domain->setDkimSelector('');
         $domain->setDkimPrivateKey('private-key-content');
 
-        $this->redis
-            ->expects($this->never())
-            ->method('__call');
-
         $this->mapGenerator->generate($domain);
+
+        self::assertSame([], $this->stored);
     }
 
     public function testGenerateWithSingleValidDomain(): void
@@ -89,12 +94,9 @@ class MapGeneratorTest extends TestCase
         $domain->setDkimSelector('dkim');
         $domain->setDkimPrivateKey('private-key-content');
 
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('hmset', ['dkim_keys', ['dkim.example.com' => 'private-key-content']]);
-
         $this->mapGenerator->generate($domain);
+
+        self::assertSame(['dkim.example.com' => 'private-key-content'], $this->stored);
     }
 
     public function testGenerateWithMultipleValidDomains(): void
@@ -111,15 +113,12 @@ class MapGeneratorTest extends TestCase
         $domain2->setDkimSelector('mail');
         $domain2->setDkimPrivateKey('private-key-2');
 
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('hmset', ['dkim_keys', [
-                'dkim.example.com' => 'private-key-1',
-                'mail.test.org' => 'private-key-2',
-            ]]);
-
         $this->mapGenerator->generate($domain1, $domain2);
+
+        self::assertSame([
+            'dkim.example.com' => 'private-key-1',
+            'mail.test.org' => 'private-key-2',
+        ], $this->stored);
     }
 
     public function testGenerateWithMixedValidAndInvalidDomains(): void
@@ -142,12 +141,9 @@ class MapGeneratorTest extends TestCase
         $emptyKeyDomain->setDkimSelector('dkim');
         $emptyKeyDomain->setDkimPrivateKey('');
 
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('hmset', ['dkim_keys', ['dkim.example.com' => 'private-key-content']]);
-
         $this->mapGenerator->generate($validDomain, $disabledDomain, $emptyKeyDomain);
+
+        self::assertSame(['dkim.example.com' => 'private-key-content'], $this->stored);
     }
 
     public function testGenerateWithAllInvalidDomains(): void
@@ -170,11 +166,9 @@ class MapGeneratorTest extends TestCase
         $emptySelectorDomain->setDkimSelector('');
         $emptySelectorDomain->setDkimPrivateKey('private-key-content');
 
-        $this->redis
-            ->expects($this->never())
-            ->method('__call');
-
         $this->mapGenerator->generate($disabledDomain, $emptyKeyDomain, $emptySelectorDomain);
+
+        self::assertSame([], $this->stored);
     }
 
     public function testGenerateWithCustomSelector(): void
@@ -185,11 +179,38 @@ class MapGeneratorTest extends TestCase
         $domain->setDkimSelector('mail');
         $domain->setDkimPrivateKey('private-key-content');
 
-        $this->redis
-            ->expects($this->once())
-            ->method('__call')
-            ->with('hmset', ['dkim_keys', ['mail.example.com' => 'private-key-content']]);
+        $this->mapGenerator->generate($domain);
+
+        self::assertSame(['mail.example.com' => 'private-key-content'], $this->stored);
+    }
+
+    public function testDisabledDomainIsRemoved(): void
+    {
+        $this->stored = ['dkim.example.com' => 'private-key-content'];
+
+        $domain = new Domain();
+        $domain->setName('example.com');
+        $domain->setDkimEnabled(false);
+        $domain->setDkimSelector('dkim');
+        $domain->setDkimPrivateKey('private-key-content');
 
         $this->mapGenerator->generate($domain);
+
+        self::assertSame([], $this->stored);
+    }
+
+    public function testRemovingOneDomainKeepsTheOthers(): void
+    {
+        $this->stored = ['dkim.example.com' => 'old', 'dkim.gone.example' => 'old'];
+
+        $domain = new Domain();
+        $domain->setName('example.com');
+        $domain->setDkimEnabled(true);
+        $domain->setDkimSelector('dkim');
+        $domain->setDkimPrivateKey('new');
+
+        $this->mapGenerator->generate($domain);
+
+        self::assertSame(['dkim.example.com' => 'new'], $this->stored);
     }
 }

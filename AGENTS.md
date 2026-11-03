@@ -278,6 +278,8 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - Tell the audit log about the target through `App\Mcp\Audit\ToolAuditLog::target()` and `details()`. Never pass bodies, passwords or tokens.
 - Never read authorisation from the MCP session, which is not bound to a token. Use `App\Mcp\CurrentApiToken` and `App\Service\Security\Access\CurrentActor`.
 - Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
+- `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
+- The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 
 ## Integration Points
 

@@ -70,6 +70,8 @@ when@test:
         Tests\Integration\Mcp\Fixture\:
             resource: '../tests/Integration/Mcp/Fixture/*'
 
+        App\Service\DnsWizard\DnsLookupInterface: '@Tests\Integration\Mcp\Fixture\FakeDnsLookup'
+
         # Lets tests read the audit log, with the handler in monolog.yaml.
         app.test.mcp_audit_records:
             class: Monolog\Handler\TestHandler
