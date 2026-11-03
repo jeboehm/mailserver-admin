@@ -1,0 +1,105 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Connect an agent{% endblock %}
+{% block page_title %}Connect an agent{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-12 col-xl-10">
+            <p>
+                Agents reach this server through its MCP endpoint. They sign in with an API token and act with your role,
+                within the scopes you give the token.
+            </p>
+
+            {% if refusedHost %}
+                <div class="alert alert-warning" data-mcp-refused-host>
+                    The endpoint refuses agents that connect through <code class="text-reset">{{ refusedHost }}</code>, because this host is
+                    not in <code class="text-reset">MCP_ALLOWED_HOSTS</code>. An administrator has to add it first.
+                </div>
+            {% endif %}
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">1. Create an API token</h4>
+                    <p>The token is shown only once, so have it ready for the next step.</p>
+                    <a href="{{ ea_url().setController('App\\Controller\\User\\ApiTokenCrudController').setAction('new') }}" class="btn btn-primary mb-3" data-mcp-create-token>
+                        <i class="fa fa-plug me-1"></i>Create API token
+                    </a>
+                    {% if mailReadAvailable and actingScopes %}
+                        <div class="alert alert-warning" data-mcp-scope-warning>
+                            Only give a token <code class="text-reset">mail:read</code> together with
+                            {% for scope in actingScopes %}<code class="text-reset">{{ scope.value }}</code>{% if not loop.last %} or {% endif %}{% endfor %}
+                            if you trust the agent to resist instructions: a mail it reads could tell it to act.
+                        </div>
+                    {% endif %}
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Scope</th>
+                                <th scope="col">Allows the agent to</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in scopes %}
+                                <tr>
+                                    <td><code data-mcp-scope>{{ row.scope.value }}</code></td>
+                                    <td>
+                                        {{ row.scope.description }}
+                                        {% if row.offSetting %}
+                                            <div class="text-muted small" data-mcp-scope-off>
+                                                Switched off on this server. An administrator can switch it on with
+                                                <code>{{ row.offSetting }}</code>.
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">2. Add the server to your agent</h4>
+                    <p>The address of the endpoint:</p>
+                    {{ _self.copyable(endpointUrl, 'data-mcp-url') }}
+                    <p>Most clients read the token from an environment variable, which keeps it out of their configuration:</p>
+                    {{ _self.copyable("export " ~ tokenVariable ~ "='<YOUR_API_TOKEN>'") }}
+
+                    {% for client in clients %}
+                        <section class="mt-4" data-mcp-client="{{ client.name }}">
+                            <h5>{{ client.name }}</h5>
+                            <p class="mb-2">
+                                Add this to <code>{{ client.configFile }}</code>.
+                                {{ client.tokenHint }}
+                                <a href="{{ client.docsUrl }}" target="_blank" rel="noreferrer">Documentation</a>
+                            </p>
+                            {{ _self.copyable(client.snippet) }}
+                        </section>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">3. Check that it works</h4>
+                    <p>Ask your agent to call the <code>whoami</code> tool. It answers with your user, your role and the scopes of the token.</p>
+                    <p class="mb-2">If it does not work:</p>
+                    <ul class="mb-0">
+                        <li><strong>The server refuses the connection as forbidden (403):</strong> the host of the address is not in <code>MCP_ALLOWED_HOSTS</code>, or a reverse proxy does not preserve the <code>Host</code> header.</li>
+                        <li><strong>The token is not accepted (401):</strong> it has expired or been revoked, your password has changed since you created it, or your account is disabled. Create a new token.</li>
+                        <li><strong>A tool is missing:</strong> the token lacks the scope, your role does not allow the tool, or this server has the feature switched off.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% macro copyable(text, marker = null) %}
+    <div class="mb-3" data-controller="clipboard">
+        <pre class="mb-2" style="white-space: pre-wrap; word-wrap: anywhere" data-clipboard-target="source"{% if marker %} {{ marker }}{% endif %}>{{- text -}}</pre>
+        <button type="button" class="btn btn-secondary btn-sm" data-clipboard-target="button" data-action="clipboard#copy">Copy</button>
+    </div>
+{% endmacro %}

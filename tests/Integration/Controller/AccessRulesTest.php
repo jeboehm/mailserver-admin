@@ -439,6 +439,7 @@ class AccessRulesTest extends WebTestCase
         yield 'domain admin, alias of another domain' => [self::DOMAIN_ADMIN, '/alias', Alias::class, 'foreignalias'];
         yield 'domain admin, user of another domain' => [self::DOMAIN_ADMIN, '/user', User::class, 'foreignuser'];
         yield 'domain admin, themselves' => [self::DOMAIN_ADMIN, '/user', User::class, 'boss'];
+        yield 'domain admin, admin of their domain' => [self::DOMAIN_ADMIN, '/user', User::class, 'admin'];
         yield 'domain admin, fetchmail account of another domain' => [self::DOMAIN_ADMIN, '/fetchmail-account', FetchmailAccount::class, 'foreign.example.net'];
         yield 'domain admin, domain' => [self::DOMAIN_ADMIN, '/domain', Domain::class, 'empty.invalid'];
         yield 'domain admin, domain through DKIM' => [self::DOMAIN_ADMIN, '/dkim', Domain::class, 'empty.invalid'];
@@ -493,6 +494,7 @@ class AccessRulesTest extends WebTestCase
         yield 'domain admin, aliases' => [self::DOMAIN_ADMIN, '/alias', Alias::class, 'ownalias', 'foreignalias'];
         yield 'domain admin, users' => [self::DOMAIN_ADMIN, '/user', User::class, 'plainuser', 'foreignuser'];
         yield 'domain admin, users including themselves' => [self::DOMAIN_ADMIN, '/user', User::class, 'plainuser', 'boss'];
+        yield 'domain admin, users including an admin' => [self::DOMAIN_ADMIN, '/user', User::class, 'plainuser', 'admin'];
         yield 'domain admin, fetchmail accounts' => [self::DOMAIN_ADMIN, '/fetchmail-account', FetchmailAccount::class, 'plain.example.net', 'foreign.example.net'];
         yield 'regular user, fetchmail accounts' => [self::REGULAR_USER, '/fetchmail-account', FetchmailAccount::class, 'plain.example.net', 'neighbour.example.net'];
         yield 'admin, users including themselves' => [self::ADMIN, '/user', User::class, 'plainuser', 'admin'];
@@ -556,6 +558,110 @@ class AccessRulesTest extends WebTestCase
 
         static::assertResponseIsSuccessful();
         $this->assertGone($entity, $id);
+    }
+
+    public function testDomainAdminCannotOpenTheEditFormOfAnAdmin(): void
+    {
+        $id = $this->idOf(User::class, 'admin');
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+        $this->client->request(Request::METHOD_GET, \sprintf('/user/%d/edit', $id));
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
+    public function testDomainAdminCannotSubmitTheEditFormOfAnAdmin(): void
+    {
+        $id = $this->idOf(User::class, 'admin');
+        $password = $this->storedAdmin()->getPassword();
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+        $this->client->request(Request::METHOD_POST, \sprintf('/user/%d/edit', $id), ['User' => [
+            'enabled' => '',
+            'plainPassword' => ['first' => 'Correct-Horse-Battery-5taple!', 'second' => 'Correct-Horse-Battery-5taple!'],
+        ]]);
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+
+        $admin = $this->storedAdmin();
+        static::assertSame($password, $admin->getPassword());
+        static::assertTrue($admin->getEnabled());
+    }
+
+    public function testDomainAdminCannotToggleAnAdmin(): void
+    {
+        $id = $this->idOf(User::class, 'admin');
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+        $this->client->xmlHttpRequest(Request::METHOD_PATCH, \sprintf('/user/%d/edit?fieldName=enabled&newValue=false', $id));
+
+        static::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        static::assertTrue($this->storedAdmin()->getEnabled());
+    }
+
+    public function testDomainAdminSeesAnAdminInTheListButIsOfferedNoChange(): void
+    {
+        $adminId = $this->idOf(User::class, 'admin');
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+        $this->client->request(Request::METHOD_GET, '/user');
+
+        static::assertResponseIsSuccessful();
+        $this->assertResponseContains(\sprintf('data-id="%d"', $adminId));
+        $this->assertResponseContains(\sprintf('/user/%d/edit', $this->plainUserId));
+        $this->assertResponseContains(\sprintf('/user/%d/delete', $this->plainUserId));
+        $this->assertResponseNotContains(\sprintf('/user/%d/edit', $adminId));
+        $this->assertResponseNotContains(\sprintf('/user/%d/delete', $adminId));
+    }
+
+    public function testDomainAdminCanReadAnAdminButIsOfferedNoChange(): void
+    {
+        $adminId = $this->idOf(User::class, 'admin');
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+        $this->client->request(Request::METHOD_GET, \sprintf('/user/%d', $adminId));
+
+        static::assertResponseIsSuccessful();
+        $this->assertResponseNotContains(\sprintf('/user/%d/edit', $adminId));
+        $this->assertResponseNotContains(\sprintf('/user/%d/delete', $adminId));
+    }
+
+    public function testDomainAdminStillEditsThemselvesAndOtherUsers(): void
+    {
+        $bossId = $this->idOf(User::class, 'boss');
+
+        $this->loginClient($this->client, self::DOMAIN_ADMIN);
+
+        $this->client->request(Request::METHOD_GET, \sprintf('/user/%d/edit', $bossId));
+        static::assertResponseIsSuccessful();
+
+        $this->client->request(Request::METHOD_GET, \sprintf('/user/%d/edit', $this->plainUserId));
+        static::assertResponseIsSuccessful();
+    }
+
+    public function testAdminStillEditsAndDeletesAnotherAdmin(): void
+    {
+        $plain = $this->entityManager->find(User::class, $this->plainUserId);
+        static::assertInstanceOf(User::class, $plain);
+        $plain->setAdmin(true);
+        $this->entityManager->flush();
+
+        $this->loginClient($this->client, self::ADMIN);
+
+        $this->client->request(Request::METHOD_GET, \sprintf('/user/%d/edit', $this->plainUserId));
+        static::assertResponseIsSuccessful();
+
+        $this->client->request(Request::METHOD_GET, '/user');
+        $this->assertResponseContains(\sprintf('/user/%d/delete', $this->plainUserId));
+    }
+
+    private function storedAdmin(): User
+    {
+        $this->entityManager->clear();
+        $admin = $this->entityManager->getRepository(User::class)->findOneBy(['name' => 'admin']);
+        static::assertInstanceOf(User::class, $admin);
+
+        return $admin;
     }
 
     private function createUser(Domain $domain, string $name): User

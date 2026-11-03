@@ -1,0 +1,21 @@
+mcp:
+    servers:
+        default:
+            name: mailserver-admin
+            registry:
+                tools: ['App\Mcp\Tool\']
+            http:
+                path: /mcp
+                # Matched against the raw Host header, so a reverse proxy has to preserve it.
+                allowed_hosts: '%env(csv:MCP_ALLOWED_HOSTS)%'
+            session:
+                # Every simpler store works on one replica and answers 404 on the next one.
+                store: cache
+                cache_pool: app.mcp_session_cache
+
+when@test:
+    mcp:
+        servers:
+            default:
+                registry:
+                    tools: ['App\Mcp\Tool\', 'Tests\Integration\Mcp\Fixture\']

@@ -1,7 +1,13 @@
 framework:
     secret: '%env(APP_SECRET)%'
-    session: true
+    session:
+        # Replaces the handler from php.ini for this application, see services.yaml.
+        handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
+    # Mail goes out per user with a credential of its own, see App\Service\MailSend. A shared mailer
+    # would have nothing to log in with.
+    mailer:
+        enabled: false
 
 when@test:
     framework:

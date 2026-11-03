@@ -63,11 +63,16 @@ final readonly class FetchmailAccountPolicy
         };
     }
 
-    public function canDelete(Actor $actor, FetchmailAccount $account): bool
+    public function canManage(Actor $actor, FetchmailAccount $account): bool
     {
         $owner = $account->getUser();
 
         return null === $owner ? $actor->isAdmin() : $this->canAssignTo($actor, $owner);
+    }
+
+    public function canDelete(Actor $actor, FetchmailAccount $account): bool
+    {
+        return $this->canManage($actor, $account);
     }
 
     /**

@@ -134,6 +134,54 @@ class UserPolicyTest extends TestCase
         $this->policy->denyUnlessCanDelete($actor, $actor->user);
     }
 
+    /**
+     * @return iterable<string, array{ActorRole, bool, bool, bool}>
+     */
+    public static function changeableUsers(): iterable
+    {
+        yield 'admin' => [ActorRole::Admin, true, true, true];
+        yield 'domain admin' => [ActorRole::DomainAdmin, true, false, false];
+        yield 'regular user' => [ActorRole::User, false, false, false];
+    }
+
+    #[DataProvider('changeableUsers')]
+    public function testWhoMayBeChanged(ActorRole $role, bool $sameDomain, bool $foreignDomain, bool $anAdmin): void
+    {
+        $domain = $this->domain();
+        $actor = $this->actor($role, $domain);
+        $admin = $this->user($domain, 'admin');
+        $admin->setAdmin(true);
+
+        self::assertSame($sameDomain, $this->policy->canModify($actor, $this->user($domain)));
+        self::assertSame($foreignDomain, $this->policy->canModify($actor, $this->user($this->domain('foreign.example'))));
+        self::assertSame($anAdmin, $this->policy->canModify($actor, $admin));
+    }
+
+    public function testDomainAdminMayChangeThemselves(): void
+    {
+        $actor = $this->actor(ActorRole::DomainAdmin, $this->domain());
+
+        self::assertTrue($this->policy->canModify($actor, $actor->user));
+    }
+
+    public function testDomainAdminMayNotDeleteAnAdminOfTheirDomain(): void
+    {
+        $domain = $this->domain();
+        $admin = $this->user($domain, 'admin');
+        $admin->setAdmin(true);
+
+        self::assertFalse($this->policy->canDelete($this->actor(ActorRole::DomainAdmin, $domain), $admin));
+    }
+
+    public function testAdminMayDeleteAnotherAdmin(): void
+    {
+        $domain = $this->domain();
+        $admin = $this->user($domain, 'admin');
+        $admin->setAdmin(true);
+
+        self::assertTrue($this->policy->canDelete($this->actor(ActorRole::Admin, $domain), $admin));
+    }
+
     public function testAllowedDeletionIsNotRejected(): void
     {
         $domain = $this->domain();

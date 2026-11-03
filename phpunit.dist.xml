@@ -31,7 +31,7 @@
 
     <extensions>
         <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension">
-            <parameter name="clock-mock-namespaces" value="App" />
+            <parameter name="clock-mock-namespaces" value="App,Symfony\Component\RateLimiter,Symfony\Component\RateLimiter\Policy,Symfony\Component\Cache\Adapter" />
             <parameter name="dns-mock-namespaces" value="App" />
         </bootstrap>
         <bootstrap class="DAMA\DoctrineTestBundle\PHPUnit\PHPUnitExtension" />

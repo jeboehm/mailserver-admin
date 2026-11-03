@@ -236,6 +236,7 @@ This ensures:
 ### Security
 
 - **Role Hierarchy**: `ROLE_ADMIN > ROLE_DOMAIN_ADMIN > ROLE_USER`
+- **Protected admins**: A domain admin can read a user with the `admin` flag in their domain, but not change or delete them. `UserPolicy::canModify()` and `canDelete()` hold the rule for the web interface and the MCP tools.
 - **OAuth2**: Configurable via environment variables
 - **CSRF Protection**: Configurable via `CSRF_ENABLED` env var
 - **Form Login**: Traditional username/password authentication
@@ -265,6 +266,41 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `CSRF_ENABLED`: Enable/disable CSRF protection
 - `RSPAMD_TIMEOUT_MS`: Rspamd API timeout
 - `RSPAMD_CACHE_TTL_SECONDS`: Rspamd cache TTL
+- `MCP_ENABLED`: Enable/disable the MCP endpoint and the API token pages (default `false`)
+- `MCP_ALLOWED_HOSTS`: Comma-separated hosts the MCP endpoint answers for. Matched against the raw `Host` header, so a reverse proxy has to preserve it
+- `MCP_TOKEN_MAX_LIFETIME_DAYS`: Default and maximum lifetime of an API token (default `90`)
+- `MCP_MAIL_READ_ENABLED`: Enable/disable the mail read tools, which need a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
+- `MCP_MAIL_MAX_IMAP_SESSIONS`: Parallel IMAP sessions per user. Keep it below Dovecot's `mail_max_userip_connections` of 10, which Roundcube shares (default `5`)
+- `MCP_MAIL_MESSAGE_MAX_BYTES`: Size limit of the body `message_get` returns (default `65536`)
+- `MDA_IMAPS_ADDRESS`: Dovecot's implicit TLS address as `host:port` (default `mda:31993`)
+- `MDA_IMAP_TIMEOUT_SECONDS`: IMAP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
+- `MCP_MAIL_SEND_ENABLED`: Enable/disable `message_send`, which needs a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
+- `MCP_MAIL_SEND_MAX_RECIPIENTS`: Recipients per mail, across `to`, `cc` and `bcc` (default `20`)
+- `MCP_MAIL_SEND_MAX_BYTES`: Size limit of a sent message as it goes over the wire (default `1048576`)
+- `MCP_MAIL_SEND_TOKEN_LIMIT_PER_HOUR`: Sends per API token (default `30`)
+- `MCP_MAIL_SEND_USER_LIMIT_PER_HOUR`: Sends per user, across their tokens (default `60`)
+- `MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE`: Sends per rolling minute across everyone. Keep it below Postfix's 20 connections per minute per client address, which Roundcube shares. A third of it is available at once, the rest refills evenly (default `15`)
+- `MTA_SMTP_SUBMISSION_ADDRESS`: Postfix's submission address as `host:port` (default `mta:587`)
+- `MTA_SMTP_TIMEOUT_SECONDS`: SMTP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
+
+## MCP tools
+
+A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on the method. `App\Mcp\ToolGate` handles every call: it enforces `#[ToolAccess]`, writes the audit record and hides the reason for a denial. `tools/list` follows the same rule.
+
+- `#[IsGranted]` has no effect on tools. Object-level rules go through the policies in `App\Service\Security\Access`.
+- For a denied or missing object, throw `App\Mcp\ToolDeniedException`. An `AccessDeniedException` from a policy and a `MailboxDeniedException` are treated the same. Other messages for the caller go in a `Mcp\Exception\ToolCallException`.
+- Declare the audit target in `#[ToolAccess(target: 'user:{id}')]`, a template over the tool's arguments, so that it is also recorded when the call is denied before the tool runs. A tool that knows better calls `App\Mcp\Audit\ToolAuditLog::target()`, and adds the rest through `details()`. Never pass bodies, passwords or tokens.
+- Tool arguments are snake_case (`$domain_admin`, `$send_only`, `$verify_ssl`, `$unseen_only`), unlike all other PHP variables here: their names are the public tool API, so do not rename them.
+- List tools check their page with `App\Mcp\ToolPage::assertRange()`, which refuses a limit or offset out of range rather than correcting it. `ToolPage::of()` does this for Doctrine queries.
+- Write through `App\Mcp\ToolEntityWriter`. The calls of a JSON-RPC batch share one entity manager, so anything a rejected call leaves on a managed entity is saved by the next flush. `validate()` reloads a rejected entity; state that is not mapped, such as a plain password, is up to the tool.
+- Never read authorisation from the MCP session, which is not bound to a token. Use `App\Mcp\CurrentApiToken` and `App\Service\Security\Access\CurrentActor`.
+- Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
+- A tool group that depends on a matching docker-mailserver version names a `App\Mcp\ToolFeature` in `#[ToolAccess]`. `ToolAccessPolicy` holds the flag, so listing and calling follow it.
+- A mailbox user only ever comes from `CurrentActor`, never from a tool parameter. Reach a mailbox through `App\Service\Mailbox\ImapSessions` and log in anywhere else through `App\Service\MailboxCredential\MailboxCredentials`, which issues one credential per operation and always deletes it. Use ImapEngine's connection commands with `EXAMINE` and `BODY.PEEK`, not its fluent API.
+- Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end tests `MailReadEndToEndTest` and `MailSendEndToEndTest` skip the database rollback and need a real stack, see their class comments.
+- Send mail through `App\Service\MailSend\MailSender`. Once Postfix has taken a mail, nothing may look like a failed send, or a caller sends it again: a problem with the Sent copy goes in the result. The test environment replaces the transport factory with `Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory`, which falls through to the real one without a current `FakeSmtpServer`.
+- `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
+- The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 
 ## Integration Points
 
@@ -313,14 +349,15 @@ schema that started out as a pre-2018 `virtual_*` schema. They are guarded twice
 with `instanceof AbstractMySQLPlatform`, and with `$schema->hasTable(...)` so they
 only apply to installations that actually carry that history. Everything else —
 PostgreSQL, and any fresh MySQL database — reaches the baseline migration
-`Version20260212000000` with an empty database and gets the whole schema from
-there. The baseline in turn skips itself when `mail_domains` already exists.
+`Version20260212000000` with an empty database and gets the schema as it stood
+at that point from there. The baseline in turn skips itself when `mail_domains`
+already exists. Migrations after the baseline run on every installation, fresh or
+not, so they need no `hasTable` guard.
 
-Both branches of the baseline are generated with `doctrine:schema:create
---dump-sql`, run once per platform; take the output verbatim. In particular do
-not hand-write `DEFAULT CHARACTER SET` / `COLLATE` clauses — the mapping defines
-no collation, so whatever DBAL emits is what keeps `doctrine:migrations:diff`
-quiet.
+Take the DDL of a new migration verbatim from `doctrine:migrations:diff`, run once
+per platform. In particular do not hand-write `DEFAULT CHARACTER SET` / `COLLATE`
+clauses — the mapping defines no collation, so whatever DBAL emits is what keeps
+`doctrine:migrations:diff` quiet.
 
 Consequences for new migrations:
 
@@ -331,14 +368,14 @@ Consequences for new migrations:
 - Anything referencing a constraint by name (`DROP FOREIGN KEY`, `DROP INDEX`)
   must branch per platform: MySQL installations carry legacy constraint names
   from before the 2018 table rename, PostgreSQL ones the canonical names.
-- Extend the baseline whenever the mapping changes; the `phpunit` CI job fails
-  otherwise.
+- Existing migrations are never changed, and that includes the baseline. A
+  mapping change gets a new migration; the `phpunit` CI job fails otherwise.
 
 Note that `doctrine:schema:validate` reports doctrine's own `migration_versions`
 table as drift. Use `doctrine:migrations:diff`, which excludes it.
 
 CI builds the test schema exclusively from the migrations — `doctrine:schema:create`
-is only used to regenerate the baseline DDL, never to set up a database. Every
+is never used to set up a database. Every
 `phpunit` matrix leg migrates an empty database, migrates a second time to prove
 idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 
@@ -354,7 +391,7 @@ idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 1. **Always use devenv**: Commands must run within the devenv environment
 2. **Strict Types**: All PHP files must declare strict types
 3. **Service Layer**: Business logic belongs in services, not controllers
-4. **Doctrine**: Use Entity API, not direct database queries
+4. **Doctrine**: Use Entity API, not direct database queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with
 5. **Testing**: Maintain high test coverage, especially for services
 6. **Code Style**: Run `composer run csfix` before committing
 7. **Static Analysis**: Ensure PHPStan passes at level 6

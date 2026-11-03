@@ -10,6 +10,22 @@ parameters:
     env(MOBILECONFIG_SSL_KEY_FILE): "%kernel.project_dir%/tls/tls.key"
     env(RSPAMD_TIMEOUT_MS): 2500
     env(RSPAMD_CACHE_TTL_SECONDS): 10
+    env(MCP_ENABLED): "false"
+    env(MCP_ALLOWED_HOSTS): "localhost,127.0.0.1,[::1]"
+    env(MCP_TOKEN_MAX_LIFETIME_DAYS): 90
+    env(MCP_MAIL_READ_ENABLED): "false"
+    env(MCP_MAIL_MAX_IMAP_SESSIONS): 5
+    env(MCP_MAIL_MESSAGE_MAX_BYTES): 65536
+    env(MDA_IMAPS_ADDRESS): "mda:31993"
+    env(MDA_IMAP_TIMEOUT_SECONDS): 25
+    env(MCP_MAIL_SEND_ENABLED): "false"
+    env(MCP_MAIL_SEND_MAX_RECIPIENTS): 20
+    env(MCP_MAIL_SEND_MAX_BYTES): 1048576
+    env(MCP_MAIL_SEND_TOKEN_LIMIT_PER_HOUR): 30
+    env(MCP_MAIL_SEND_USER_LIMIT_PER_HOUR): 60
+    env(MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE): 15
+    env(MTA_SMTP_SUBMISSION_ADDRESS): "mta:587"
+    env(MTA_SMTP_TIMEOUT_SECONDS): 25
 
 services:
     _defaults:
@@ -32,3 +48,62 @@ services:
                 host: '%env(REDIS_HOST)%'
                 port: '%env(REDIS_PORT)%'
                 password: '%env(REDIS_PASSWORD)%'
+
+    # The prefix is the one php.ini's phpredis handler uses, so sessions survive moving to this
+    # handler. Public for its test: mock storage in the test environment does not reference it.
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler:
+        public: true
+        arguments:
+            - '@Predis\ClientInterface'
+            - { prefix: 'PHPREDIS_SESSION:' }
+
+    # An explicit namespace rather than a framework pool, whose prefix depends on the build.
+    app.mcp_session_pool:
+        class: Symfony\Component\Cache\Adapter\RedisAdapter
+        arguments:
+            - '@Predis\ClientInterface'
+            - 'mcp_session'
+
+    app.mcp_session_cache:
+        class: Symfony\Component\Cache\Psr16Cache
+        arguments: ['@app.mcp_session_pool']
+
+    # Public for its test, which clears it between sends.
+    app.mail_send_limit_pool:
+        class: Symfony\Component\Cache\Adapter\RedisAdapter
+        public: true
+        arguments:
+            - '@Predis\ClientInterface'
+            - 'mcp_mail_send'
+
+    # A limiter reads, adds and writes back, so without a lock parallel sends would miss each other.
+    app.mail_send_lock_factory:
+        class: Symfony\Component\Lock\LockFactory
+        arguments:
+            - !service
+                class: Symfony\Component\Lock\Store\RedisStore
+                arguments: ['@Predis\ClientInterface']
+
+    App\Mcp\ToolGate:
+        arguments:
+            $inner: !service
+                class: Mcp\Capability\Registry\ReferenceHandler
+                arguments: [!tagged_locator mcp.tool]
+
+when@test:
+    services:
+        _defaults:
+            autowire: true
+            autoconfigure: true
+
+        Tests\Integration\Mcp\Fixture\:
+            resource: '../tests/Integration/Mcp/Fixture/*'
+
+        App\Service\Mailbox\ImapConnectionFactoryInterface: '@Tests\Integration\Mcp\Fixture\FakeImapConnectionFactory'
+        App\Service\MailSend\SmtpTransportFactoryInterface: '@Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory'
+        App\Service\DnsWizard\DnsLookupInterface: '@Tests\Integration\Mcp\Fixture\FakeDnsLookup'
+
+        # Lets tests read the audit log, with the handler in monolog.yaml.
+        app.test.mcp_audit_records:
+            class: Monolog\Handler\TestHandler
+            public: true
