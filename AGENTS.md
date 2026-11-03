@@ -345,14 +345,15 @@ schema that started out as a pre-2018 `virtual_*` schema. They are guarded twice
 with `instanceof AbstractMySQLPlatform`, and with `$schema->hasTable(...)` so they
 only apply to installations that actually carry that history. Everything else —
 PostgreSQL, and any fresh MySQL database — reaches the baseline migration
-`Version20260212000000` with an empty database and gets the whole schema from
-there. The baseline in turn skips itself when `mail_domains` already exists.
+`Version20260212000000` with an empty database and gets the schema as it stood
+at that point from there. The baseline in turn skips itself when `mail_domains`
+already exists. Migrations after the baseline run on every installation, fresh or
+not, so they need no `hasTable` guard.
 
-Both branches of the baseline are generated with `doctrine:schema:create
---dump-sql`, run once per platform; take the output verbatim. In particular do
-not hand-write `DEFAULT CHARACTER SET` / `COLLATE` clauses — the mapping defines
-no collation, so whatever DBAL emits is what keeps `doctrine:migrations:diff`
-quiet.
+Take the DDL of a new migration verbatim from `doctrine:migrations:diff`, run once
+per platform. In particular do not hand-write `DEFAULT CHARACTER SET` / `COLLATE`
+clauses — the mapping defines no collation, so whatever DBAL emits is what keeps
+`doctrine:migrations:diff` quiet.
 
 Consequences for new migrations:
 
@@ -363,14 +364,14 @@ Consequences for new migrations:
 - Anything referencing a constraint by name (`DROP FOREIGN KEY`, `DROP INDEX`)
   must branch per platform: MySQL installations carry legacy constraint names
   from before the 2018 table rename, PostgreSQL ones the canonical names.
-- Extend the baseline whenever the mapping changes; the `phpunit` CI job fails
-  otherwise.
+- Existing migrations are never changed, and that includes the baseline. A
+  mapping change gets a new migration; the `phpunit` CI job fails otherwise.
 
 Note that `doctrine:schema:validate` reports doctrine's own `migration_versions`
 table as drift. Use `doctrine:migrations:diff`, which excludes it.
 
 CI builds the test schema exclusively from the migrations — `doctrine:schema:create`
-is only used to regenerate the baseline DDL, never to set up a database. Every
+is never used to set up a database. Every
 `phpunit` matrix leg migrates an empty database, migrates a second time to prove
 idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 

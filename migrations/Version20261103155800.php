@@ -16,8 +16,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Adds mailbox credentials to installations that already have the schema. A fresh installation
- * gets the table from the baseline, Version20260212000000.
+ * Runs on every installation: the baseline, Version20260212000000, does not hold this table.
  */
 final class Version20261103155800 extends AbstractMigration
 {
@@ -28,10 +27,6 @@ final class Version20261103155800 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if ($schema->hasTable('mail_mailbox_credentials')) {
-            return;
-        }
-
         if ($this->platform instanceof AbstractMySQLPlatform) {
             $this->addSql(
                 'CREATE TABLE mail_mailbox_credentials (id INT AUTO_INCREMENT NOT NULL, secret_hash VARCHAR(64) NOT NULL, kind VARCHAR(16) NOT NULL, allow_imap TINYINT NOT NULL, allow_smtp TINYINT NOT NULL, expires_at DATETIME DEFAULT NULL, name VARCHAR(64) DEFAULT NULL, created_at DATETIME NOT NULL, user_id INT NOT NULL, UNIQUE INDEX UNIQ_1BE5DE92B390A88D (secret_hash), INDEX mailbox_credential_expiry_idx (expires_at), UNIQUE INDEX mailbox_credential_name_idx (user_id, name), INDEX IDX_1BE5DE92A76ED395 (user_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`'

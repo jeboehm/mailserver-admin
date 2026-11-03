@@ -16,8 +16,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Adds API tokens to installations that already have the schema. A fresh installation
- * gets the table from the baseline, Version20260212000000.
+ * Runs on every installation: the baseline, Version20260212000000, does not hold this table.
  */
 final class Version20261103120000 extends AbstractMigration
 {
@@ -28,10 +27,6 @@ final class Version20261103120000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if ($schema->hasTable('api_tokens')) {
-            return;
-        }
-
         if ($this->platform instanceof AbstractMySQLPlatform) {
             $this->addSql(
                 'CREATE TABLE api_tokens (id INT AUTO_INCREMENT NOT NULL, name VARCHAR(100) NOT NULL, secret_hash VARCHAR(64) NOT NULL, scopes LONGTEXT NOT NULL, created_at DATETIME NOT NULL, expires_at DATETIME NOT NULL, last_used_at DATETIME DEFAULT NULL, revoked_at DATETIME DEFAULT NULL, owner_id INT NOT NULL, UNIQUE INDEX UNIQ_2CAD560EB390A88D (secret_hash), INDEX IDX_2CAD560E7E3C61F9 (owner_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci`'
