@@ -306,6 +306,28 @@ class DkimToolTest extends WebTestCase
         self::assertStringNotContainsString('PRIVATE KEY', $output);
     }
 
+    public function testStatusSaysSoWhenTheDnsLookupRanOutOfTime(): void
+    {
+        FakeDnsLookup::$outOfTimeAt = ['dkim._domainkey.example.com'];
+
+        $status = $this->adminCall('dkim_status', self::READ_ARGUMENTS);
+
+        self::assertTrue($status['timed_out']);
+        self::assertNull($status['record_found']);
+        self::assertNull($status['record_valid']);
+        self::assertNotSame('', $status['expected_record']);
+    }
+
+    public function testAChangeIsKeptWhenTheDnsLookupAfterItRanOutOfTime(): void
+    {
+        FakeDnsLookup::$outOfTimeAt = ['dkim._domainkey.example.com'];
+
+        $status = $this->adminCall('dkim_disable', self::READ_ARGUMENTS);
+
+        self::assertTrue($status['timed_out']);
+        self::assertFalse($status['enabled']);
+    }
+
     public function testCallsAreAuditedWithTheDomain(): void
     {
         $this->adminCall('dkim_disable', self::READ_ARGUMENTS);

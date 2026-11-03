@@ -33,10 +33,7 @@ class DKIMStatusService
             return new DKIMStatus($domain->getDkimEnabled(), false, false, '');
         }
 
-        $expectedRecord = $this->formatterService->getTXTRecord(
-            $this->keyGenerationService->extractPublicKey($domain->getDkimPrivateKey()),
-            KeyGenerationService::DIGEST_ALGORITHM
-        );
+        $expectedRecord = $this->getExpectedRecord($domain);
 
         try {
             $published = $this->domainKeyReaderService->getDomainKey($domain->getName(), $domain->getDkimSelector());
@@ -54,6 +51,21 @@ class DKIMStatusService
             $published->raw,
             $expectedRecord,
             $issues
+        );
+    }
+
+    /**
+     * The record to publish, which takes no DNS lookup. Empty without a key.
+     */
+    public function getExpectedRecord(Domain $domain): string
+    {
+        if (empty($domain->getDkimPrivateKey()) || empty($domain->getDkimSelector())) {
+            return '';
+        }
+
+        return $this->formatterService->getTXTRecord(
+            $this->keyGenerationService->extractPublicKey($domain->getDkimPrivateKey()),
+            KeyGenerationService::DIGEST_ALGORITHM
         );
     }
 

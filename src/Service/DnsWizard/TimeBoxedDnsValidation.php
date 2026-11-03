@@ -33,9 +33,7 @@ final readonly class TimeBoxedDnsValidation
      */
     public function run(string $mailname, ExpectedHostIps $expectedHostIps, array $domains, bool $withMailHost, float $budgetSeconds): TimeBoxedDnsValidationResult
     {
-        $this->lookup->limitTo($budgetSeconds);
-
-        try {
+        return $this->within($budgetSeconds, function () use ($mailname, $expectedHostIps, $domains, $withMailHost): TimeBoxedDnsValidationResult {
             $mailHost = null;
 
             if ($withMailHost) {
@@ -61,6 +59,27 @@ final readonly class TimeBoxedDnsValidation
             }
 
             return new TimeBoxedDnsValidationResult($mailHost, false, $finished, [], \count($domains));
+        });
+    }
+
+    /**
+     * Runs DNS lookups under a budget, for anything that is not a whole validation. A lookup already
+     * running cannot be interrupted: the budget refuses the next one.
+     *
+     * @template T
+     *
+     * @param callable(): T $lookups
+     *
+     * @throws DnsDeadlineExceededException when the budget ran out
+     *
+     * @return T
+     */
+    public function within(float $budgetSeconds, callable $lookups): mixed
+    {
+        $this->lookup->limitTo($budgetSeconds);
+
+        try {
+            return $lookups();
         } finally {
             $this->lookup->removeLimit();
         }
