@@ -26,6 +26,7 @@ final readonly class ToolAccess
     public function __construct(
         public ?ApiTokenScope $scope = null,
         public ActorRole $minimumRole = ActorRole::User,
+        public ?ToolFeature $feature = null,
     ) {
     }
 

@@ -268,6 +268,11 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `MCP_ENABLED`: Enable/disable the MCP endpoint and the API token pages (default `false`)
 - `MCP_ALLOWED_HOSTS`: Comma-separated hosts the MCP endpoint answers for. Matched against the raw `Host` header, so a reverse proxy has to preserve it
 - `MCP_TOKEN_MAX_LIFETIME_DAYS`: Default and maximum lifetime of an API token (default `90`)
+- `MCP_MAIL_READ_ENABLED`: Enable/disable the mail read tools, which need a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
+- `MCP_MAIL_MAX_IMAP_SESSIONS`: Parallel IMAP sessions per user. Keep it below Dovecot's `mail_max_userip_connections` of 10, which Roundcube shares (default `5`)
+- `MCP_MAIL_MESSAGE_MAX_BYTES`: Size limit of the body `message_get` returns (default `65536`)
+- `MDA_IMAPS_ADDRESS`: Dovecot's implicit TLS address as `host:port` (default `mda:31993`)
+- `MDA_IMAP_TIMEOUT_SECONDS`: IMAP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
 
 ## MCP tools
 
@@ -278,6 +283,9 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - Tell the audit log about the target through `App\Mcp\Audit\ToolAuditLog::target()` and `details()`. Never pass bodies, passwords or tokens.
 - Never read authorisation from the MCP session, which is not bound to a token. Use `App\Mcp\CurrentApiToken` and `App\Service\Security\Access\CurrentActor`.
 - Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
+- A tool group that depends on a matching docker-mailserver version names a `App\Mcp\ToolFeature` in `#[ToolAccess]`. `ToolAccessPolicy` holds the flag, so listing and calling follow it.
+- A mailbox user only ever comes from `CurrentActor`, never from a tool parameter. Reach a mailbox through `App\Service\Mailbox\ImapSessions` and log in anywhere else through `App\Service\MailboxCredential\MailboxCredentials`, which issues one credential per operation and always deletes it. Use ImapEngine's connection commands with `EXAMINE` and `BODY.PEEK`, not its fluent API.
+- Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end test `MailReadEndToEndTest` skips the database rollback and needs a real stack, see its class comment.
 
 ## Integration Points
 

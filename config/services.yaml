@@ -13,6 +13,11 @@ parameters:
     env(MCP_ENABLED): "false"
     env(MCP_ALLOWED_HOSTS): "localhost,127.0.0.1,[::1]"
     env(MCP_TOKEN_MAX_LIFETIME_DAYS): 90
+    env(MCP_MAIL_READ_ENABLED): "false"
+    env(MCP_MAIL_MAX_IMAP_SESSIONS): 5
+    env(MCP_MAIL_MESSAGE_MAX_BYTES): 65536
+    env(MDA_IMAPS_ADDRESS): "mda:31993"
+    env(MDA_IMAP_TIMEOUT_SECONDS): 25
 
 services:
     _defaults:
@@ -69,6 +74,8 @@ when@test:
 
         Tests\Integration\Mcp\Fixture\:
             resource: '../tests/Integration/Mcp/Fixture/*'
+
+        App\Service\Mailbox\ImapConnectionFactory: '@Tests\Integration\Mcp\Fixture\FakeImapConnectionFactory'
 
         # Lets tests read the audit log, with the handler in monolog.yaml.
         app.test.mcp_audit_records:

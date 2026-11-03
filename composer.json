@@ -5,9 +5,12 @@
   "license": "MIT",
   "require": {
     "php": ">=8.4",
+    "ext-dom": "*",
     "ext-iconv": "*",
+    "ext-mbstring": "*",
     "ext-openssl": "*",
     "composer/ca-bundle": "1.6.0",
+    "directorytree/imapengine": "v1.25.8",
     "doctrine/dbal": "4.5.0",
     "doctrine/doctrine-bundle": "3.3.3",
     "doctrine/doctrine-migrations-bundle": "4.0.1",

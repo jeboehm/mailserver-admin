@@ -234,7 +234,7 @@ class ToolGateTest extends TestCase
 
     private function policyFor(Security $security): ToolAccessPolicy
     {
-        return new ToolAccessPolicy(new CurrentApiToken($security), new CurrentActor($security));
+        return new ToolAccessPolicy(new CurrentApiToken($security), new CurrentActor($security), mailReadEnabled: false);
     }
 
     private function auditLog(?Request $request): ToolAuditLog
