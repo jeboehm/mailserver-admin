@@ -79,8 +79,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->willReturn(true);
 
         $samples = $this->sampler->getSamples();
-
-        self::assertIsArray($samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenAllowFetchIsFalse(): void
@@ -101,8 +99,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->method('statsDump');
 
         $samples = $this->sampler->getSamples(allowFetch: false);
-
-        self::assertIsArray($samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenNotConfigured(): void
@@ -128,8 +124,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->method('statsDump');
 
         $samples = $this->sampler->getSamples();
-
-        self::assertIsArray($samples);
     }
 
     public function testGetSamplesDoesNotFetchWhenIntervalNotPassed(): void
@@ -161,8 +155,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->method('statsDump');
 
         $samples = $this->sampler->getSamples();
-
-        self::assertIsArray($samples);
     }
 
     public function testGetLatestSampleReturnsNullWhenNoSamples(): void
@@ -242,7 +234,6 @@ final class DovecotStatsSamplerTest extends TestCase
 
         $result = $this->sampler->forceFetchSample();
 
-        self::assertInstanceOf(StatsDumpDto::class, $result);
         self::assertEquals($sample->fetchedAt->getTimestamp(), $result->fetchedAt->getTimestamp());
     }
 
@@ -347,8 +338,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->willReturn(true);
 
         $result = $this->sampler->forceFetchSample();
-
-        self::assertInstanceOf(StatsDumpDto::class, $result);
     }
 
     public function testStoreSampleRemovesOldSamples(): void
@@ -384,8 +373,6 @@ final class DovecotStatsSamplerTest extends TestCase
             ->willReturn(true);
 
         $result = $this->sampler->forceFetchSample();
-
-        self::assertInstanceOf(StatsDumpDto::class, $result);
     }
 
     private function createSample(string $time = '2024-01-01 10:00:00', ?int $resetTimestamp = null, int $offset = 0): StatsDumpDto

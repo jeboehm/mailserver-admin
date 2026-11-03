@@ -17,10 +17,10 @@ use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * @method User|null find($id, $lockMode = null, $lockVersion = null)
- * @method User|null findOneBy(array $criteria, array $orderBy = null)
- * @method User[]    findAll()
- * @method User[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method User|null  find($id, $lockMode = null, $lockVersion = null)
+ * @method User|null  findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
+ * @method User[]     findAll()
+ * @method list<User> findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  *
  * @extends ServiceEntityRepository<User>
  */
@@ -50,7 +50,10 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->setParameter('localPart', $parts[0])
             ->setParameter('domainPart', $parts[1]);
 
-        return $qb->getQuery()->getOneOrNullResult();
+        /** @var User|null $user */
+        $user = $qb->getQuery()->getOneOrNullResult();
+
+        return $user;
     }
 
     #[\Override]

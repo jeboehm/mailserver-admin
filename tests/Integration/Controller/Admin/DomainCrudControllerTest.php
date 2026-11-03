@@ -15,18 +15,22 @@ use App\Controller\Admin\DomainCrudController;
 use App\Entity\Alias;
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Repository\DomainRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Integration\Helper\CsrfTokenTrait;
+use Tests\Integration\Helper\PersistedIdTrait;
 use Tests\Integration\Helper\UserTrait;
 
+/**
+ * @extends AbstractCrudTestCase<DomainCrudController>
+ */
 class DomainCrudControllerTest extends AbstractCrudTestCase
 {
     use CsrfTokenTrait;
+    use PersistedIdTrait;
     use UserTrait;
 
     #[\Override]
@@ -72,10 +76,9 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
     public function testListDomains(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
-        $domainId = $domain->getId();
+        $domainId = $this->persistedId($domain->getId());
 
         $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
@@ -94,7 +97,7 @@ class DomainCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->persist($domain);
         $this->entityManager->flush();
 
-        $domainId = $domain->getId();
+        $domainId = $this->persistedId($domain->getId());
 
         $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();

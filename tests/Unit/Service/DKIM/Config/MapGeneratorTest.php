@@ -29,10 +29,15 @@ class MapGeneratorTest extends TestCase
         $redis->method('__call')->willReturnCallback(function (string $command, array $arguments): mixed {
             self::assertSame('dkim_keys', $arguments[0]);
 
+            /** @var array<string, string> $fields */
+            $fields = $arguments[1] ?? [];
+            /** @var list<string> $names */
+            $names = $arguments[1] ?? [];
+
             return match ($command) {
-                'hmset' => $this->stored = [...$this->stored, ...$arguments[1]],
+                'hmset' => $this->stored = [...$this->stored, ...$fields],
                 'hkeys' => array_keys($this->stored),
-                'hdel' => $this->stored = array_diff_key($this->stored, array_flip($arguments[1])),
+                'hdel' => $this->stored = array_diff_key($this->stored, array_flip($names)),
                 default => self::fail(\sprintf('Unexpected Redis command "%s".', $command)),
             };
         });

@@ -36,7 +36,9 @@ class ChangePasswordActionTest extends WebTestCase
         $this->client = static::createClient();
 
         $userRepository = $this->client->getContainer()->get(UserRepository::class);
-        $this->user = $userRepository->findOneByEmailAddress('admin@example.com');
+        $user = $userRepository->findOneByEmailAddress('admin@example.com');
+        self::assertInstanceOf(User::class, $user);
+        $this->user = $user;
         $this->user->setPlainPassword('changeme');
         $this->user->setPassword('changeme');
 
@@ -47,7 +49,6 @@ class ChangePasswordActionTest extends WebTestCase
     public function testChangePasswordPageRenders(): void
     {
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_change_password_index')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -61,13 +62,11 @@ class ChangePasswordActionTest extends WebTestCase
     public function testChangePasswordSuccessfully(): void
     {
         $userRepository = $this->client->getContainer()->get(UserRepository::class);
-        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
         $originalPassword = $user->getPassword();
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_change_password_index')->generateUrl();
         $this->client->request(Request::METHOD_GET, $url);
         self::assertResponseIsSuccessful();
@@ -80,7 +79,6 @@ class ChangePasswordActionTest extends WebTestCase
         ]);
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.alert', 'Your password has been updated.');
@@ -93,7 +91,6 @@ class ChangePasswordActionTest extends WebTestCase
 
         // Verify new password works
         $passwordHasherFactory = $this->client->getContainer()->get(PasswordHasherFactoryInterface::class);
-        \assert($passwordHasherFactory instanceof PasswordHasherFactoryInterface);
         $passwordHasher = $passwordHasherFactory->getPasswordHasher($updatedUser);
         static::assertTrue($passwordHasher->verify($updatedUser->getPassword(), $plainPassword));
     }

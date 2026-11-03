@@ -150,7 +150,6 @@ class SystemCheckCommand extends Command
             's' => $value,
             'm' => $value * 60,
             'h' => $value * 3600,
-            default => 60,
         };
     }
 }

@@ -17,6 +17,9 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
+/**
+ * @extends Voter<string, FetchmailAccount|null>
+ */
 final class FetchmailAccountVoter extends Voter
 {
     public const string VIEW = 'fetchmail_account_view';
@@ -32,8 +35,6 @@ final class FetchmailAccountVoter extends Voter
         if (null === $subject) {
             return true;
         }
-
-        \assert($subject instanceof FetchmailAccount);
 
         if (\in_array(Roles::ROLE_ADMIN, $token->getRoleNames(), true)) {
             return true;

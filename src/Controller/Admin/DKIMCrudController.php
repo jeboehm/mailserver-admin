@@ -28,6 +28,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * @extends AbstractCrudController<Domain>
+ */
 #[AdminRoute(path: '/dkim', name: 'dkim')]
 #[IsGranted(Roles::ROLE_ADMIN)]
 class DKIMCrudController extends AbstractCrudController
@@ -82,6 +85,9 @@ class DKIMCrudController extends AbstractCrudController
             ->disable(Action::NEW, Action::DELETE, Action::BATCH_DELETE);
     }
 
+    /**
+     * @param AdminContext<Domain> $adminContext
+     */
     #[AdminRoute(path: '/recreate/{entityId}', name: 'recreate_key', options: ['methods' => [Request::METHOD_POST]])]
     public function recreateKey(AdminContext $adminContext): Response
     {

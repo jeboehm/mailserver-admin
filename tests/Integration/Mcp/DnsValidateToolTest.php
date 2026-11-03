@@ -15,7 +15,6 @@ use App\Entity\User;
 use App\Mcp\ToolDeniedException;
 use App\Service\ApiToken\ApiTokenScope;
 use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Handler\TestHandler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,7 +90,7 @@ class DnsValidateToolTest extends WebTestCase
         $foreign = $this->callTool($secret, $sessionId, 'dns_validate', ['domain' => 'foreign.test']);
         $unknown = $this->callTool($secret, $sessionId, 'dns_validate', ['domain' => 'unknown.test']);
 
-        self::assertTrue($foreign['isError']);
+        self::assertTrue($foreign['isError'] ?? false);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $foreign['content'][0]['text']);
         self::assertSame($unknown, $foreign);
     }
@@ -107,7 +106,7 @@ class DnsValidateToolTest extends WebTestCase
 
         $result = $this->callTool($secret, $sessionId, 'dns_validate', ['domain' => 'example.com']);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
@@ -120,7 +119,7 @@ class DnsValidateToolTest extends WebTestCase
 
         $result = $this->callTool($secret, $sessionId, 'dns_validate');
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
@@ -134,6 +133,7 @@ class DnsValidateToolTest extends WebTestCase
         self::assertSame('mail.example.com', $output['mailname']);
         self::assertSame(['192.0.2.1'], $output['expected_host_ips']);
 
+        self::assertNotNull($output['mail_host']);
         $address = $this->row($output['mail_host'], 'A');
         self::assertSame('ok', $address['status']);
         self::assertSame(['192.0.2.1'], $address['actual']);
@@ -187,7 +187,7 @@ class DnsValidateToolTest extends WebTestCase
 
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'dns_validate', $arguments);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertNotSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
@@ -208,6 +208,7 @@ class DnsValidateToolTest extends WebTestCase
         self::assertNull($first['mail_host']);
         self::assertSame([], $first['domains']);
         self::assertSame('0', $first['next_cursor']);
+        self::assertIsString($first['note']);
         self::assertStringContainsString('mail host', $first['note']);
 
         FakeDnsLookup::$outOfTimeAt = [];
@@ -227,6 +228,7 @@ class DnsValidateToolTest extends WebTestCase
         self::assertSame([], $output['domains']);
         self::assertSame(['b.test'], $output['timed_out']);
         self::assertSame('1', $output['next_cursor'], 'The next call has to move past the domain that timed out.');
+        self::assertIsString($output['note']);
         self::assertStringContainsString('not a missing record', $output['note']);
     }
 
@@ -237,7 +239,7 @@ class DnsValidateToolTest extends WebTestCase
 
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'dns_validate');
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertStringContainsString('MAILSERVER_HOST_IPS', $result['content'][0]['text']);
     }
 
@@ -270,7 +272,6 @@ class DnsValidateToolTest extends WebTestCase
         $this->validate($this->findUser(), ['domain' => 'example.com']);
 
         $handler = $this->client->getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
         $records = $handler->getRecords();
         $record = end($records);
         self::assertNotFalse($record);
@@ -309,16 +310,16 @@ class DnsValidateToolTest extends WebTestCase
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed>
+     * @return array{mailname: string, expected_host_ips: list<string>, mail_host: list<array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}>|null, domains: list<array{domain: string, checks: list<array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}>}>, timed_out: list<string>, total: int, next_cursor: string|null, note: string|null}
      */
     private function validate(User $user, array $arguments = []): array
     {
         $secret = $this->storeToken($user, [ApiTokenScope::ManageRead]);
-        $result = $this->callTool($secret, $this->initialiseSession($secret), 'dns_validate', $arguments);
 
-        self::assertFalse($result['isError'] ?? false, $result['content'][0]['text'] ?? '');
+        /** @var array{mailname: string, expected_host_ips: list<string>, mail_host: list<array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}>|null, domains: list<array{domain: string, checks: list<array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}>}>, timed_out: list<string>, total: int, next_cursor: string|null, note: string|null} $output */
+        $output = $this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'dns_validate', $arguments));
 
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        return $output;
     }
 
     private function rawValidate(User $user): string
@@ -332,9 +333,9 @@ class DnsValidateToolTest extends WebTestCase
     }
 
     /**
-     * @param list<array<string, mixed>> $rows
+     * @param list<array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}> $rows
      *
-     * @return array<string, mixed>
+     * @return array{subject: string, record_type: string, expected: list<string>, actual: list<string>, status: string, message: string}
      */
     private function row(array $rows, string $recordType): array
     {

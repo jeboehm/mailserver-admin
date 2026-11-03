@@ -38,7 +38,7 @@ This document provides essential context for AI agents working on the mailserver
 ### Development Tools
 
 - **PHP CS Fixer**: v3.93.0 (code style)
-- **PHPStan**: Level 6 static analysis
+- **PHPStan**: Level max static analysis, with the Symfony, Doctrine and PHPUnit extensions
 - **PHPUnit**: ^12.0 (testing)
 - **Rector**: 2.3.4 (code refactoring)
 - **devenv**: Reproducible development environment (Nix-based)
@@ -184,7 +184,7 @@ This ensures:
 ### Development Commands
 
 - **Code Style**: `composer run csfix` (PHP CS Fixer)
-- **Static Analysis**: `composer run phpstan` (PHPStan level 6)
+- **Static Analysis**: `composer run phpstan` (PHPStan level max)
 - **Tests**: `composer run test` (PHPUnit)
 - **Refactoring**: `composer run rector` (Rector)
 - **Coverage**: `composer run coverage` (with Xdebug)
@@ -204,7 +204,7 @@ This ensures:
 ### Code Style Configuration
 
 - **PHP CS Fixer**: `.php-cs-fixer.dist.php`
-- **PHPStan**: Level 6 analysis (`phpstan.dist.neon`)
+- **PHPStan**: Level max analysis (`phpstan.dist.neon`, the only place that sets the level). Neither a baseline nor `ignoreErrors` is used
 - **Rector**: Automated refactoring (`rector.php`)
 
 ### File Structure Standards
@@ -394,7 +394,7 @@ idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 4. **Doctrine**: Use Entity API, not direct database queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with
 5. **Testing**: Maintain high test coverage, especially for services
 6. **Code Style**: Run `composer run csfix` before committing
-7. **Static Analysis**: Ensure PHPStan passes at level 6
+7. **Static Analysis**: Ensure PHPStan passes at level max
 8. **Redis Sync**: Changes to users/aliases must sync to Redis for mailserver
 9. **DKIM Keys**: Private keys are stored securely, never expose in logs
 10. **OAuth**: OAuth integration is optional, check `OAUTH_ENABLED` before use

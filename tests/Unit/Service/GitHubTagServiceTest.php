@@ -20,8 +20,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class GitHubTagServiceTest extends TestCase
 {
-    private MockObject|HttpClientInterface $httpClient;
-    private MockObject|CacheInterface $cache;
+    private HttpClientInterface&MockObject $httpClient;
+    private CacheInterface&MockObject $cache;
     private GitHubTagService $service;
 
     protected function setUp(): void
@@ -50,11 +50,12 @@ class GitHubTagServiceTest extends TestCase
             ->with(
                 'GET',
                 'https://api.github.com/repos/jeboehm/mailserver-admin/tags',
-                $this->callback(static function ($options) {
-                    return isset($options['headers']['Accept'])
-                        && 'application/vnd.github.v3+json' === $options['headers']['Accept']
-                        && isset($options['timeout'])
-                        && 5 === $options['timeout'];
+                $this->callback(static function (array $options) {
+                    self::assertArrayHasKey('headers', $options);
+                    self::assertIsArray($options['headers']);
+
+                    return 'application/vnd.github.v3+json' === ($options['headers']['Accept'] ?? null)
+                        && 5 === ($options['timeout'] ?? null);
                 })
             )
             ->willReturn($response);
@@ -71,7 +72,7 @@ class GitHubTagServiceTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with($this->equalTo(md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -105,7 +106,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -137,7 +138,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -171,7 +172,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -200,7 +201,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -239,7 +240,7 @@ class GitHubTagServiceTest extends TestCase
             ->expects($this->once())
             ->method('get')
             ->with($this->equalTo(md5(GitHubTagService::class . 'jeboehmmailserver-admin')))
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 
@@ -273,7 +274,7 @@ class GitHubTagServiceTest extends TestCase
         $this->cache
             ->expects($this->once())
             ->method('get')
-            ->willReturnCallback(static function ($key, $callback) use ($cacheItem) {
+            ->willReturnCallback(static function (string $key, callable $callback) use ($cacheItem) {
                 return $callback($cacheItem);
             });
 

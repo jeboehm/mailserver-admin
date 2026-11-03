@@ -264,6 +264,8 @@ class MobileConfigServiceTest extends TestCase
 
         $this->assertCount(2, $capturedUuids);
         $this->assertNotEquals($capturedUuids[0], $capturedUuids[1]);
+        $this->assertIsString($capturedUuids[0]);
+        $this->assertIsString($capturedUuids[1]);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $capturedUuids[0]);
         $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $capturedUuids[1]);
     }
@@ -295,7 +297,6 @@ class MobileConfigServiceTest extends TestCase
 
         $result = $service->generateSignedProfile($user);
 
-        $this->assertIsString($result);
         $this->assertNotEmpty($result);
         // Signed profile should be in DER format (binary)
         $this->assertGreaterThan(\strlen($expectedXml), \strlen($result));

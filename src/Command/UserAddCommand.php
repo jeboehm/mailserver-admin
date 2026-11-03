@@ -75,9 +75,7 @@ class UserAddCommand extends Command
         $user->setSendOnly((bool) $input->getOption('sendonly'));
         $user->setEnabled((bool) $input->getOption('enable'));
 
-        if ($input->hasOption('quota')) {
-            $user->setQuota((int) $input->getOption('quota'));
-        }
+        $user->setQuota((int) $input->getOption('quota'));
 
         if (!$input->getOption('password')) {
             /** @var QuestionHelper $helper */
@@ -85,9 +83,9 @@ class UserAddCommand extends Command
             $question = new Question('Password? (hidden)');
             $question->setHidden(true);
 
-            $password = (string) $helper->ask($input, $output, $question);
+            $password = $helper->ask($input, $output, $question);
 
-            if ('' === $password) {
+            if (!\is_string($password) || '' === $password) {
                 $output->writeln('<error>Please set a valid password.</error>');
 
                 return Command::FAILURE;

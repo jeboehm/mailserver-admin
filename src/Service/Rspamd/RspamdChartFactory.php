@@ -204,6 +204,10 @@ readonly class RspamdChartFactory
 
     /**
      * Create a dataset configuration for a line chart.
+     *
+     * @param list<int|float> $values
+     *
+     * @return array{label: string, data: list<int|float>, borderColor: string, backgroundColor: string, fill: bool, tension: float}
      */
     private function createDataset(string $name, array $values, bool $isAction): array
     {

@@ -38,6 +38,9 @@ class UserProviderTest extends TestCase
         $this->subject = new UserProvider($this->userRepository, $this->entityManager, $this->adminGroupName);
     }
 
+    /**
+     * @return list<array{string, bool}>
+     */
     public static function dataProviderForTestSupportsClass(): array
     {
         return [
@@ -46,6 +49,9 @@ class UserProviderTest extends TestCase
         ];
     }
 
+    /**
+     * @return list<array{string, bool}>
+     */
     public static function dataProviderForTestLoadUserByIdentifier(): array
     {
         return [
@@ -54,6 +60,9 @@ class UserProviderTest extends TestCase
         ];
     }
 
+    /**
+     * @return list<array{string, bool}>
+     */
     public static function dataProviderForTestLoadUserByOAuthUserResponse(): array
     {
         return [
@@ -217,6 +226,9 @@ class UserProviderTest extends TestCase
         $this->subject->refreshUser($user);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     #[DataProvider('adminGroupProvider')]
     public function testLoadUserByOAuthUserResponseSetsAdminBasedOnGroups(
         array $data,
@@ -254,6 +266,9 @@ class UserProviderTest extends TestCase
         $this->assertSame($user, $result, $description);
     }
 
+    /**
+     * @return array<string, array{array<string, mixed>, bool, string}>
+     */
     public static function adminGroupProvider(): array
     {
         return [

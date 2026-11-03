@@ -14,6 +14,7 @@ use App\Entity\ApiToken;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\Request;
@@ -117,7 +118,7 @@ trait McpClientTrait
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed> the JSON-RPC result
+     * @return array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} the JSON-RPC result
      */
     private function callTool(string $secret, string $sessionId, string $tool, array $arguments = []): array
     {
@@ -131,8 +132,12 @@ trait McpClientTrait
         $body = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertIsArray($body);
         self::assertArrayHasKey('result', $body, (string) $response->getContent());
+        self::assertIsArray($body['result']);
 
-        return $body['result'];
+        /** @var array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result */
+        $result = $body['result'];
+
+        return $result;
     }
 
     /**
@@ -141,7 +146,7 @@ trait McpClientTrait
      *
      * @param list<array{0: string, 1: array<string, mixed>}> $calls tool name and arguments
      *
-     * @return list<array<string, mixed>> the JSON-RPC results, in the order of the calls
+     * @return list<array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>}> the JSON-RPC results, in the order of the calls
      */
     private function callToolsInBatch(string $secret, string $sessionId, array $calls): array
     {
@@ -173,7 +178,10 @@ trait McpClientTrait
         ksort($results);
         self::assertCount(\count($calls), $results, (string) $response->getContent());
 
-        return array_values($results);
+        /** @var list<array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>}> $ordered */
+        $ordered = array_values($results);
+
+        return $ordered;
     }
 
     /**
@@ -181,11 +189,73 @@ trait McpClientTrait
      */
     private function listTools(string $secret, string $sessionId): array
     {
+        return array_column($this->toolCatalogue($secret, $sessionId), 'name');
+    }
+
+    /**
+     * @return list<array{name: string, description?: string, annotations?: array{readOnlyHint?: bool, destructiveHint?: bool, idempotentHint?: bool, openWorldHint?: bool}, inputSchema: array{properties?: array<string, array{type?: string, description?: string, items?: array{type?: string}}>, required?: list<string>}}>
+     */
+    private function toolCatalogue(string $secret, string $sessionId): array
+    {
         $response = $this->mcpRequest('tools/list', [], 'Bearer ' . $secret, $sessionId);
         self::assertSame(Response::HTTP_OK, $response->getStatusCode(), (string) $response->getContent());
 
+        /** @var array{result: array{tools: list<array{name: string, description?: string, annotations?: array{readOnlyHint?: bool, destructiveHint?: bool, idempotentHint?: bool, openWorldHint?: bool}, inputSchema: array{properties?: array<string, array{type?: string, description?: string, items?: array{type?: string}}>, required?: list<string>}}>}} $body */
         $body = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
 
-        return array_column($body['result']['tools'], 'name');
+        return $body['result']['tools'];
+    }
+
+    /**
+     * @return array{name: string, description?: string, annotations?: array{readOnlyHint?: bool, destructiveHint?: bool, idempotentHint?: bool, openWorldHint?: bool}, inputSchema: array{properties?: array<string, array{type?: string, description?: string, items?: array{type?: string}}>, required?: list<string>}}
+     */
+    private function toolDefinition(string $secret, string $sessionId, string $name): array
+    {
+        foreach ($this->toolCatalogue($secret, $sessionId) as $tool) {
+            if ($name === $tool['name']) {
+                return $tool;
+            }
+        }
+
+        self::fail(\sprintf('Tool "%s" is not listed.', $name));
+    }
+
+    /**
+     * @param array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result
+     *
+     * @return array<string, mixed> the structured content of a successful call
+     */
+    private function assertToolSucceeded(array $result): array
+    {
+        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
+        self::assertArrayHasKey('structuredContent', $result, (string) json_encode($result));
+
+        return $result['structuredContent'];
+    }
+
+    /**
+     * @param array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result
+     *
+     * @return array<string, mixed> the JSON text of a successful call, decoded
+     */
+    private function toolOutput(array $result): array
+    {
+        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
+
+        $output = json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        self::assertIsArray($output);
+
+        /** @var array<string, mixed> $decoded */
+        $decoded = $output;
+
+        return $decoded;
+    }
+
+    private function shortLivedCredentialCount(): int
+    {
+        $count = static::getContainer()->get(Connection::class)->fetchOne("SELECT COUNT(*) FROM mail_mailbox_credentials WHERE kind = 'short_lived'");
+        self::assertIsNumeric($count);
+
+        return (int) $count;
     }
 }

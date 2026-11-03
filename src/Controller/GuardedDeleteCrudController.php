@@ -41,7 +41,9 @@ abstract class GuardedDeleteCrudController extends AbstractCrudController
     {
         // The routed CRUD decides the entity class. The class in the request body is untrusted.
         $entityFqcn = $context->getEntity()->getFqcn();
-        $repository = $this->container->get('doctrine')->getManagerForClass($entityFqcn)->getRepository($entityFqcn);
+        $manager = $this->container->get('doctrine')->getManagerForClass($entityFqcn)
+            ?? throw new \LogicException(\sprintf('No entity manager handles "%s".', $entityFqcn));
+        $repository = $manager->getRepository($entityFqcn);
 
         foreach ($batchActionDto->getEntityIds() as $entityId) {
             $entity = $repository->find($entityId);

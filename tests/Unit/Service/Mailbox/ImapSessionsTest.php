@@ -25,9 +25,11 @@ class ImapSessionsTest extends TestCase
     {
         $server = new FakeImapServer(['TAG1 OK Logged in']);
 
-        $result = $this->sessions($server)->run($this->mailUser(), static fn (ImapConnection $connection): string => 'done');
+        $expected = new \stdClass();
 
-        self::assertSame('done', $result);
+        $result = $this->sessions($server)->run($this->mailUser(), static fn (ImapConnection $connection): \stdClass => $expected);
+
+        self::assertSame($expected, $result);
         self::assertStringStartsWith('TAG1 LOGIN "cred#alice@example.com" "', $server->commands[0]);
     }
 

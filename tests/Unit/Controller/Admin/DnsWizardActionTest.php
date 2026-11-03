@@ -31,12 +31,12 @@ use Twig\Environment;
 
 class DnsWizardActionTest extends TestCase
 {
-    private MockObject|Environment $twig;
-    private MockObject|DomainRepository $domainRepository;
-    private MockObject|HostIpResolver $hostIpResolver;
-    private MockObject|DnsWizardValidator $validator;
-    private Stub|Security $security;
-    private MockObject|CacheInterface $cacheApp;
+    private Environment&MockObject $twig;
+    private DomainRepository&MockObject $domainRepository;
+    private HostIpResolver&MockObject $hostIpResolver;
+    private DnsWizardValidator&MockObject $validator;
+    private Security&Stub $security;
+    private CacheInterface&MockObject $cacheApp;
 
     protected function setUp(): void
     {

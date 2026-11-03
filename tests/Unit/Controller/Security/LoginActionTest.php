@@ -16,7 +16,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -24,10 +23,10 @@ use Twig\Environment;
 
 class LoginActionTest extends TestCase
 {
-    private MockObject|Security $security;
-    private MockObject|AuthenticationUtils $authenticationUtils;
-    private MockObject|Environment $twig;
-    private MockObject|RouterInterface $router;
+    private Security&MockObject $security;
+    private AuthenticationUtils&MockObject $authenticationUtils;
+    private Environment&MockObject $twig;
+    private RouterInterface&MockObject $router;
 
     protected function setUp(): void
     {
@@ -122,7 +121,6 @@ class LoginActionTest extends TestCase
 
         $response = $controller->__invoke();
 
-        self::assertInstanceOf(Response::class, $response);
         self::assertSame($renderedContent, $response->getContent());
     }
 
@@ -174,7 +172,6 @@ class LoginActionTest extends TestCase
 
         $response = $controller->__invoke();
 
-        self::assertInstanceOf(Response::class, $response);
         self::assertSame($renderedContent, $response->getContent());
     }
 
@@ -226,7 +223,6 @@ class LoginActionTest extends TestCase
 
         $response = $controller->__invoke();
 
-        self::assertInstanceOf(Response::class, $response);
         self::assertSame($renderedContent, $response->getContent());
     }
 
@@ -277,7 +273,6 @@ class LoginActionTest extends TestCase
 
         $response = $controller->__invoke();
 
-        self::assertInstanceOf(Response::class, $response);
         self::assertSame($renderedContent, $response->getContent());
     }
 }

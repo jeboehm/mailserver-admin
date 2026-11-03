@@ -21,7 +21,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[AsCommand(name: 'fetchmail:account:add', description: 'Add fetchmail account.')]
@@ -83,9 +82,7 @@ class FetchmailAccountAddCommand extends Command
 
         if (\count($errors) > 0) {
             foreach ($errors as $error) {
-                if ($error instanceof ConstraintViolationInterface) {
-                    $output->writeln(\sprintf('<error>%s</error>', $error->getMessage()));
-                }
+                $output->writeln(\sprintf('<error>%s</error>', $error->getMessage()));
             }
 
             if ($input->getOption('force')) {

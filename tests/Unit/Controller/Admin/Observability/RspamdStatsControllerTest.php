@@ -27,9 +27,9 @@ use Twig\Environment;
 #[AllowMockObjectsWithoutExpectations]
 class RspamdStatsControllerTest extends TestCase
 {
-    private MockObject|Environment $twig;
-    private MockObject|RspamdStatsService $statsService;
-    private MockObject|RspamdChartFactory $chartFactory;
+    private Environment&MockObject $twig;
+    private RspamdStatsService&MockObject $statsService;
+    private RspamdChartFactory&MockObject $chartFactory;
     private RspamdStatsController $controller;
 
     protected function setUp(): void

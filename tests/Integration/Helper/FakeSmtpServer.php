@@ -177,16 +177,23 @@ final class FakeSmtpServer extends AbstractStream
 
     private function mailFromCommand(string $command): void
     {
-        preg_match('/<([^>]*)>/', $command, $matches);
-        $this->mailFrom[] = $matches[1];
+        $this->mailFrom[] = $this->addressOf($command);
         $this->reply('MAIL');
     }
 
     private function rcptToCommand(string $command): void
     {
-        preg_match('/<([^>]*)>/', $command, $matches);
-        $this->rcptTo[] = $matches[1];
+        $this->rcptTo[] = $this->addressOf($command);
         $this->reply('RCPT');
+    }
+
+    private function addressOf(string $command): string
+    {
+        if (1 !== preg_match('/<([^>]*)>/', $command, $matches)) {
+            throw new \LogicException(\sprintf('No address in SMTP command "%s".', rtrim($command)));
+        }
+
+        return $matches[1];
     }
 
     private function dataCommand(): void

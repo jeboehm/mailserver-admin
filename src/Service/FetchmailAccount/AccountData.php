@@ -27,13 +27,13 @@ class AccountData
     public static function fromFetchmailAccount(FetchmailAccount $fetchmailAccount): self
     {
         $accountData = new self();
-        $accountData->id = $fetchmailAccount->getId();
+        $accountData->id = $fetchmailAccount->getId() ?? throw new \LogicException('The account has not been saved yet.');
         $accountData->host = $fetchmailAccount->getHost();
         $accountData->protocol = $fetchmailAccount->getProtocol();
         $accountData->port = $fetchmailAccount->getPort();
         $accountData->username = $fetchmailAccount->getUsername();
         $accountData->password = $fetchmailAccount->getPassword();
-        $accountData->user = $fetchmailAccount->getUser()?->__toString();
+        $accountData->user = $fetchmailAccount->getUser()?->__toString() ?? throw new \LogicException('The account has no user.');
         $accountData->ssl = $fetchmailAccount->isSsl();
         $accountData->verifySsl = $fetchmailAccount->isVerifySsl();
 

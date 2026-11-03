@@ -106,6 +106,9 @@ class InitSetupCommand extends Command
         return Command::SUCCESS;
     }
 
+    /**
+     * @return non-empty-list<string>
+     */
     private function getEmailAddress(
         QuestionHelper $questionHelper,
         InputInterface $input,
@@ -113,8 +116,8 @@ class InitSetupCommand extends Command
     ): array {
         $emailQuestion = new Question('Please enter the first email address you want to receive mails to: ');
         $emailQuestion->setValidator(
-            static function (string $value): string {
-                if (!$value = filter_var($value, \FILTER_VALIDATE_EMAIL)) {
+            static function (mixed $value): string {
+                if (!\is_string($value) || !$value = filter_var($value, \FILTER_VALIDATE_EMAIL)) {
                     throw new \RuntimeException('Please enter a valid email address.');
                 }
 
@@ -122,13 +125,13 @@ class InitSetupCommand extends Command
             }
         );
 
-        $email = (string) $questionHelper->ask(
+        $email = $questionHelper->ask(
             $input,
             $output,
             $emailQuestion
         );
 
-        return explode('@', $email);
+        return explode('@', \is_string($email) ? $email : '');
     }
 
     private function getPassword(
@@ -138,8 +141,8 @@ class InitSetupCommand extends Command
     ): string {
         $passwordQuestion = new Question('Enter a password for the new account: ');
         $passwordQuestion->setValidator(
-            static function (string $value): string {
-                if (mb_strlen($value) < 8) {
+            static function (mixed $value): string {
+                if (!\is_string($value) || mb_strlen($value) < 8) {
                     throw new \RuntimeException('The password should be longer.');
                 }
 
@@ -160,6 +163,6 @@ class InitSetupCommand extends Command
             return $this->getPassword($questionHelper, $input, $output);
         }
 
-        return (string) $password1;
+        return \is_string($password1) ? $password1 : '';
     }
 }

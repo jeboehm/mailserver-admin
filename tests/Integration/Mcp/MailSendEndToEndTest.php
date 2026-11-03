@@ -23,14 +23,15 @@ use App\Service\MailSend\TlsSmtpTransportFactory;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
+use DirectoryTree\ImapEngine\Connection\Responses\UntaggedResponse;
 use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mime\Email;
 use Tests\Integration\Helper\DkimVerifier;
+use Tests\Integration\Helper\MailToolOutputTrait;
 use Tests\Integration\Helper\McpClientTrait;
 
 /**
@@ -52,6 +53,7 @@ use Tests\Integration\Helper\McpClientTrait;
 #[SkipDatabaseRollback]
 class MailSendEndToEndTest extends WebTestCase
 {
+    use MailToolOutputTrait;
     use McpClientTrait;
 
     private const string OWNER = 'admin@example.com';
@@ -129,7 +131,7 @@ class MailSendEndToEndTest extends WebTestCase
         self::assertNotNull($copy, 'The copy must be in Sent.');
         self::assertContains('\Seen', $copy['flags']);
         self::assertStringContainsString('Message-ID: ' . $result['message_id'], $copy['raw']);
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
@@ -184,6 +186,7 @@ class MailSendEndToEndTest extends WebTestCase
             $marked = [];
 
             foreach ($connection->list() as $response) {
+                self::assertInstanceOf(UntaggedResponse::class, $response);
                 $attributes = $response->tokenAt(2);
                 $name = $response->tokenAt(4);
 
@@ -212,7 +215,7 @@ class MailSendEndToEndTest extends WebTestCase
 
         $delivered = $this->waitForMessage(self::RECIPIENT, self::RECIPIENT_PASSWORD, 'INBOX', $result['message_id']);
         DkimVerifier::verify($delivered, 'example.com', $this->publicKey('example.com'));
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testACopyOverQuotaIsReportedAndTheMailIsStillSent(): void
@@ -225,7 +228,7 @@ class MailSendEndToEndTest extends WebTestCase
         self::assertSame('failed', $result['sent_copy']['status']);
         self::assertFalse($result['sent_copy']['temporary']);
         $this->waitForMessage(self::RECIPIENT, self::RECIPIENT_PASSWORD, 'INBOX', $result['message_id']);
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
@@ -258,7 +261,8 @@ class MailSendEndToEndTest extends WebTestCase
      */
     public function testPostfixsConnectionLimitIsReportedAsRetryable(): void
     {
-        $address = (string) ($_SERVER['MTA_SMTP_SUBMISSION_ADDRESS'] ?? getenv('MTA_SMTP_SUBMISSION_ADDRESS'));
+        $address = $_SERVER['MTA_SMTP_SUBMISSION_ADDRESS'] ?? getenv('MTA_SMTP_SUBMISSION_ADDRESS');
+        self::assertIsString($address);
 
         for ($i = 0; $i < 25; ++$i) {
             $socket = stream_socket_client('tcp://' . $address, timeout: 30);
@@ -285,23 +289,20 @@ class MailSendEndToEndTest extends WebTestCase
         self::assertTrue($result['isError'] ?? false, (string) json_encode($result));
         self::assertStringContainsString('was not sent', $result['content'][0]['text']);
         self::assertStringContainsString('Retry in a few seconds', $result['content'][0]['text']);
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed>
+     * @return array{sent: bool, message_id: string, from: string, recipients: list<string>, sent_copy: array{status: 'saved', mailbox: string}|array{status: 'skipped', reason: string}|array{status: 'failed', temporary: bool, reason: string}}
      */
     private function send(string $email, array $arguments): array
     {
         $secret = $this->storeToken($this->user($email), [ApiTokenScope::MailSend]);
         $this->tokenSecrets[] = $secret;
 
-        $result = $this->callTool($secret, $this->initialiseSession($secret), 'message_send', $arguments);
-        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
-
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        return $this->asSentMail($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_send', $arguments)));
     }
 
     private function user(string $email): User
@@ -321,15 +322,9 @@ class MailSendEndToEndTest extends WebTestCase
         self::assertNotFalse($key);
         $details = openssl_pkey_get_details($key);
         self::assertIsArray($details);
+        self::assertIsString($details['key']);
 
         return $details['key'];
-    }
-
-    private function shortLivedRows(): int
-    {
-        return (int) static::getContainer()->get(Connection::class)->fetchOne(
-            "SELECT COUNT(*) FROM mail_mailbox_credentials WHERE kind = 'short_lived'",
-        );
     }
 
     /**
@@ -351,7 +346,7 @@ class MailSendEndToEndTest extends WebTestCase
     }
 
     /**
-     * @return array{raw: string, flags: list<mixed>}|null
+     * @return array{raw: string, flags: array<mixed>}|null
      */
     private function fetchMessage(string $email, string $password, string $mailbox, string $messageId): ?array
     {
@@ -364,13 +359,15 @@ class MailSendEndToEndTest extends WebTestCase
                 return null;
             }
 
+            self::assertInstanceOf(Token::class, $found[0]);
             $response = $connection->fetch(['UID', 'FLAGS', 'BODY.PEEK[]'], (int) $found[0]->value)->first();
-            $data = $response?->tokenAt(3);
+            self::assertInstanceOf(UntaggedResponse::class, $response);
+            $data = $response->tokenAt(3);
             self::assertInstanceOf(ListData::class, $data);
             $flags = $data->lookup('FLAGS');
             self::assertInstanceOf(ListData::class, $flags);
             $raw = $data->lookup('[]');
-            self::assertNotNull($raw);
+            self::assertInstanceOf(Token::class, $raw);
 
             return ['raw' => $raw->value, 'flags' => $flags->values()];
         });

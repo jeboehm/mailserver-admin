@@ -22,11 +22,13 @@ use App\Service\MailboxCredential\ShortLivedCredential;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
+use DirectoryTree\ImapEngine\Connection\Responses\UntaggedResponse;
+use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Tests\Integration\Helper\MailToolOutputTrait;
 use Tests\Integration\Helper\McpClientTrait;
 
 /**
@@ -44,6 +46,7 @@ use Tests\Integration\Helper\McpClientTrait;
 #[SkipDatabaseRollback]
 class MailReadEndToEndTest extends WebTestCase
 {
+    use MailToolOutputTrait;
     use McpClientTrait;
 
     private const string OWNER = 'admin@example.com';
@@ -73,7 +76,9 @@ class MailReadEndToEndTest extends WebTestCase
             return;
         }
 
-        [$host, $port] = explode(':', (string) ($_SERVER['MDA_IMAPS_ADDRESS'] ?? getenv('MDA_IMAPS_ADDRESS')), 2);
+        $address = $_SERVER['MDA_IMAPS_ADDRESS'] ?? getenv('MDA_IMAPS_ADDRESS');
+        self::assertIsString($address);
+        [$host, $port] = explode(':', $address, 2);
         $connection = new ImapConnection(new \DirectoryTree\ImapEngine\Connection\Streams\ImapStream());
         $connection->connect($host, (int) $port, ['encryption' => 'ssl', 'validate_cert' => false, 'timeout' => 30]);
         $connection->login(self::OWNER, self::OWNER_PASSWORD);
@@ -122,7 +127,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testMailboxListSeesTheNonAsciiMailbox(): void
     {
-        $result = $this->tool(self::OWNER, 'mailbox_list', ['limit' => 100]);
+        $result = $this->asMailboxList($this->tool(self::OWNER, 'mailbox_list', ['limit' => 100]));
 
         self::assertContains(self::$mailbox, array_column($result['mailboxes'], 'name'));
         self::assertSame('INBOX', $result['mailboxes'][0]['name']);
@@ -144,7 +149,7 @@ class MailReadEndToEndTest extends WebTestCase
     #[DataProvider('bodies')]
     public function testNonAsciiBodiesAreReadIntact(string $message, string $expected): void
     {
-        $result = $this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids[$message]]);
+        $result = $this->asMessage($this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids[$message]]));
 
         self::assertStringContainsString($expected, $result['untrusted_external_content']['body']);
         self::assertStringNotContainsString("\u{FFFD}", $result['untrusted_external_content']['body']);
@@ -152,7 +157,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testASingleNonAsciiByteAtTheBufferBoundaryIsRead(): void
     {
-        $result = $this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['megabyte']]);
+        $result = $this->asMessage($this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['megabyte']]));
         $body = $result['untrusted_external_content']['body'];
 
         self::assertSame('ü', substr($body, 8191, 2));
@@ -162,7 +167,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testRandomBytesStillGiveValidOutput(): void
     {
-        $result = $this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['random']]);
+        $result = $this->asMessage($this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['random']]));
 
         self::assertTrue(mb_check_encoding($result['untrusted_external_content']['body'], 'UTF-8'));
     }
@@ -171,7 +176,7 @@ class MailReadEndToEndTest extends WebTestCase
     {
         $peakBefore = memory_get_peak_usage(true);
 
-        $result = $this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['attachment']]);
+        $result = $this->asMessage($this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['attachment']]));
 
         $attachments = $result['untrusted_external_content']['attachments'];
         self::assertCount(1, $attachments);
@@ -184,7 +189,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testHtmlOnlyMailIsConverted(): void
     {
-        $result = $this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['html']]);
+        $result = $this->asMessage($this->tool(self::OWNER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['html']]));
 
         self::assertTrue($result['body_converted_from_html']);
         self::assertStringContainsString('Hallo Jörg', $result['untrusted_external_content']['body']);
@@ -193,12 +198,12 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testSearchFindsNonAsciiAndPaginatesNewestFirst(): void
     {
-        $found = $this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'subject' => 'März']);
+        $found = $this->asMessageSearch($this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'subject' => 'März']));
         self::assertSame(1, $found['total']);
         self::assertSame(self::$uids['attachment'], $found['messages'][0]['uid']);
         self::assertSame('Rechnung für März', $found['messages'][0]['untrusted_external_content']['subject']);
 
-        $page = $this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'limit' => 2]);
+        $page = $this->asMessageSearch($this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'limit' => 2]));
         self::assertSame(\count(self::$uids), $page['total']);
         self::assertCount(2, $page['messages']);
         self::assertGreaterThan($page['messages'][1]['uid'], $page['messages'][0]['uid']);
@@ -206,7 +211,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testASearchValueIsNotASearchKey(): void
     {
-        $found = $this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'subject' => '" OR ALL "']);
+        $found = $this->asMessageSearch($this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox, 'subject' => '" OR ALL "']));
 
         self::assertSame(0, $found['total']);
     }
@@ -244,25 +249,25 @@ class MailReadEndToEndTest extends WebTestCase
     {
         $this->tool(self::OWNER, 'message_search', ['mailbox' => self::$mailbox]);
 
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testNoCredentialRemainsAfterAFailedToolCall(): void
     {
-        $this->tool(self::OWNER, 'message_get', ['mailbox' => 'does not exist', 'uid' => 1], true);
+        $this->failingTool(self::OWNER, 'message_get', ['mailbox' => 'does not exist', 'uid' => 1]);
 
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testAnotherUserCannotReachTheMailbox(): void
     {
-        $denied = $this->tool(self::OTHER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['german']], true);
+        $denied = $this->failingTool(self::OTHER, 'message_get', ['mailbox' => self::$mailbox, 'uid' => self::$uids['german']]);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $denied['content'][0]['text']);
 
-        $search = $this->tool(self::OTHER, 'message_search', ['subject' => 'Rechnung für März']);
+        $search = $this->asMessageSearch($this->tool(self::OTHER, 'message_search', ['subject' => 'Rechnung für März']));
         self::assertSame(0, $search['total']);
 
-        $names = array_column($this->tool(self::OTHER, 'mailbox_list', ['limit' => 100])['mailboxes'], 'name');
+        $names = array_column($this->asMailboxList($this->tool(self::OTHER, 'mailbox_list', ['limit' => 100]))['mailboxes'], 'name');
         self::assertNotContains(self::$mailbox, $names);
     }
 
@@ -310,7 +315,7 @@ class MailReadEndToEndTest extends WebTestCase
 
     public function testSendOnlyUsersCannotRead(): void
     {
-        $result = $this->tool('sendonly@example.com', 'mailbox_list', [], true);
+        $result = $this->failingTool('sendonly@example.com', 'mailbox_list', []);
 
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
@@ -331,33 +336,46 @@ class MailReadEndToEndTest extends WebTestCase
             }
         }
 
-        $result = $this->tool(self::OWNER, 'mailbox_list', ['limit' => 1]);
+        $result = $this->asMailboxList($this->tool(self::OWNER, 'mailbox_list', ['limit' => 1]));
 
         self::assertGreaterThan(0, $result['total']);
-        self::assertSame(0, $this->shortLivedRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed> the decoded output, or the raw result when an error is expected
+     * @return array<string, mixed> the decoded output
      */
-    private function tool(string $email, string $tool, array $arguments, bool $expectError = false): array
+    private function tool(string $email, string $tool, array $arguments): array
+    {
+        return $this->toolOutput($this->callAs($email, $tool, $arguments));
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     *
+     * @return array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} the raw result
+     */
+    private function failingTool(string $email, string $tool, array $arguments): array
+    {
+        $result = $this->callAs($email, $tool, $arguments);
+        self::assertTrue($result['isError'] ?? false, (string) json_encode($result));
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     *
+     * @return array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>}
+     */
+    private function callAs(string $email, string $tool, array $arguments): array
     {
         $secret = $this->storeToken($this->user($email), [ApiTokenScope::MailRead]);
         $this->tokenSecrets[] = $secret;
 
-        $result = $this->callTool($secret, $this->initialiseSession($secret), $tool, $arguments);
-
-        if ($expectError) {
-            self::assertTrue($result['isError'] ?? false, (string) json_encode($result));
-
-            return $result;
-        }
-
-        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
-
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        return $this->callTool($secret, $this->initialiseSession($secret), $tool, $arguments);
     }
 
     private function user(string $email): User
@@ -368,17 +386,10 @@ class MailReadEndToEndTest extends WebTestCase
         return $user;
     }
 
-    private function shortLivedRows(): int
-    {
-        return (int) static::getContainer()->get(Connection::class)->fetchOne(
-            "SELECT COUNT(*) FROM mail_mailbox_credentials WHERE kind = 'short_lived'",
-        );
-    }
-
     /**
      * What a separate session with the user's password sees: nothing here can be touched by the tools.
      *
-     * @return array{flags: array<int, list<mixed>>, status: list<mixed>}
+     * @return array{flags: array<int, array<mixed>>, status: array<mixed>}
      */
     private function mailboxState(): array
     {
@@ -392,11 +403,14 @@ class MailReadEndToEndTest extends WebTestCase
             $flags = [];
 
             foreach ($connection->fetch(['UID', 'FLAGS'], 1, \INF) as $response) {
+                self::assertInstanceOf(UntaggedResponse::class, $response);
                 $data = $response->tokenAt(3);
                 self::assertInstanceOf(ListData::class, $data);
                 $itemFlags = $data->lookup('FLAGS');
                 self::assertInstanceOf(ListData::class, $itemFlags);
-                $flags[(int) $data->lookup('UID')?->value] = $itemFlags->values();
+                $uid = $data->lookup('UID');
+                self::assertInstanceOf(Token::class, $uid);
+                $flags[(int) $uid->value] = $itemFlags->values();
             }
 
             ksort($flags);
@@ -497,8 +511,7 @@ class MailReadEndToEndTest extends WebTestCase
         return self::$uids[$name] = $this->withPassword(self::OWNER, self::OWNER_PASSWORD, static function (ImapConnection $connection) use ($message): int {
             $response = $connection->append(\DirectoryTree\ImapEngine\Support\Str::toImapUtf7(self::$mailbox), $message);
             self::assertTrue($response->successful());
-            self::assertMatchesRegularExpression('/APPENDUID \d+ (\d+)/', (string) $response);
-            preg_match('/APPENDUID \d+ (\d+)/', (string) $response, $matches);
+            self::assertSame(1, preg_match('/APPENDUID \d+ (\d+)/', (string) $response, $matches), (string) $response);
 
             return (int) $matches[1];
         });

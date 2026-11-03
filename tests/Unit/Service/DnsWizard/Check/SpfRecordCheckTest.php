@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class SpfRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private DnsLookupInterface&MockObject $dns;
     private SpfRecordCheck $check;
 
     protected function setUp(): void

@@ -116,8 +116,15 @@ readonly class MobileConfigService
             return null;
         }
 
-        $tempUnsignedPath = stream_get_meta_data($tempUnsigned)['uri'];
-        $tempSignedPath = stream_get_meta_data($tempSigned)['uri'];
+        $tempUnsignedPath = stream_get_meta_data($tempUnsigned)['uri'] ?? null;
+        $tempSignedPath = stream_get_meta_data($tempSigned)['uri'] ?? null;
+
+        if (null === $tempUnsignedPath || null === $tempSignedPath) {
+            fclose($tempUnsigned);
+            fclose($tempSigned);
+
+            return null;
+        }
 
         try {
             file_put_contents($tempUnsignedPath, $unsignedProfile);

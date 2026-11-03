@@ -12,7 +12,6 @@ namespace Tests\Integration\Mcp;
 
 use App\Mcp\ToolDeniedException;
 use App\Service\ApiToken\ApiTokenScope;
-use Monolog\Handler\TestHandler;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -78,7 +77,7 @@ class ToolAccessTest extends WebTestCase
 
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'fixture_admin_send');
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
@@ -112,20 +111,20 @@ class ToolAccessTest extends WebTestCase
         ], 'Bearer ' . $secret);
         $sessionId = (string) $response->headers->get('Mcp-Session-Id');
 
-        self::assertTrue($this->callTool($secret, $sessionId, 'fixture_admin_send')['isError']);
+        self::assertTrue($this->callTool($secret, $sessionId, 'fixture_admin_send')['isError'] ?? false);
     }
 
     public function testModernEraCallsAreGatedAndListedTheSameWay(): void
     {
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::ManageRead]);
 
-        $tools = $this->modernRequest($secret, 'tools/list', [], 'tools/list');
-        self::assertContains('whoami', array_column($tools['result']['tools'], 'name'));
-        self::assertNotContains('fixture_admin_send', array_column($tools['result']['tools'], 'name'));
+        $tools = $this->modernListTools($secret);
+        self::assertContains('whoami', $tools);
+        self::assertNotContains('fixture_admin_send', $tools);
 
-        $call = $this->modernRequest($secret, 'tools/call', ['name' => 'fixture_admin_send', 'arguments' => new \stdClass()], 'tools/call', 'fixture_admin_send');
-        self::assertTrue($call['result']['isError']);
-        self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $call['result']['content'][0]['text']);
+        $call = $this->modernCallTool($secret, 'fixture_admin_send');
+        self::assertTrue($call['isError'] ?? false);
+        self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $call['content'][0]['text']);
         self::assertSame('denied', $this->lastAuditRecord()->context['result']);
     }
 
@@ -205,10 +204,8 @@ class ToolAccessTest extends WebTestCase
      * The 2026-07-28 revision has no handshake: every request carries its own metadata.
      *
      * @param array<string, mixed> $params
-     *
-     * @return array<string, mixed>
      */
-    private function modernRequest(string $secret, string $method, array $params, string $methodHeader, ?string $nameHeader = null): array
+    private function modernRequest(string $secret, string $method, array $params, string $methodHeader, ?string $nameHeader = null): mixed
     {
         $server = [
             'CONTENT_TYPE' => 'application/json',
@@ -240,10 +237,31 @@ class ToolAccessTest extends WebTestCase
         return json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
     }
 
+    /**
+     * @return list<string>
+     */
+    private function modernListTools(string $secret): array
+    {
+        /** @var array{result: array{tools: list<array{name: string}>}} $body */
+        $body = $this->modernRequest($secret, 'tools/list', [], 'tools/list');
+
+        return array_column($body['result']['tools'], 'name');
+    }
+
+    /**
+     * @return array{content: list<array{type: string, text: string}>, isError?: bool}
+     */
+    private function modernCallTool(string $secret, string $tool): array
+    {
+        /** @var array{result: array{content: list<array{type: string, text: string}>, isError?: bool}} $body */
+        $body = $this->modernRequest($secret, 'tools/call', ['name' => $tool, 'arguments' => new \stdClass()], 'tools/call', $tool);
+
+        return $body['result'];
+    }
+
     private function lastAuditRecord(): LogRecord
     {
         $handler = $this->client->getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
 
         $records = $handler->getRecords();
         self::assertNotEmpty($records);

@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class MxRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private DnsLookupInterface&MockObject $dns;
     private MxRecordCheck $check;
 
     protected function setUp(): void

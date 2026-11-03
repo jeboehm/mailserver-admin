@@ -13,7 +13,6 @@ namespace Tests\Unit\Service\Dovecot;
 use App\Exception\Dovecot\DoveadmConnectionException;
 use App\Exception\Dovecot\DoveadmResponseException;
 use App\Service\Dovecot\DoveadmHttpClient;
-use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Exception\ClientException;
 use Symfony\Component\HttpClient\Exception\RedirectionException;
@@ -73,7 +72,7 @@ final class DoveadmHttpClientTest extends TestCase
                         ],
                     ];
 
-                    return new MockResponse(json_encode($response), ['http_code' => 200]);
+                    return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
                 }
 
                 return new MockResponse('[]', ['http_code' => 200]);
@@ -181,10 +180,10 @@ final class DoveadmHttpClientTest extends TestCase
         $sent = null;
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) use (&$sent) {
-                $sent = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
+                $sent = self::sentCommands($options['body']);
 
                 return new MockResponse(
-                    json_encode([['doveadmResponse', [['entries' => '2']], $sent[0][2]]]),
+                    json_encode([['doveadmResponse', [['entries' => '2']], $sent[0][2]]], \JSON_THROW_ON_ERROR),
                     ['http_code' => 200],
                 );
             },
@@ -193,6 +192,7 @@ final class DoveadmHttpClientTest extends TestCase
 
         $client->flushAuthCache(['a@example.com', 'b@example.com']);
 
+        self::assertNotNull($sent);
         self::assertSame('authCacheFlush', $sent[0][0]);
         self::assertSame(['userMask' => ['a@example.com', 'b@example.com']], $sent[0][1]);
     }
@@ -201,10 +201,10 @@ final class DoveadmHttpClientTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
+                $payload = self::sentCommands($options['body']);
 
                 return new MockResponse(
-                    json_encode([['error', ['type' => 'exitCode', 'exitCode' => 75], $payload[0][2]]]),
+                    json_encode([['error', ['type' => 'exitCode', 'exitCode' => 75], $payload[0][2]]], \JSON_THROW_ON_ERROR),
                     ['http_code' => 200],
                 );
             },
@@ -230,8 +230,7 @@ final class DoveadmHttpClientTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -252,7 +251,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -266,7 +265,6 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump();
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
         self::assertSame(42, $stats->getCounter('num_logins'));
         self::assertSame(100, $stats->getCounter('auth_successes'));
     }
@@ -275,8 +273,7 @@ final class DoveadmHttpClientTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -292,7 +289,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -306,15 +303,14 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump('/var/run/dovecot/stats');
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
+        self::assertSame(42, $stats->getCounter('num_logins'));
     }
 
     public function testStatsDumpThrowsOnErrorResponse(): void
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -324,7 +320,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -353,7 +349,7 @@ final class DoveadmHttpClientTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($response), ['http_code' => 200]),
+            new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new DoveadmHttpClient(
@@ -469,8 +465,7 @@ final class DoveadmHttpClientTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -486,7 +481,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -500,15 +495,14 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump();
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
+        self::assertSame(42, $stats->getCounter('num_logins'));
     }
 
     public function testBuildApiUrlPreservesExistingPath(): void
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -524,7 +518,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -538,15 +532,14 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump();
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
+        self::assertSame(42, $stats->getCounter('num_logins'));
     }
 
     public function testApiKeyIsBase64Encoded(): void
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -562,7 +555,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -576,15 +569,14 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump();
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
+        self::assertSame(42, $stats->getCounter('num_logins'));
     }
 
     public function testStatsDumpParsesNumericValuesAsStrings(): void
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -605,7 +597,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -627,8 +619,7 @@ final class DoveadmHttpClientTest extends TestCase
     {
         $httpClient = new MockHttpClient([
             static function (string $method, string $url, array $options) {
-                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
-                $tag = $payload[0][2] ?? 'unknown';
+                $tag = self::sentCommands($options['body'])[0][2];
 
                 $response = [
                     [
@@ -644,7 +635,7 @@ final class DoveadmHttpClientTest extends TestCase
                     ],
                 ];
 
-                return new MockResponse(json_encode($response), ['http_code' => 200]);
+                return new MockResponse(json_encode($response, \JSON_THROW_ON_ERROR), ['http_code' => 200]);
             },
         ]);
 
@@ -658,7 +649,19 @@ final class DoveadmHttpClientTest extends TestCase
 
         $stats = $client->statsDump();
 
-        self::assertInstanceOf(StatsDumpDto::class, $stats);
         self::assertNull($stats->getCounter('num_logins'));
+    }
+
+    /**
+     * @return list<array{string, array<string, mixed>, string}>
+     */
+    private static function sentCommands(mixed $body): array
+    {
+        self::assertIsString($body);
+
+        /** @var list<array{string, array<string, mixed>, string}> $commands */
+        $commands = json_decode($body, true, 5, \JSON_THROW_ON_ERROR);
+
+        return $commands;
     }
 }

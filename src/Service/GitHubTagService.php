@@ -79,9 +79,10 @@ readonly class GitHubTagService
 
         // GitHub API returns tags sorted by creation date (newest first)
         // Get the first tag and extract the version
-        $latestTag = $tags[0]['name'] ?? null;
+        $firstTag = $tags[0] ?? null;
+        $latestTag = \is_array($firstTag) ? ($firstTag['name'] ?? null) : null;
 
-        if (null === $latestTag) {
+        if (!\is_string($latestTag)) {
             return null;
         }
 

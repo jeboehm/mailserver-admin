@@ -235,7 +235,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $stat
+     * @param array<int|string, mixed> $stat
      *
      * @return array<string, KpiValueDto>
      */
@@ -243,7 +243,8 @@ readonly class RspamdStatsService
     {
         $values = [];
         foreach (RspamdConstants::STAT_TO_KPI_MAP as $statKey => $kpiKey) {
-            $values[$kpiKey] = $stat[$statKey] ?? null;
+            $value = $stat[$statKey] ?? null;
+            $values[$kpiKey] = \is_int($value) || \is_float($value) ? $value : null;
         }
 
         return $this->createKpisFromValues($values);
@@ -265,7 +266,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseGraphData(array $data, string $type): TimeSeriesDto
     {
@@ -283,7 +284,7 @@ readonly class RspamdStatsService
     /**
      * Check if data is in new format: array of arrays with {x: timestamp, y: value} objects.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function isNewGraphFormat(array $data): bool
     {
@@ -293,7 +294,7 @@ readonly class RspamdStatsService
     /**
      * Check if data is in legacy format: array of objects with timestamp and action counts.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function isLegacyGraphFormat(array $data): bool
     {
@@ -303,7 +304,7 @@ readonly class RspamdStatsService
     /**
      * Parse new graph format: [[{x: timestamp, y: value}, ...], ...].
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseNewGraphFormat(array $data, string $type): TimeSeriesDto
     {
@@ -317,7 +318,7 @@ readonly class RspamdStatsService
     /**
      * Parse legacy graph format: array of objects with timestamp and action counts.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      */
     private function parseLegacyGraphFormat(array $data, string $type): TimeSeriesDto
     {
@@ -330,14 +331,14 @@ readonly class RspamdStatsService
             }
 
             $timestamp = $row['ts'] ?? $row['time'] ?? null;
-            if (null === $timestamp) {
+            if (!\is_scalar($timestamp)) {
                 continue;
             }
 
             $labels[] = $this->formatTimestamp((int) $timestamp, $type);
 
             foreach ($row as $key => $value) {
-                if (\in_array($key, ['ts', 'time', 'timestamp'], true) || !is_numeric($value)) {
+                if (!\is_string($key) || \in_array($key, ['ts', 'time', 'timestamp'], true) || !is_numeric($value)) {
                     continue;
                 }
 
@@ -352,7 +353,7 @@ readonly class RspamdStatsService
     /**
      * Extract and sample timestamps from graph data.
      *
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      *
      * @return list<int>
      */
@@ -404,8 +405,8 @@ readonly class RspamdStatsService
     /**
      * Extract series data from graph format.
      *
-     * @param array<string, mixed> $data
-     * @param list<int>            $timestampKeys
+     * @param array<int|string, mixed> $data
+     * @param list<int>                $timestampKeys
      *
      * @return array<string, list<float>>
      */
@@ -432,7 +433,7 @@ readonly class RspamdStatsService
     /**
      * Build a map of timestamp => value for a series.
      *
-     * @param array<int, mixed> $series
+     * @param array<mixed> $series
      *
      * @return array<int, float>
      */
@@ -447,7 +448,7 @@ readonly class RspamdStatsService
 
             $timestamp = (int) $point['x'];
             $value = $point['y'] ?? null;
-            $seriesData[$timestamp] = null === $value ? 0.0 : (float) $value;
+            $seriesData[$timestamp] = \is_scalar($value) ? (float) $value : 0.0;
         }
 
         return $seriesData;
@@ -492,7 +493,7 @@ readonly class RspamdStatsService
     /**
      * Extract action name from pie data item.
      *
-     * @param array<string, mixed> $item
+     * @param array<mixed> $item
      */
     private function extractActionName(array $item): ?string
     {
@@ -504,19 +505,19 @@ readonly class RspamdStatsService
     /**
      * Extract action value from pie data item.
      *
-     * @param array<string, mixed> $item
+     * @param array<mixed> $item
      */
     private function extractActionValue(array $item): int
     {
         $value = $item['value'] ?? $item['data'] ?? $item['count'] ?? 0;
 
-        return (int) $value;
+        return \is_scalar($value) ? (int) $value : 0;
     }
 
     /**
      * Extract action color from pie data item.
      *
-     * @param array<string, mixed> $item
+     * @param array<mixed> $item
      */
     private function extractActionColor(array $item): ?string
     {
@@ -535,7 +536,7 @@ readonly class RspamdStatsService
         $thresholds = [];
 
         foreach ($data as $item) {
-            if (!\is_array($item) || !isset($item['action'], $item['value'])) {
+            if (!\is_array($item) || !\is_scalar($item['action'] ?? null) || !\is_scalar($item['value'] ?? null)) {
                 continue;
             }
 
@@ -566,17 +567,23 @@ readonly class RspamdStatsService
             }
 
             $name = $item['name'] ?? $item['symbol'] ?? null;
-            if (null === $name) {
+            if (!\is_scalar($name)) {
                 continue;
             }
 
+            $hits = $item['hits'] ?? $item['count'] ?? null;
+            $weight = $item['weight'] ?? null;
+            $frequency = $item['frequency'] ?? null;
+            $time = $item['time'] ?? null;
+            $description = $item['description'] ?? null;
+
             $counters[] = new SymbolCounterDto(
                 (string) $name,
-                (int) ($item['hits'] ?? $item['count'] ?? 0),
-                (float) ($item['weight'] ?? 0),
-                (float) ($item['frequency'] ?? 0),
-                isset($item['time']) ? (float) $item['time'] : null,
-                isset($item['description']) ? (string) $item['description'] : null
+                \is_scalar($hits) ? (int) $hits : 0,
+                \is_scalar($weight) ? (float) $weight : 0.0,
+                \is_scalar($frequency) ? (float) $frequency : 0.0,
+                \is_scalar($time) ? (float) $time : null,
+                \is_scalar($description) ? (string) $description : null
             );
         }
 
@@ -587,7 +594,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<int|string, mixed> $data
      *
      * @return list<HistoryRowDto>
      */
@@ -616,6 +623,7 @@ readonly class RspamdStatsService
                 $time = $this->parseTimestamp($timestamp);
                 $symbols = $this->parseSymbols($row);
                 $recipient = $this->parseRecipient($row);
+                $subject = $row['subject'] ?? null;
 
                 $result[] = new HistoryRowDto(
                     $this->safeGetString($row, 'message-id', $this->safeGetString($row, 'id', uniqid('h_', true))),
@@ -628,7 +636,7 @@ readonly class RspamdStatsService
                     $this->safeGetString($row, 'ip'),
                     (int) $this->safeGetNumeric($row, 'size'),
                     $symbols,
-                    isset($row['subject']) ? (string) $row['subject'] : null
+                    \is_scalar($subject) ? (string) $subject : null
                 );
             } catch (\Exception $e) {
                 // Skip malformed rows
@@ -658,7 +666,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<mixed> $data
      */
     private function safeGetArray(array $data, string $key, mixed $default = null): mixed
     {
@@ -666,7 +674,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<mixed> $data
      */
     private function safeGetString(array $data, string $key, string $default = ''): string
     {
@@ -676,7 +684,7 @@ readonly class RspamdStatsService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<mixed> $data
      */
     private function safeGetNumeric(array $data, string $key, float $default = 0.0): float
     {
@@ -690,15 +698,21 @@ readonly class RspamdStatsService
      */
     private function parseTimestamp(mixed $timestamp): \DateTimeImmutable
     {
-        return is_numeric($timestamp)
-            ? new \DateTimeImmutable()->setTimestamp((int) $timestamp)
-            : new \DateTimeImmutable((string) $timestamp);
+        if (is_numeric($timestamp)) {
+            return new \DateTimeImmutable()->setTimestamp((int) $timestamp);
+        }
+
+        if (!\is_scalar($timestamp)) {
+            throw new \InvalidArgumentException('Malformed timestamp.');
+        }
+
+        return new \DateTimeImmutable((string) $timestamp);
     }
 
     /**
      * Parse symbols from history row.
      *
-     * @param array<string, mixed> $row
+     * @param array<mixed> $row
      *
      * @return list<string>
      */
@@ -716,7 +730,7 @@ readonly class RspamdStatsService
             } elseif (\is_string($symbol)) {
                 // Array format: direct string values
                 $symbols[] = $symbol;
-            } elseif (\is_array($symbol) && isset($symbol['name'])) {
+            } elseif (\is_array($symbol) && \is_scalar($symbol['name'] ?? null)) {
                 // Array format: objects with 'name' property
                 $symbols[] = (string) $symbol['name'];
             }
@@ -728,7 +742,7 @@ readonly class RspamdStatsService
     /**
      * Parse recipient from history row.
      *
-     * @param array<string, mixed> $row
+     * @param array<mixed> $row
      */
     private function parseRecipient(array $row): string
     {
@@ -742,6 +756,6 @@ readonly class RspamdStatsService
             return implode(', ', array_filter($recipient, 'is_string'));
         }
 
-        return (string) $recipient;
+        return \is_scalar($recipient) ? (string) $recipient : '';
     }
 }

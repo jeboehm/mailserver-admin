@@ -38,6 +38,9 @@ class UserRepositoryTest extends KernelTestCase
         $this->assertSame('admin@example.com', $user->getUserIdentifier());
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
     public static function addressSpellingProvider(): array
     {
         return [

@@ -20,7 +20,9 @@ class McpClientGuidesTest extends TestCase
 
     public function testClaudeCodeReadsTheTokenFromTheEnvironment(): void
     {
-        $server = $this->jsonOf('Claude Code')['mcpServers']['mailserver-admin'];
+        /** @var array{mcpServers: array{'mailserver-admin': array{type: string, url: string, headers: array{Authorization: string}}}} $config */
+        $config = $this->jsonOf('Claude Code');
+        $server = $config['mcpServers']['mailserver-admin'];
 
         self::assertSame('http', $server['type']);
         self::assertSame(self::URL, $server['url']);
@@ -29,7 +31,9 @@ class McpClientGuidesTest extends TestCase
 
     public function testCursorReadsTheTokenFromTheEnvironment(): void
     {
-        $server = $this->jsonOf('Cursor')['mcpServers']['mailserver-admin'];
+        /** @var array{mcpServers: array{'mailserver-admin': array{url: string, headers: array{Authorization: string}}}} $config */
+        $config = $this->jsonOf('Cursor');
+        $server = $config['mcpServers']['mailserver-admin'];
 
         self::assertSame(self::URL, $server['url']);
         self::assertSame('Bearer ${env:MAILSERVER_MCP_TOKEN}', $server['headers']['Authorization']);
@@ -37,6 +41,7 @@ class McpClientGuidesTest extends TestCase
 
     public function testVsCodePromptsForTheTokenAsAPassword(): void
     {
+        /** @var array{inputs: list<array{password: bool, id: string}>, servers: array{'mailserver-admin': array{type: string, url: string, headers: array{Authorization: string}}}} $config */
         $config = $this->jsonOf('VS Code');
         $input = $config['inputs'][0];
         $server = $config['servers']['mailserver-admin'];
@@ -57,17 +62,16 @@ class McpClientGuidesTest extends TestCase
 
     public function testClaudeDesktopConnectsThroughTheBridge(): void
     {
-        $server = $this->jsonOf('Claude Desktop')['mcpServers']['mailserver-admin'];
+        /** @var array{mcpServers: array{'mailserver-admin': array{command: string, args: list<string>, env: array{AUTH_HEADER: string}}}} $config */
+        $config = $this->jsonOf('Claude Desktop');
+        $server = $config['mcpServers']['mailserver-admin'];
 
         self::assertSame('npx', $server['command']);
         self::assertSame(['-y', 'mcp-remote', self::URL, '--header', 'Authorization:${AUTH_HEADER}'], $server['args']);
         self::assertSame('Bearer <YOUR_API_TOKEN>', $server['env']['AUTH_HEADER']);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function jsonOf(string $client): array
+    private function jsonOf(string $client): mixed
     {
         return json_decode($this->guide($client)->snippet, true, flags: \JSON_THROW_ON_ERROR);
     }

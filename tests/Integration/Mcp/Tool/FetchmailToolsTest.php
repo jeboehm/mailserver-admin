@@ -67,7 +67,7 @@ class FetchmailToolsTest extends WebTestCase
 
         $page = $this->assertToolSucceeded($result);
         self::assertSame(3, $page['total']);
-        self::assertCount(1, $page['items']);
+        self::assertCount(1, $this->pageItems($page));
         self::assertStringNotContainsString(self::SECRET, (string) json_encode($result));
     }
 
@@ -129,6 +129,7 @@ class FetchmailToolsTest extends WebTestCase
         self::assertSame(993, $created['port']);
         self::assertTrue($created['ssl']);
         self::assertStringNotContainsString(self::NEW_SECRET, (string) json_encode($result));
+        self::assertIsInt($created['id']);
         self::assertSame(self::NEW_SECRET, $this->account($created['id'])->getPassword());
     }
 

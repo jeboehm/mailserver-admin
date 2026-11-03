@@ -12,6 +12,7 @@ namespace App\Service\Mailbox;
 
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
+use DirectoryTree\ImapEngine\Connection\Responses\UntaggedResponse;
 use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Support\Str;
 
@@ -27,11 +28,15 @@ final class ListedMailboxes
         $listed = [];
 
         foreach ($connection->list() as $response) {
+            if (!$response instanceof UntaggedResponse) {
+                continue;
+            }
+
             $attributes = $response->tokenAt(2);
             $name = $response->tokenAt(4);
 
             if ($attributes instanceof ListData && $name instanceof Token) {
-                $listed[mb_scrub(Str::fromImapUtf7($name->value), 'UTF-8')] = array_values($attributes->values());
+                $listed[mb_scrub(Str::fromImapUtf7($name->value), 'UTF-8')] = array_values(array_filter($attributes->values(), 'is_string'));
             }
         }
 

@@ -21,6 +21,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -46,7 +47,7 @@ class DKIMSetupCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('domain')
+            ->addArgument('domain', InputArgument::REQUIRED)
             ->addOption('enable', null, InputOption::VALUE_NONE, 'Enable DKIM signing for outgoing mails.')
             ->addOption('regenerate', null, InputOption::VALUE_NONE, 'Regenerate private key.')
             ->addOption('selector', null, InputOption::VALUE_REQUIRED, 'Set DKIM selector.');

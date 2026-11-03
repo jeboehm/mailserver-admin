@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Factory;
 
 use App\Entity\Domain;
-use App\Entity\User;
 use App\Exception\DomainNotFoundException;
 use App\Factory\UserFactory;
 use App\Repository\DomainRepository;
@@ -42,7 +41,6 @@ class UserFactoryTest extends TestCase
         $factory = $this->createFactory();
         $user = $factory->createFromEmailAddress($emailAddress);
 
-        $this->assertInstanceOf(User::class, $user);
         $this->assertEquals('user', $user->getName());
         $this->assertEquals($domain, $user->getDomain());
     }
@@ -98,6 +96,9 @@ class UserFactoryTest extends TestCase
         $factory->createFromEmailAddress($invalidEmail);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
     public static function invalidEmailProvider(): array
     {
         return [

@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class ARecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private DnsLookupInterface&MockObject $dns;
     private ARecordCheck $check;
 
     protected function setUp(): void

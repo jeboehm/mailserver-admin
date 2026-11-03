@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\Rspamd;
 
-use App\Service\Rspamd\DTO\HealthDto;
 use App\Service\Rspamd\RspamdClientException;
 use App\Service\Rspamd\RspamdControllerClient;
 use PHPUnit\Framework\TestCase;
@@ -38,7 +37,6 @@ final class RspamdControllerClientTest extends TestCase
 
         $health = $client->ping();
 
-        self::assertInstanceOf(HealthDto::class, $health);
         self::assertTrue($health->isOk());
         self::assertEquals('Rspamd is healthy', $health->message);
         self::assertEquals(200, $health->httpStatus);
@@ -127,7 +125,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $statData = ['scanned' => 100, 'spam_count' => 5];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($statData), ['http_code' => 200]),
+            new MockResponse(json_encode($statData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(
@@ -146,7 +144,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $graphData = [[['x' => 1234567890, 'y' => 10]]];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($graphData), ['http_code' => 200]),
+            new MockResponse(json_encode($graphData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(
@@ -165,7 +163,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $pieData = [['action' => 'reject', 'value' => 10]];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($pieData), ['http_code' => 200]),
+            new MockResponse(json_encode($pieData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(
@@ -184,7 +182,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $actionsData = [['action' => 'reject', 'value' => 15]];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($actionsData), ['http_code' => 200]),
+            new MockResponse(json_encode($actionsData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(
@@ -203,7 +201,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $countersData = [['symbol' => 'TEST_SYMBOL', 'hits' => 5]];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($countersData), ['http_code' => 200]),
+            new MockResponse(json_encode($countersData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(
@@ -222,7 +220,7 @@ final class RspamdControllerClientTest extends TestCase
     {
         $historyData = ['rows' => [['time' => 1234567890, 'action' => 'reject']]];
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($historyData), ['http_code' => 200]),
+            new MockResponse(json_encode($historyData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient(

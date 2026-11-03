@@ -88,14 +88,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
 
     /**
      * @see PasswordAuthenticatedUserInterface
+     *
+     * @return array{int|null, string, string|null, bool, bool, string}
      */
     public function __serialize(): array
     {
-        return [$this->id, $this->password, $this->domain->getName(), $this->admin, $this->domainAdmin, $this->name];
+        return [$this->id, $this->password, $this->domain?->getName() ?? $this->domainName, $this->admin, $this->domainAdmin, $this->name];
     }
 
     /**
      * @see PasswordAuthenticatedUserInterface
+     *
+     * @param array{int|null, string, string|null, bool, bool, string} $data
      */
     public function __unserialize(array $data): void
     {
@@ -231,7 +235,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, Equatab
     #[\Override]
     public function getUserIdentifier(): string
     {
-        return (string) $this;
+        $identifier = (string) $this;
+
+        if ('' === $identifier) {
+            throw new \LogicException('A user without a domain has no identifier.');
+        }
+
+        return $identifier;
     }
 
     /**

@@ -69,6 +69,7 @@ class MailboxCredentialsTest extends KernelTestCase
 
         self::assertIsArray($row['row'], 'The row is stored under the SHA-256 of the secret.');
         self::assertGreaterThanOrEqual(64, \strlen($row['secret']));
+        self::assertIsNumeric($row['row']['user_id']);
         self::assertSame($this->user->getId(), (int) $row['row']['user_id']);
         self::assertSame('short_lived', $row['row']['kind']);
         self::assertFalse((bool) $row['row']['allow_imap']);
@@ -104,6 +105,8 @@ class MailboxCredentialsTest extends KernelTestCase
                 'SELECT expires_at, CURRENT_TIMESTAMP AS database_now FROM mail_mailbox_credentials',
             );
             self::assertIsArray($row);
+            self::assertIsString($row['expires_at']);
+            self::assertIsString($row['database_now']);
 
             return new \DateTimeImmutable($row['expires_at'])->getTimestamp()
                 - new \DateTimeImmutable($row['database_now'])->getTimestamp();
@@ -210,7 +213,10 @@ class MailboxCredentialsTest extends KernelTestCase
 
     private function countRows(): int
     {
-        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM mail_mailbox_credentials');
+        $count = $this->connection->fetchOne('SELECT COUNT(*) FROM mail_mailbox_credentials');
+        self::assertIsNumeric($count);
+
+        return (int) $count;
     }
 
     private function otherUser(): User
@@ -245,6 +251,9 @@ class MailboxCredentialsTest extends KernelTestCase
 
     private function databaseNow(): string
     {
-        return (string) $this->connection->fetchOne('SELECT CURRENT_TIMESTAMP');
+        $now = $this->connection->fetchOne('SELECT CURRENT_TIMESTAMP');
+        self::assertIsString($now);
+
+        return $now;
     }
 }

@@ -35,7 +35,9 @@ class ApiTokenRevocationTest extends WebTestCase
 
         $user = new User();
         $user->setName('tokenowner');
-        $user->setDomain($this->findUser()->getDomain());
+        $domain = $this->findUser()->getDomain();
+        self::assertNotNull($domain);
+        $user->setDomain($domain);
         $user->setPassword('initial-hash');
         $this->entityManager()->persist($user);
         $this->entityManager()->flush();

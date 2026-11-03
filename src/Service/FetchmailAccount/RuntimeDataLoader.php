@@ -27,17 +27,14 @@ readonly class RuntimeDataLoader
 
     public function postLoad(FetchmailAccount $fetchmailAccount): void
     {
-        $data = $this->redis->get(RedisKeys::createRuntimeKey($fetchmailAccount->getId()));
+        $accountId = $fetchmailAccount->getId() ?? throw new \LogicException('A loaded account has an ID.');
+        $data = $this->redis->get(RedisKeys::createRuntimeKey($accountId));
 
         if (null === $data) {
             return;
         }
 
         $runtimeData = $this->serializer->deserialize($data, RuntimeData::class, 'json');
-
-        if (!$runtimeData instanceof RuntimeData) {
-            return;
-        }
 
         $fetchmailAccount->lastRun = $runtimeData->lastRun;
         $fetchmailAccount->isSuccess = $runtimeData->isSuccess;

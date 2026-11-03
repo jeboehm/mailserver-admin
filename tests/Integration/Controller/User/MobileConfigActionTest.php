@@ -49,7 +49,6 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -67,7 +66,6 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -88,7 +86,6 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);
@@ -112,7 +109,6 @@ class MobileConfigActionTest extends WebTestCase
         }
 
         $adminUrlGenerator = $this->client->getContainer()->get(AdminUrlGenerator::class);
-        \assert($adminUrlGenerator instanceof AdminUrlGenerator);
         $url = $adminUrlGenerator->setRoute('admin_mobileconfig_download')->generateUrl();
 
         $this->client->request(Request::METHOD_GET, $url);

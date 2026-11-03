@@ -18,7 +18,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class HostIpResolverTest extends TestCase
 {
-    private MockObject|HttpClientInterface $httpClient;
+    private HttpClientInterface&MockObject $httpClient;
 
     protected function setUp(): void
     {

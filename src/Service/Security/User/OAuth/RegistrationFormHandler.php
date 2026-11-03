@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Service\Security\User\OAuth;
 
+use App\Entity\User;
 use App\Exception\DomainNotFoundException;
 use App\Factory\UserFactory;
 use HWI\Bundle\OAuthBundle\Form\RegistrationFormHandlerInterface;
@@ -26,12 +27,15 @@ readonly class RegistrationFormHandler implements RegistrationFormHandlerInterfa
     ) {
     }
 
+    /**
+     * @param FormInterface<User> $form
+     */
     public function process(Request $request, FormInterface $form, UserResponseInterface $userInformation): bool
     {
         $emailAddress = method_exists($userInformation, 'getUserIdentifier')
             ? $userInformation->getUserIdentifier() : $userInformation->getUsername();
 
-        if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
+        if (null === $emailAddress || !filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
             throw new \InvalidArgumentException('No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
         }
 

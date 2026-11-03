@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class DmarcRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private DnsLookupInterface&MockObject $dns;
     private DmarcRecordCheck $check;
 
     protected function setUp(): void

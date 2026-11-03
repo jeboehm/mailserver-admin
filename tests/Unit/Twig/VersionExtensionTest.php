@@ -19,8 +19,8 @@ use PHPUnit\Framework\TestCase;
 
 class VersionExtensionTest extends TestCase
 {
-    private MockObject|ApplicationVersionService $applicationVersionService;
-    private MockObject|GitHubTagService $gitHubTagService;
+    private ApplicationVersionService&MockObject $applicationVersionService;
+    private GitHubTagService&MockObject $gitHubTagService;
     private VersionExtension $extension;
 
     protected function setUp(): void
@@ -48,6 +48,9 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, string}>
+     */
     public static function adminVersionProvider(): array
     {
         return [
@@ -71,6 +74,9 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, string}>
+     */
     public static function mailserverVersionProvider(): array
     {
         return [
@@ -108,6 +114,9 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, bool, string}>
+     */
     public static function adminUpdateAvailableProvider(): array
     {
         return [
@@ -147,6 +156,9 @@ class VersionExtensionTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, bool, string}>
+     */
     public static function mailserverUpdateAvailableProvider(): array
     {
         return [

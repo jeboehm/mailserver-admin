@@ -14,6 +14,7 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Service\Security\Access\Actor;
 use App\Service\Security\Access\ActorRole;
+use Doctrine\ORM\QueryBuilder;
 
 trait ActorFixturesTrait
 {
@@ -47,5 +48,13 @@ trait ActorFixturesTrait
     private function actor(ActorRole $role, Domain $domain): Actor
     {
         return new Actor($this->user($domain, 'actor'), $role);
+    }
+
+    private static function whereClause(QueryBuilder $qb): string
+    {
+        $where = $qb->getDQLPart('where');
+        self::assertInstanceOf(\Stringable::class, $where);
+
+        return (string) $where;
     }
 }

@@ -44,8 +44,10 @@ class TlsSmtpTransportFactoryTest extends TestCase
 
         self::assertInstanceOf(SocketStream::class, $stream);
         self::assertTrue($transport->isTlsRequired());
-        self::assertFalse($stream->getStreamOptions()['ssl']['verify_peer']);
-        self::assertFalse($stream->getStreamOptions()['ssl']['verify_peer_name']);
+        $ssl = $stream->getStreamOptions()['ssl'];
+        self::assertIsArray($ssl);
+        self::assertFalse($ssl['verify_peer']);
+        self::assertFalse($ssl['verify_peer_name']);
     }
 
     public function testTheTimeoutOutlastsAnAuthPenalty(): void

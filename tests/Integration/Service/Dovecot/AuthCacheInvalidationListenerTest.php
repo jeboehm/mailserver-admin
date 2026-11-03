@@ -28,9 +28,7 @@ final class AuthCacheInvalidationListenerTest extends KernelTestCase
         self::bootKernel();
 
         $doveadm = self::createStub(DoveadmHttpClient::class);
-        $doveadm->method('flushAuthCache')->willReturnCallback(function (array $addresses): void {
-            $this->flushed[] = $addresses;
-        });
+        $doveadm->method('flushAuthCache')->willReturnCallback($this->recordFlush(...));
         self::getContainer()->set(DoveadmHttpClient::class, $doveadm);
 
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
@@ -176,11 +174,22 @@ final class AuthCacheInvalidationListenerTest extends KernelTestCase
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $user = $entityManager->getRepository(User::class)->find($user->getId());
+        self::assertInstanceOf(User::class, $user);
         $user->setEnabled(false);
         $entityManager->flush();
         $entityManager->clear();
 
-        self::assertFalse($entityManager->getRepository(User::class)->find($user->getId())->getEnabled());
+        $reloaded = $entityManager->getRepository(User::class)->find($user->getId());
+        self::assertInstanceOf(User::class, $reloaded);
+        self::assertFalse($reloaded->getEnabled());
+    }
+
+    /**
+     * @param list<string> $addresses
+     */
+    private function recordFlush(array $addresses): void
+    {
+        $this->flushed[] = $addresses;
     }
 
     private function createExistingUser(string $name, bool $enabled = true): User

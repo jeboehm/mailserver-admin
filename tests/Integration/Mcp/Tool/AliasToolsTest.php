@@ -141,7 +141,7 @@ class AliasToolsTest extends WebTestCase
     {
         $result = $this->call(self::DOMAIN_ADMIN, 'alias_create', ['name' => 'sales', 'destination' => 'target@elsewhere.example.net']);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertStringContainsString('already', $result['content'][0]['text']);
     }
 

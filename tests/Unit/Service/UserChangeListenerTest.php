@@ -20,8 +20,8 @@ use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 class UserChangeListenerTest extends TestCase
 {
     private UserChangeListener $subject;
-    private MockObject|PasswordHasherFactoryInterface $passwordHasherFactory;
-    private MockObject|PasswordHasherInterface $passwordHasher;
+    private PasswordHasherFactoryInterface&MockObject $passwordHasherFactory;
+    private PasswordHasherInterface&MockObject $passwordHasher;
 
     protected function setUp(): void
     {

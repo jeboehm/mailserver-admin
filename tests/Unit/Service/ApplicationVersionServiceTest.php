@@ -25,6 +25,9 @@ class ApplicationVersionServiceTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, string}>
+     */
     public static function adminVersionProvider(): array
     {
         return [
@@ -49,6 +52,9 @@ class ApplicationVersionServiceTest extends TestCase
         $this->assertEquals($expectedResult, $result, $description);
     }
 
+    /**
+     * @return array<string, array{string|null, string|null, string}>
+     */
     public static function mailserverVersionProvider(): array
     {
         return [

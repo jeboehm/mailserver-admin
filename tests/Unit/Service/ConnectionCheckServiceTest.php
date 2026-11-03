@@ -28,11 +28,11 @@ use Predis\ClientInterface;
 #[AllowMockObjectsWithoutExpectations]
 class ConnectionCheckServiceTest extends TestCase
 {
-    private MockObject|UserRepository $userRepository;
-    private MockObject|EntityManagerInterface $entityManager;
-    private MockObject|ClientInterface $redis;
-    private MockObject|DoveadmHttpClient $doveadmHttpClient;
-    private MockObject|RspamdControllerClient $rspamdControllerClient;
+    private UserRepository&MockObject $userRepository;
+    private EntityManagerInterface&MockObject $entityManager;
+    private ClientInterface&MockObject $redis;
+    private DoveadmHttpClient&MockObject $doveadmHttpClient;
+    private RspamdControllerClient&MockObject $rspamdControllerClient;
     private ConnectionCheckService $service;
 
     protected function setUp(): void
@@ -67,6 +67,9 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedContain, $result);
     }
 
+    /**
+     * @return array<string, array{string, string}>
+     */
     public static function databaseErrorProvider(): array
     {
         return [
@@ -157,6 +160,9 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedContain, $result);
     }
 
+    /**
+     * @return array<string, array{string, string}>
+     */
     public static function redisErrorProvider(): array
     {
         return [
@@ -220,6 +226,9 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedMessage, $result);
     }
 
+    /**
+     * @return array<string, array{string, string}>
+     */
     public static function doveadmErrorProvider(): array
     {
         return [
@@ -264,6 +273,9 @@ class ConnectionCheckServiceTest extends TestCase
         $this->assertStringContainsString($expectedMessage, $result);
     }
 
+    /**
+     * @return array<string, array{string, string}>
+     */
     public static function rspamdErrorProvider(): array
     {
         return [
@@ -291,12 +303,7 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll();
 
-        $this->assertArrayHasKey('database', $result);
-        $this->assertArrayHasKey('redis', $result);
-        $this->assertArrayNotHasKey('doveadm', $result);
-        $this->assertArrayNotHasKey('rspamd', $result);
-        $this->assertNull($result['database']);
-        $this->assertNull($result['redis']);
+        $this->assertSame(['database' => null, 'redis' => null], $result);
     }
 
     public function testCheckAllWithAllServices(): void
@@ -325,18 +332,7 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(true);
 
-        $this->assertArrayHasKey('database', $result);
-        $this->assertArrayHasKey('redis', $result);
-        $this->assertArrayHasKey('doveadm', $result);
-        $this->assertArrayHasKey('rspamd', $result);
-        $this->assertNull($result['database']);
-        $this->assertNull($result['redis']);
-        if (isset($result['doveadm'])) {
-            $this->assertNull($result['doveadm']);
-        }
-        if (isset($result['rspamd'])) {
-            $this->assertNull($result['rspamd']);
-        }
+        $this->assertSame(['database' => null, 'redis' => null, 'doveadm' => null, 'rspamd' => null], $result);
     }
 
     public function testCheckAllWithFailures(): void
@@ -427,12 +423,7 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(false, true);
 
-        $this->assertArrayHasKey('database', $result);
-        $this->assertArrayHasKey('redis', $result);
-        $this->assertArrayNotHasKey('doveadm', $result);
-        $this->assertArrayNotHasKey('rspamd', $result);
-        $this->assertNull($result['database']);
-        $this->assertNull($result['redis']);
+        $this->assertSame(['database' => null, 'redis' => null], $result);
     }
 
     public function testCheckAllWithAllowEmptyDatabaseAndAllServices(): void
@@ -469,17 +460,6 @@ class ConnectionCheckServiceTest extends TestCase
 
         $result = $this->service->checkAll(true, true);
 
-        $this->assertArrayHasKey('database', $result);
-        $this->assertArrayHasKey('redis', $result);
-        $this->assertArrayHasKey('doveadm', $result);
-        $this->assertArrayHasKey('rspamd', $result);
-        $this->assertNull($result['database']);
-        $this->assertNull($result['redis']);
-        if (isset($result['doveadm'])) {
-            $this->assertNull($result['doveadm']);
-        }
-        if (isset($result['rspamd'])) {
-            $this->assertNull($result['rspamd']);
-        }
+        $this->assertSame(['database' => null, 'redis' => null, 'doveadm' => null, 'rspamd' => null], $result);
     }
 }

@@ -61,7 +61,7 @@ readonly class RspamdControllerClient
             $response = $this->request('GET', '/ping');
             $latencyMs = (microtime(true) - $startTime) * 1000;
             $statusCode = $response['_status_code'];
-            $content = $response['_content'] ?? '';
+            $content = $response['_content'];
 
             if (200 === $statusCode && 'pong' === strtolower(trim($content))) {
                 return HealthDto::ok('Rspamd is healthy', $latencyMs);
@@ -86,7 +86,7 @@ readonly class RspamdControllerClient
     /**
      * Get statistics from /stat endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function stat(): array
     {
@@ -96,7 +96,7 @@ readonly class RspamdControllerClient
     /**
      * Get time series data from /graph endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function graph(string $type = 'day'): array
     {
@@ -106,7 +106,7 @@ readonly class RspamdControllerClient
     /**
      * Get action distribution from /pie endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function pie(): array
     {
@@ -116,7 +116,7 @@ readonly class RspamdControllerClient
     /**
      * Get action thresholds from /actions endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function actions(): array
     {
@@ -126,7 +126,7 @@ readonly class RspamdControllerClient
     /**
      * Get symbol counters from /counters endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function counters(): array
     {
@@ -136,7 +136,7 @@ readonly class RspamdControllerClient
     /**
      * Get scan history from /history endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function history(int $limit = 100): array
     {
@@ -146,7 +146,7 @@ readonly class RspamdControllerClient
     /**
      * Get symbol information from /symbols endpoint.
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     public function symbols(): array
     {
@@ -156,12 +156,12 @@ readonly class RspamdControllerClient
     /**
      * @param array<string, mixed> $query
      *
-     * @return array<string, mixed>
+     * @return array<int|string, mixed>
      */
     private function requestJson(string $method, string $endpoint, array $query = []): array
     {
         $response = $this->request($method, $endpoint, $query);
-        $content = $response['_content'] ?? '';
+        $content = $response['_content'];
 
         if ('' === $content) {
             return [];
@@ -183,7 +183,7 @@ readonly class RspamdControllerClient
     /**
      * @param array<string, mixed> $query
      *
-     * @return array<string, mixed>
+     * @return array{_status_code: int, _content: string}
      */
     private function request(string $method, string $endpoint, array $query = []): array
     {

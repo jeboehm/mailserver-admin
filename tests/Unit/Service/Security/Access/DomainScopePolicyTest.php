@@ -48,7 +48,7 @@ class DomainScopePolicyTest extends TestCase
 
         $this->policy->restrictToVisibleDomains($qb, $this->actor(ActorRole::DomainAdmin, $domain));
 
-        self::assertSame('entity.domain = :domain', (string) $qb->getDQLPart('where'));
+        self::assertSame('entity.domain = :domain', self::whereClause($qb));
         self::assertSame($domain, $qb->getParameter('domain')?->getValue());
     }
 
@@ -58,7 +58,7 @@ class DomainScopePolicyTest extends TestCase
 
         $this->policy->restrictToVisibleDomains($qb, $this->actor(ActorRole::User, $this->domain()));
 
-        self::assertSame('1 = 0', (string) $qb->getDQLPart('where'));
+        self::assertSame('1 = 0', self::whereClause($qb));
     }
 
     public function testDomainAdminWithoutDomainIsAnError(): void
