@@ -34,9 +34,18 @@ final readonly class UserPolicy
         $user->setDomainAdmin($actor->isDomainAdmin());
     }
 
+    /**
+     * A domain admin may not change an admin, even in their own domain: a password reset would take
+     * over the account. Call this before the new values are applied, as it reads the admin flag.
+     */
+    public function canModify(Actor $actor, User $user): bool
+    {
+        return $actor->managesDomain($user->getDomain()) && ($actor->isAdmin() || !$user->isAdmin());
+    }
+
     public function canDelete(Actor $actor, User $user): bool
     {
-        return !$actor->isSelf($user) && $actor->managesDomain($user->getDomain());
+        return !$actor->isSelf($user) && $this->canModify($actor, $user);
     }
 
     /**

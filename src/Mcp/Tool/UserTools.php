@@ -149,7 +149,7 @@ final readonly class UserTools
      */
     #[McpTool(
         name: 'user_update',
-        description: 'Updates a mail user; arguments left out stay as they are. Name and domain cannot be changed. On your own user, role and enabled state stay as they are. Changing a password revokes the API tokens of that user, including this one if it is your own.',
+        description: 'Updates a mail user; arguments left out stay as they are. Name and domain cannot be changed. Domain admins cannot change admins. On your own user, role and enabled state stay as they are. Changing a password revokes the API tokens of that user, including this one if it is your own.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
@@ -164,7 +164,7 @@ final readonly class UserTools
         ?bool $send_only = null,
     ): array {
         $actor = $this->currentActor->get();
-        $user = $this->findManaged($actor, $id);
+        $user = ToolDeniedException::unlessAllowed($this->users->find($id), fn (User $user): bool => $this->userPolicy->canModify($actor, $user));
 
         $this->setAdminFlag($actor, $user, $admin);
 
@@ -203,7 +203,7 @@ final readonly class UserTools
      */
     #[McpTool(
         name: 'user_delete',
-        description: 'Deletes a mail user. You cannot delete yourself.',
+        description: 'Deletes a mail user. You cannot delete yourself, and domain admins cannot delete admins.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]

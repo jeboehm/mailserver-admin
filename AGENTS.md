@@ -236,6 +236,7 @@ This ensures:
 ### Security
 
 - **Role Hierarchy**: `ROLE_ADMIN > ROLE_DOMAIN_ADMIN > ROLE_USER`
+- **Protected admins**: A domain admin can read a user with the `admin` flag in their domain, but not change or delete them. `UserPolicy::canModify()` and `canDelete()` hold the rule for the web interface and the MCP tools.
 - **OAuth2**: Configurable via environment variables
 - **CSRF Protection**: Configurable via `CSRF_ENABLED` env var
 - **Form Login**: Traditional username/password authentication

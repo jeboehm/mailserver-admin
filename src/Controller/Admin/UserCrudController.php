@@ -17,6 +17,7 @@ use App\Service\Security\Access\DomainScopePolicy;
 use App\Service\Security\Access\UserPolicy;
 use App\Service\Security\Roles;
 use App\Service\Security\Voter\DomainAdminVoter;
+use App\Service\Security\Voter\UserModifyVoter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
@@ -155,14 +156,13 @@ class UserCrudController extends GuardedDeleteCrudController
     {
         $actor = $this->currentActor->get();
         $userPolicy = $this->userPolicy;
+        $offerDeleteIfAllowed = static fn (Action $action): Action => $action->displayIf(static fn (User $user) => $userPolicy->canDelete($actor, $user));
 
         return parent::configureActions($actions)
             ->disable(Action::BATCH_DELETE)
-            ->update(Crud::PAGE_INDEX, Action::DELETE, static function (Action $action) use ($actor, $userPolicy): Action {
-                $action->displayIf(static fn (User $user) => $userPolicy->canDelete($actor, $user));
-
-                return $action;
-            });
+            ->setPermission(Action::EDIT, UserModifyVoter::MODIFY)
+            ->update(Crud::PAGE_INDEX, Action::DELETE, $offerDeleteIfAllowed)
+            ->update(Crud::PAGE_DETAIL, Action::DELETE, $offerDeleteIfAllowed);
     }
 
     #[\Override]

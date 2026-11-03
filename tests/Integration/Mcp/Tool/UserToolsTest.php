@@ -327,6 +327,55 @@ class UserToolsTest extends WebTestCase
         self::assertSame(0, $peer->getQuota());
     }
 
+    public function testDomainAdminCannotUpdateAnAdminOfTheirDomain(): void
+    {
+        $admin = $this->findUser(self::ADMIN);
+        $password = $admin->getPassword();
+        $id = (int) $admin->getId();
+
+        $result = $this->call(self::DOMAIN_ADMIN, 'user_update', ['id' => $id, 'password' => self::STRONG_PASSWORD, 'enabled' => false]);
+
+        $this->assertToolDenied($result);
+        self::assertSame($this->call(self::DOMAIN_ADMIN, 'user_update', ['id' => self::MISSING_ID, 'enabled' => false]), $result);
+        self::assertSame('denied', $this->lastAuditRecord()->context['result']);
+
+        $this->entityManager()->clear();
+        $admin = $this->findUser(self::ADMIN);
+        self::assertSame($password, $admin->getPassword());
+        self::assertTrue($admin->getEnabled());
+    }
+
+    public function testDomainAdminCannotDeleteAnAdminOfTheirDomain(): void
+    {
+        $id = $this->userId(self::ADMIN);
+
+        $this->assertToolDenied($this->call(self::DOMAIN_ADMIN, 'user_delete', ['id' => $id]));
+
+        self::assertInstanceOf(User::class, $this->repository()->find($id));
+    }
+
+    public function testDomainAdminStillReadsAnAdminOfTheirDomain(): void
+    {
+        $user = $this->assertToolSucceeded($this->call(self::DOMAIN_ADMIN, 'user_get', ['id' => $this->userId(self::ADMIN)]));
+        $page = $this->assertToolSucceeded($this->call(self::DOMAIN_ADMIN, 'user_list'));
+
+        self::assertTrue($user['admin']);
+        self::assertContains(self::ADMIN, $this->pageColumn($page, 'address'));
+    }
+
+    public function testAdminStillUpdatesAndDeletesAnotherAdmin(): void
+    {
+        $peer = $this->findUser(self::PEER);
+        $peer->setAdmin(true);
+        $this->entityManager()->flush();
+        $id = (int) $peer->getId();
+
+        self::assertSame(750, $this->assertToolSucceeded($this->call(self::ADMIN, 'user_update', ['id' => $id, 'quota' => 750]))['quota']);
+
+        $this->assertToolSucceeded($this->call(self::ADMIN, 'user_delete', ['id' => $id]));
+        self::assertNull($this->repository()->find($id));
+    }
+
     public function testAdminSetsTheAdminFlag(): void
     {
         $updated = $this->assertToolSucceeded($this->call(self::ADMIN, 'user_update', ['id' => $this->userId(self::PEER), 'admin' => true]));
