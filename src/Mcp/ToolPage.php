@@ -49,6 +49,7 @@ final class ToolPage
         self::assertRange($limit, $offset);
 
         $queryBuilder->setFirstResult($offset)->setMaxResults($limit);
+        /** @var Paginator<T> $paginator */
         $paginator = new Paginator($queryBuilder, false);
 
         $items = [];

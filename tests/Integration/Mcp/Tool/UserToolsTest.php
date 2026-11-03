@@ -204,13 +204,11 @@ class UserToolsTest extends WebTestCase
     {
         $secret = $this->storeToken($this->findUser(self::ADMIN));
 
-        $response = $this->mcpRequest('tools/list', [], 'Bearer ' . $secret, $this->initialiseSession($secret));
-        $tools = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR)['result']['tools'];
-        $tool = $tools[array_search('user_create', array_column($tools, 'name'), true)];
+        $tool = $this->toolDefinition($secret, $this->initialiseSession($secret), 'user_create');
 
-        self::assertContains('name', $tool['inputSchema']['required']);
+        self::assertContains('name', $tool['inputSchema']['required'] ?? []);
         self::assertContains('password', $tool['inputSchema']['required']);
-        self::assertStringContainsString('context of the agent', $tool['inputSchema']['properties']['password']['description']);
+        self::assertStringContainsString('context of the agent', $tool['inputSchema']['properties']['password']['description'] ?? '');
     }
 
     public function testPasswordOfTheWrongTypeIsNotEchoedEither(): void
@@ -238,7 +236,7 @@ class UserToolsTest extends WebTestCase
     {
         $result = $this->call(self::DOMAIN_ADMIN, 'user_create', ['name' => 'peer', 'password' => self::STRONG_PASSWORD]);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertStringNotContainsString(self::STRONG_PASSWORD, (string) json_encode($result));
     }
 

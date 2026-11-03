@@ -52,7 +52,8 @@ final readonly class BodyDecoder
 
         if (!\in_array($charset, ['UTF-8', 'UTF8', 'US-ASCII'], true)) {
             try {
-                $bytes = mb_convert_encoding($bytes, 'UTF-8', $charset);
+                $converted = mb_convert_encoding($bytes, 'UTF-8', $charset);
+                $bytes = false === $converted ? $bytes : $converted;
             } catch (\ValueError) {
                 // An unknown charset: all that can be promised is that the result is valid.
             }

@@ -19,7 +19,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
 {
     private string $tempDir;
     private AppSecretGeneratorCompilerPass $compilerPass;
-    private MockObject|ContainerBuilder $containerBuilderMock;
+    private ContainerBuilder&MockObject $containerBuilderMock;
 
     protected function setUp(): void
     {
@@ -77,6 +77,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
         $this->compilerPass->process($this->containerBuilderMock);
 
         $newSecret = file_get_contents($this->tempDir . '/app.secret');
+        $this->assertIsString($newSecret);
         $this->assertEquals(12, \strlen($newSecret));
         $this->assertNotEquals($shortSecret, $newSecret);
     }
@@ -98,6 +99,7 @@ class AppSecretGeneratorCompilerPassTest extends TestCase
 
         $this->assertFileExists($this->tempDir . '/app.secret');
         $newSecret = file_get_contents($this->tempDir . '/app.secret');
+        $this->assertIsString($newSecret);
         $this->assertEquals(12, \strlen($newSecret));
     }
 

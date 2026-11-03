@@ -55,7 +55,9 @@ final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriber
             return;
         }
 
-        if ($token->getAttribute(CurrentApiToken::TOKEN_ATTRIBUTE)->markUsed(new \DateTimeImmutable())) {
+        $apiToken = $token->getAttribute(CurrentApiToken::TOKEN_ATTRIBUTE);
+
+        if ($apiToken instanceof ApiToken && $apiToken->markUsed(new \DateTimeImmutable())) {
             $this->entityManager->flush();
         }
     }

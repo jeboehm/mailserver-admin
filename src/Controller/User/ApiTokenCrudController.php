@@ -134,6 +134,7 @@ class ApiTokenCrudController extends AbstractCrudController
     {
         $maxLifetimeDays = $this->apiTokenIssuer->maxLifetimeDays();
         $form = $this->createForm(ApiTokenType::class, [
+            'name' => '',
             'scopes' => ApiTokenScope::PRESELECTED,
             'lifetimeDays' => $maxLifetimeDays,
         ], ['max_lifetime_days' => $maxLifetimeDays]);

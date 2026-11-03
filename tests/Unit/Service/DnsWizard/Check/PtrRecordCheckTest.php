@@ -23,7 +23,7 @@ use PHPUnit\Framework\TestCase;
 #[AllowMockObjectsWithoutExpectations]
 class PtrRecordCheckTest extends TestCase
 {
-    private MockObject|DnsLookupInterface $dns;
+    private DnsLookupInterface&MockObject $dns;
     private PtrRecordCheck $check;
 
     protected function setUp(): void

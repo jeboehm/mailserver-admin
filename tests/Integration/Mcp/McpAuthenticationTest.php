@@ -48,13 +48,12 @@ class McpAuthenticationTest extends WebTestCase
 
         $result = $this->callTool($secret, $sessionId, 'whoami');
 
-        self::assertFalse($result['isError'] ?? false);
         self::assertSame([
             'user' => 'admin@example.com',
             'role' => 'admin',
             'domain' => 'example.com',
             'scopes' => ['manage:read', 'mail:read'],
-        ], $result['structuredContent']);
+        ], $this->assertToolSucceeded($result));
     }
 
     public function testRequestStartsNoWebSession(): void
@@ -146,20 +145,20 @@ class McpAuthenticationTest extends WebTestCase
         $secret = $this->storeToken($this->findUser());
         $sessionId = $this->initialiseSession($secret);
 
-        self::assertSame('admin', $this->callTool($secret, $sessionId, 'whoami')['structuredContent']['role']);
+        self::assertSame('admin', $this->assertToolSucceeded($this->callTool($secret, $sessionId, 'whoami'))['role']);
 
         $user = $this->findUser();
         $user->setAdmin(false);
         $user->setDomainAdmin(true);
         $this->flush();
 
-        self::assertSame('domain_admin', $this->callTool($secret, $sessionId, 'whoami')['structuredContent']['role']);
+        self::assertSame('domain_admin', $this->assertToolSucceeded($this->callTool($secret, $sessionId, 'whoami'))['role']);
 
         $user = $this->findUser();
         $user->setDomainAdmin(false);
         $this->flush();
 
-        self::assertSame('user', $this->callTool($secret, $sessionId, 'whoami')['structuredContent']['role']);
+        self::assertSame('user', $this->assertToolSucceeded($this->callTool($secret, $sessionId, 'whoami'))['role']);
     }
 
     public function testSuccessfulRequestRecordsLastUse(): void

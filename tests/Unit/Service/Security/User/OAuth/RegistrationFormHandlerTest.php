@@ -27,6 +27,7 @@ class RegistrationFormHandlerTest extends TestCase
 {
     private MockObject&UserFactory $userFactory;
     private MockObject&LoggerInterface $logger;
+    /** @var MockObject&FormInterface<User> */
     private MockObject&FormInterface $form;
     private MockObject&PathUserResponse $userInformation;
     private RegistrationFormHandler $subject;
@@ -314,6 +315,9 @@ class RegistrationFormHandlerTest extends TestCase
         $this->subject->process($request, $this->form, $this->userInformation);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
     public static function invalidEmailProvider(): array
     {
         return [

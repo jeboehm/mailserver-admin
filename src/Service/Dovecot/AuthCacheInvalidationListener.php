@@ -72,9 +72,11 @@ final class AuthCacheInvalidationListener
             }
 
             $addresses[] = $this->address($entity->getName(), $entity->getDomain());
+            $previousName = $changes['name'][0] ?? null;
+            $previousDomain = $changes['domain'][0] ?? null;
             $addresses[] = $this->address(
-                $changes['name'][0] ?? $entity->getName(),
-                $changes['domain'][0] ?? $entity->getDomain(),
+                \is_string($previousName) ? $previousName : $entity->getName(),
+                $previousDomain instanceof Domain ? $previousDomain : $entity->getDomain(),
             );
         }
 

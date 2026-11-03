@@ -53,12 +53,13 @@ class OAuthRegisterTypeTest extends TestCase
                 'plainPassword',
                 RepeatedType::class,
                 $this->callback(static function (array $options): bool {
+                    self::assertIsArray($options['first_options']);
+                    self::assertIsArray($options['second_options']);
+
                     return PasswordType::class === $options['type']
                         && true === $options['required']
-                        && isset($options['first_options']['label'])
-                        && 'New password' === $options['first_options']['label']
-                        && isset($options['second_options']['label'])
-                        && 'Repeat new password' === $options['second_options']['label'];
+                        && 'New password' === ($options['first_options']['label'] ?? null)
+                        && 'Repeat new password' === ($options['second_options']['label'] ?? null);
                 })
             )
             ->willReturnSelf();

@@ -104,7 +104,7 @@ final readonly class MailboxCredentials
      */
     private function liveImapCredentials(User $user): int
     {
-        return (int) $this->connection->fetchOne(
+        $count = $this->connection->fetchOne(
             \sprintf(
                 'SELECT COUNT(*) FROM %s WHERE user_id = ? AND kind = ? AND allow_imap = ? AND expires_at > CURRENT_TIMESTAMP',
                 MailboxCredential::TABLE,
@@ -112,6 +112,8 @@ final readonly class MailboxCredentials
             [$user->getId(), MailboxCredentialKind::ShortLived->value, true],
             [ParameterType::INTEGER, ParameterType::STRING, ParameterType::BOOLEAN],
         );
+
+        return is_numeric($count) ? (int) $count : 0;
     }
 
     private function purgeExpired(): void

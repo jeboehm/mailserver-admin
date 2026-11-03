@@ -67,7 +67,9 @@ class ActorTest extends TestCase
 
     public function testTheErrorStaysARuntimeException(): void
     {
-        self::assertInstanceOf(\RuntimeException::class, new DomainAdminWithoutDomainException());
+        $this->expectException(\RuntimeException::class);
+
+        new Actor(new User(), ActorRole::DomainAdmin)->ownDomain();
     }
 
     public function testDomainComparisonSurvivesADetachedCopy(): void

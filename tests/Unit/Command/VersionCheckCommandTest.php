@@ -21,8 +21,8 @@ use Symfony\Component\Console\Tester\CommandTester;
 class VersionCheckCommandTest extends TestCase
 {
     private CommandTester $commandTester;
-    private MockObject|ApplicationVersionService $applicationVersionService;
-    private MockObject|GitHubTagService $gitHubTagService;
+    private ApplicationVersionService&MockObject $applicationVersionService;
+    private GitHubTagService&MockObject $gitHubTagService;
 
     protected function setUp(): void
     {

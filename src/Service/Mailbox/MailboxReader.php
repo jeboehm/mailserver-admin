@@ -75,10 +75,14 @@ final readonly class MailboxReader
         return $this->sessions->run($user, function (ImapConnection $connection) use ($mailbox, $criteria, $limit, $offset): MessageSearchPage {
             $this->open($connection, $mailbox);
 
-            $uids = array_map(
-                static fn (Token $token): int => (int) $token->value,
-                $connection->search($criteria->toSearchArguments())->tokensAfter(2),
-            );
+            $uids = [];
+
+            foreach ($connection->search($criteria->toSearchArguments())->tokensAfter(2) as $token) {
+                if ($token instanceof Token) {
+                    $uids[] = (int) $token->value;
+                }
+            }
+
             rsort($uids);
 
             $page = \array_slice($uids, $offset, $limit);
@@ -90,6 +94,10 @@ final readonly class MailboxReader
             $envelopes = [];
 
             foreach ($connection->fetch($this->envelopeItems(), $page) as $response) {
+                if (!$response instanceof UntaggedResponse) {
+                    continue;
+                }
+
                 $envelope = $this->envelope($this->fetchData($response));
                 $envelopes[$envelope->uid] = $envelope;
             }
@@ -161,8 +169,8 @@ final readonly class MailboxReader
         return new MailboxSummary(
             $name,
             $attributes,
-            (int) $counters->lookup('MESSAGES')?->value,
-            (int) $counters->lookup('UNSEEN')?->value,
+            $this->intValue($counters, 'MESSAGES'),
+            $this->intValue($counters, 'UNSEEN'),
         );
     }
 
@@ -197,12 +205,19 @@ final readonly class MailboxReader
         $receivedAt = $data->lookup('INTERNALDATE');
 
         return new MessageEnvelope(
-            (int) $data->lookup('UID')?->value,
+            $this->intValue($data, 'UID'),
             $flags instanceof ListData ? array_values(array_filter($flags->values(), 'is_string')) : [],
-            (int) $data->lookup('RFC822.SIZE')?->value,
+            $this->intValue($data, 'RFC822.SIZE'),
             $receivedAt instanceof Token ? $this->isoDate($receivedAt->value) : null,
             $this->headers($this->sectionValue($data, '[HEADER.FIELDS') ?? ''),
         );
+    }
+
+    private function intValue(ListData $data, string $field): int
+    {
+        $token = $data->lookup($field);
+
+        return $token instanceof Token ? (int) $token->value : 0;
     }
 
     private function isoDate(string $internalDate): ?string

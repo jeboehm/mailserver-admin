@@ -392,7 +392,7 @@ class ToolGateTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<mixed>
      */
     private function singleAuditRecord(): array
     {

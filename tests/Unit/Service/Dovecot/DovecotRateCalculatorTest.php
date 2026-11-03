@@ -11,7 +11,6 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\Dovecot;
 
 use App\Service\Dovecot\DovecotRateCalculator;
-use App\Service\Dovecot\DTO\RateSeriesDto;
 use App\Service\Dovecot\DTO\StatsDumpDto;
 use PHPUnit\Framework\TestCase;
 
@@ -35,7 +34,6 @@ final class DovecotRateCalculatorTest extends TestCase
 
         $result = $this->calculator->calculateRateSeries($samples, 'num_logins');
 
-        self::assertInstanceOf(RateSeriesDto::class, $result);
         self::assertTrue($result->isEmpty());
         self::assertEmpty($result->rates);
         self::assertEmpty($result->timestamps);
@@ -45,7 +43,6 @@ final class DovecotRateCalculatorTest extends TestCase
     {
         $result = $this->calculator->calculateRateSeries([], 'num_logins');
 
-        self::assertInstanceOf(RateSeriesDto::class, $result);
         self::assertTrue($result->isEmpty());
     }
 
@@ -176,8 +173,6 @@ final class DovecotRateCalculatorTest extends TestCase
 
         self::assertArrayHasKey('auth_successes', $result);
         self::assertArrayHasKey('auth_failures', $result);
-        self::assertInstanceOf(RateSeriesDto::class, $result['auth_successes']);
-        self::assertInstanceOf(RateSeriesDto::class, $result['auth_failures']);
         self::assertEqualsWithDelta(60.0, $result['auth_successes']->rates[0], 0.001);
         self::assertEqualsWithDelta(10.0, $result['auth_failures']->rates[0], 0.001);
     }
@@ -253,7 +248,6 @@ final class DovecotRateCalculatorTest extends TestCase
 
         $result = $this->calculator->calculateLoginRates($samples);
 
-        self::assertInstanceOf(RateSeriesDto::class, $result);
         self::assertSame('num_logins', $result->counterName);
         self::assertSame('/min', $result->unit);
         self::assertEqualsWithDelta(60.0, $result->rates[0], 0.001);
@@ -274,7 +268,6 @@ final class DovecotRateCalculatorTest extends TestCase
 
         $result = $this->calculator->calculateMailDeliveryRates($samples);
 
-        self::assertInstanceOf(RateSeriesDto::class, $result);
         self::assertSame('mail_deliveries', $result->counterName);
         self::assertSame('/min', $result->unit);
     }

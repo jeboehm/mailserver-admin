@@ -29,6 +29,9 @@ class FormatterServiceTest extends TestCase
         $this->assertEquals($expect, $this->instance->getTXTRecord($publicKey, $algorithm));
     }
 
+    /**
+     * @return list<array{string, string, string}>
+     */
     public static function dataProviderForTestGetTXTRecord(): array
     {
         return [

@@ -14,13 +14,13 @@ use App\Entity\Alias;
 use App\Entity\Domain;
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
-use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Field\FormField;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Integration\Helper\CsrfTokenTrait;
@@ -179,6 +179,7 @@ class AccessRulesTest extends WebTestCase
         $this->loginClient($this->client, self::DOMAIN_ADMIN);
         $crawler = $this->client->request(Request::METHOD_GET, '/user/new');
         $values = $crawler->selectButton('Create')->form()->getPhpValues();
+        static::assertIsArray($values['User']);
         $values['User']['name'] = 'smuggled';
         $values['User']['plainPassword'] = ['first' => 'password123', 'second' => 'password123'];
         $values['User']['quota'] = '0';
@@ -237,7 +238,9 @@ class AccessRulesTest extends WebTestCase
 
         $crawler = $this->client->request(Request::METHOD_GET, '/user/new');
 
-        static::assertSame((string) $domain->getId(), $crawler->selectButton('Create')->form()->get('User[domain]')->getValue());
+        $field = $crawler->selectButton('Create')->form()->get('User[domain]');
+        static::assertInstanceOf(FormField::class, $field);
+        static::assertSame((string) $domain->getId(), $field->getValue());
     }
 
     public function testDomainAdminCannotDropOwnRoleOrDisableThemselves(): void
@@ -388,6 +391,7 @@ class AccessRulesTest extends WebTestCase
         $this->loginClient($this->client, self::REGULAR_USER);
         $crawler = $this->client->request(Request::METHOD_GET, '/fetchmail-account/new');
         $values = $crawler->selectButton('Create')->form()->getPhpValues();
+        static::assertIsArray($values['FetchmailAccount']);
         $values['FetchmailAccount'] = array_merge($values['FetchmailAccount'], [
             'user' => (string) $this->foreignUserId,
             'host' => 'smuggled.example.net',
@@ -751,7 +755,6 @@ class AccessRulesTest extends WebTestCase
     private function findUser(string $emailAddress): User
     {
         $repository = $this->entityManager->getRepository(User::class);
-        \assert($repository instanceof UserRepository);
         $user = $repository->findOneByEmailAddress($emailAddress);
         static::assertInstanceOf(User::class, $user);
 

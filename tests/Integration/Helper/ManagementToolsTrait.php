@@ -16,7 +16,6 @@ use App\Entity\FetchmailAccount;
 use App\Entity\User;
 use App\Mcp\ToolDeniedException;
 use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Handler\TestHandler;
 use Monolog\LogRecord;
 
 /**
@@ -127,7 +126,7 @@ trait ManagementToolsTrait
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed> the JSON-RPC result
+     * @return array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} the JSON-RPC result
      */
     private function call(string $as, string $tool, array $arguments = []): array
     {
@@ -137,20 +136,7 @@ trait ManagementToolsTrait
     }
 
     /**
-     * @param array<string, mixed> $result
-     *
-     * @return array<string, mixed>
-     */
-    private function assertToolSucceeded(array $result): array
-    {
-        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
-        self::assertIsArray($result['structuredContent'] ?? null, (string) json_encode($result));
-
-        return $result['structuredContent'];
-    }
-
-    /**
-     * @param array<string, mixed> $result
+     * @param array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result
      */
     private function assertToolDenied(array $result): void
     {
@@ -161,7 +147,7 @@ trait ManagementToolsTrait
     /**
      * A refusal that explains itself, as opposed to the shared denial.
      *
-     * @param array<string, mixed> $result
+     * @param array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result
      */
     private function assertToolRejectedField(array $result, string $field): void
     {
@@ -172,7 +158,6 @@ trait ManagementToolsTrait
     private function lastAuditRecord(): LogRecord
     {
         $handler = $this->client->getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
 
         $records = $handler->getRecords();
         self::assertNotEmpty($records);
@@ -187,6 +172,22 @@ trait ManagementToolsTrait
      */
     private function pageColumn(array $page, string $column): array
     {
-        return array_column($page['items'], $column);
+        return array_column($this->pageItems($page), $column);
+    }
+
+    /**
+     * @param array<string, mixed> $page
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function pageItems(array $page): array
+    {
+        self::assertArrayHasKey('items', $page);
+        self::assertIsArray($page['items']);
+
+        /** @var list<array<string, mixed>> $items */
+        $items = $page['items'];
+
+        return $items;
     }
 }

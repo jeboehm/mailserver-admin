@@ -16,13 +16,13 @@ use App\Mcp\ToolDeniedException;
 use App\Service\ApiToken\ApiTokenScope;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Handler\TestHandler;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Integration\Helper\FakeImapServer;
 use Tests\Integration\Helper\FakeSmtpServer;
+use Tests\Integration\Helper\MailToolOutputTrait;
 use Tests\Integration\Helper\McpClientTrait;
 
 /**
@@ -31,6 +31,7 @@ use Tests\Integration\Helper\McpClientTrait;
  */
 class MailSendToolsTest extends WebTestCase
 {
+    use MailToolOutputTrait;
     use McpClientTrait;
 
     private const array LIMIT_VARIABLES = [
@@ -126,12 +127,10 @@ class MailSendToolsTest extends WebTestCase
     {
         $this->servers();
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailSend]);
-        $response = $this->mcpRequest('tools/list', [], 'Bearer ' . $secret, $this->initialiseSession($secret));
-        $tools = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR)['result']['tools'];
-        $tool = array_values(array_filter($tools, static fn (array $tool): bool => 'message_send' === $tool['name']))[0];
+        $tool = $this->toolDefinition($secret, $this->initialiseSession($secret), 'message_send');
 
-        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc'], array_keys($tool['inputSchema']['properties']));
-        self::assertSame('string', $tool['inputSchema']['properties']['to']['items']['type']);
+        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc'], array_keys($tool['inputSchema']['properties'] ?? []));
+        self::assertSame('string', $tool['inputSchema']['properties']['to']['items']['type'] ?? null);
     }
 
     /**
@@ -218,7 +217,7 @@ class MailSendToolsTest extends WebTestCase
         self::assertCount(1, $seen['imap']);
         self::assertTrue((bool) $seen['imap'][0]['allow_imap']);
         self::assertFalse((bool) $seen['imap'][0]['allow_smtp']);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
@@ -245,7 +244,7 @@ class MailSendToolsTest extends WebTestCase
 
         self::assertStringContainsString('was not sent', $result);
         self::assertStringContainsString($expected, $result);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testARefusedLoginIsNotRetryable(): void
@@ -257,7 +256,7 @@ class MailSendToolsTest extends WebTestCase
         self::assertStringContainsString('was not sent', $result);
         self::assertStringContainsString('535', $result);
         self::assertStringNotContainsString('Retry', $result);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testARefusedRecipientIsReportedWithItsCodeAndWithoutTheServerText(): void
@@ -283,7 +282,7 @@ class MailSendToolsTest extends WebTestCase
 
         self::assertStringContainsString('may have been sent', $result);
         self::assertStringNotContainsString('Retry', $result);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testNoSentCopyIsAttemptedForAFailedSend(): void
@@ -410,7 +409,7 @@ class MailSendToolsTest extends WebTestCase
         self::assertSame('failed', $result['sent_copy']['status']);
         self::assertSame($temporary, $result['sent_copy']['temporary']);
         self::assertStringContainsString('Do not send it again', $result['sent_copy']['reason']);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testAnyOtherFailureOfTheCopyIsNotAFailedSendEither(): void
@@ -440,7 +439,7 @@ class MailSendToolsTest extends WebTestCase
         self::assertTrue($result['sent']);
         self::assertSame('skipped', $result['sent_copy']['status']);
         self::assertSame(0, FakeImapServer::$current?->connections);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     /**
@@ -595,7 +594,6 @@ class MailSendToolsTest extends WebTestCase
     private function auditRecords(): array
     {
         $handler = static::getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
         $records = array_values(array_filter($handler->getRecords(), static fn (LogRecord $record): bool => 'message_send' === ($record->context['tool'] ?? null)));
         self::assertCount(1, $records);
 
@@ -631,17 +629,14 @@ class MailSendToolsTest extends WebTestCase
     /**
      * @param array<string, mixed> $arguments
      *
-     * @return array<string, mixed>
+     * @return array{sent: bool, message_id: string, from: string, recipients: list<string>, sent_copy: array{status: 'saved', mailbox: string}|array{status: 'skipped', reason: string}|array{status: 'failed', temporary: bool, reason: string}}
      */
     private function send(User $user, array $arguments): array
     {
         // Whatever the test holds may belong to an entity manager from before a kernel reboot.
         $secret = $this->storeToken($this->findUser((string) $user), [ApiTokenScope::MailSend]);
-        $result = $this->callTool($secret, $this->initialiseSession($secret), 'message_send', $arguments);
 
-        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
-
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        return $this->asSentMail($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_send', $arguments)));
     }
 
     /**
@@ -661,11 +656,6 @@ class MailSendToolsTest extends WebTestCase
     private function connection(): Connection
     {
         return static::getContainer()->get(Connection::class);
-    }
-
-    private function credentialRows(): int
-    {
-        return (int) $this->connection()->fetchOne("SELECT COUNT(*) FROM mail_mailbox_credentials WHERE kind = 'short_lived'");
     }
 
     private function createUser(string $name): User

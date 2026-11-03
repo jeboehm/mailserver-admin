@@ -66,7 +66,7 @@ readonly class DoveadmHttpClient
             $commands = $this->listCommands();
 
             // Verify that we got a list of commands (non-empty array)
-            if (!\is_array($commands) || empty($commands)) {
+            if ([] === $commands) {
                 return DoveadmHealthDto::formatError('Expected list of commands, got empty or invalid response');
             }
 
@@ -164,14 +164,8 @@ readonly class DoveadmHttpClient
                 throw new DoveadmResponseException('Unexpected status code: ' . $statusCode);
             }
 
-            $data = $response->toArray();
-
             // The response should be an array of commands
-            if (!\is_array($data)) {
-                throw new DoveadmResponseException('Expected array response, got ' . \gettype($data));
-            }
-
-            return $data;
+            return $response->toArray();
         } catch (TransportExceptionInterface $e) {
             throw new DoveadmConnectionException('Connection failed: ' . $e->getMessage(), 0, $e);
         } catch (ClientExceptionInterface $e) {
@@ -340,8 +334,8 @@ readonly class DoveadmHttpClient
      * The response format is an array of tuples:
      * [["doveadmResponse", [{ ...result... }], "tag"]]
      *
-     * @param array<int, mixed> $data The full response data
-     * @param string            $tag  The tag to match
+     * @param array<mixed> $data The full response data
+     * @param string       $tag  The tag to match
      *
      * @throws DoveadmResponseException
      *
@@ -360,8 +354,8 @@ readonly class DoveadmHttpClient
 
             // Check for error response
             if ('error' === $responseType && $responseTag === $tag) {
-                $errorMessage = $result['exitCode'] ?? 'Unknown error';
-                throw new DoveadmResponseException('Doveadm error: ' . $errorMessage);
+                $exitCode = \is_array($result) ? ($result['exitCode'] ?? null) : null;
+                throw new DoveadmResponseException('Doveadm error: ' . (\is_scalar($exitCode) ? $exitCode : 'Unknown error'));
             }
 
             // Match doveadmResponse by tag
@@ -386,7 +380,7 @@ readonly class DoveadmHttpClient
      * 1. An array of metric objects: [{"metric_name":"auth_successes","field":"duration","count":0,...}, ...]
      * 2. A flat array of counters: [{"num_logins":"42","auth_successes":"100",...}]
      *
-     * @param array<int, array<string, mixed>> $response The raw response data
+     * @param array<int|string, mixed> $response The raw response data
      *
      * @throws DoveadmResponseException
      */

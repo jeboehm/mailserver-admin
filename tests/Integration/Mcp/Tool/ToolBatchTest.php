@@ -54,7 +54,7 @@ class ToolBatchTest extends WebTestCase
             self::NEXT_WRITE,
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -72,7 +72,7 @@ class ToolBatchTest extends WebTestCase
             ['user_update', ['id' => $id, 'quota' => 750]],
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -107,7 +107,7 @@ class ToolBatchTest extends WebTestCase
             ['fetchmail_create', ['host' => 'mail.after.example.net', 'username' => 'after', 'password' => 'secret']],
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         self::assertSame(self::ADMIN, $this->assertToolSucceeded($results[1])['owner']);
 
         $this->entityManager()->clear();
@@ -135,7 +135,7 @@ class ToolBatchTest extends WebTestCase
             self::NEXT_WRITE,
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -153,7 +153,7 @@ class ToolBatchTest extends WebTestCase
             self::NEXT_WRITE,
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -176,7 +176,7 @@ class ToolBatchTest extends WebTestCase
             self::NEXT_WRITE,
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -192,7 +192,7 @@ class ToolBatchTest extends WebTestCase
             self::NEXT_WRITE,
         ]);
 
-        self::assertTrue($results[0]['isError'], (string) json_encode($results[0]));
+        self::assertTrue($results[0]['isError'] ?? false, (string) json_encode($results[0]));
         $this->assertToolSucceeded($results[1]);
 
         $this->entityManager()->clear();
@@ -202,7 +202,7 @@ class ToolBatchTest extends WebTestCase
     /**
      * @param list<array{0: string, 1: array<string, mixed>}> $calls
      *
-     * @return list<array<string, mixed>>
+     * @return list<array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>}>
      */
     private function batch(string $as, array $calls): array
     {

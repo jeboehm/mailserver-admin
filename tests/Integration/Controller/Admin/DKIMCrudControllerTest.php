@@ -13,9 +13,9 @@ namespace Tests\Integration\Controller\Admin;
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DKIMCrudController;
 use App\Entity\Domain;
-use App\Repository\DomainRepository;
 use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
+use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
@@ -23,11 +23,16 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Integration\Helper\CsrfTokenTrait;
+use Tests\Integration\Helper\PersistedIdTrait;
 use Tests\Integration\Helper\UserTrait;
 
+/**
+ * @extends AbstractCrudTestCase<DKIMCrudController>
+ */
 class DKIMCrudControllerTest extends AbstractCrudTestCase
 {
     use CsrfTokenTrait;
+    use PersistedIdTrait;
     use UserTrait;
 
     #[\Override]
@@ -41,10 +46,9 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
-        $domainId = $domain->getId();
+        $domainId = $this->persistedId($domain->getId());
 
         $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
@@ -60,7 +64,6 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     {
         $this->loginClient($this->client);
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -80,7 +83,6 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -106,7 +108,6 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -126,7 +127,6 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
     {
         $this->loginClient($this->client);
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -148,13 +148,12 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
         $originalPrivateKey = $domain->getDkimPrivateKey();
 
-        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($this->persistedId($domain->getId())));
         static::assertResponseIsSuccessful();
 
         $this->client->submitForm('Recreate Key');
@@ -247,15 +246,15 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         $this->loginClient($this->client);
 
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
-        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($this->persistedId($domain->getId())));
         static::assertResponseIsSuccessful();
 
         $form = $this->client->getCrawler()->filter('form.action-recreateKey');
         $action = $form->attr('action');
+        static::assertNotNull($action);
 
         static::assertStringStartsNotWith('http://', $action, 'Relative URL configuration is required for the DashboardController.');
         static::assertStringStartsNotWith('https://', $action, 'Relative URL configuration is required for the DashboardController.');
@@ -314,7 +313,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
         try {
             static::ensureKernelShutdown();
             $this->client = static::createClient();
-            $this->entityManager = static::getContainer()->get('doctrine')->getManager();
+            $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
             $this->loginClient($this->client);
 
             $test();
@@ -346,7 +345,7 @@ class DKIMCrudControllerTest extends AbstractCrudTestCase
 
     private function navigateToDomain(Domain $domain): Crawler
     {
-        $crawler = $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($domain->getId()));
+        $crawler = $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($this->persistedId($domain->getId())));
         static::assertResponseIsSuccessful();
 
         return $crawler;

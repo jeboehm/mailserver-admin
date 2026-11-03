@@ -14,7 +14,6 @@ use App\Entity\Domain;
 use App\Service\DKIM\DKIMStatus;
 use App\Service\DKIM\DKIMStatusService;
 use App\Service\DnsWizard\Check\DkimRecordCheck;
-use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\Scopes;
@@ -23,7 +22,7 @@ use PHPUnit\Framework\TestCase;
 
 class DkimRecordCheckTest extends TestCase
 {
-    private MockObject|DKIMStatusService $statusService;
+    private DKIMStatusService&MockObject $statusService;
 
     private DkimRecordCheck $check;
 
@@ -71,7 +70,6 @@ class DkimRecordCheckTest extends TestCase
 
         self::assertCount(1, $result);
         $row = $result[0];
-        self::assertInstanceOf(DnsWizardRow::class, $row);
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
@@ -106,7 +104,6 @@ class DkimRecordCheckTest extends TestCase
 
         self::assertCount(1, $result);
         $row = $result[0];
-        self::assertInstanceOf(DnsWizardRow::class, $row);
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);
@@ -142,7 +139,6 @@ class DkimRecordCheckTest extends TestCase
 
         self::assertCount(1, $result);
         $row = $result[0];
-        self::assertInstanceOf(DnsWizardRow::class, $row);
         self::assertSame(Scopes::SCOPE_DOMAIN, $row->scope);
         self::assertSame('dkim._domainkey.example.com', $row->subject);
         self::assertSame('TXT', $row->recordType);

@@ -48,7 +48,7 @@ class DomainToolsTest extends WebTestCase
             $this->pageColumn($page, 'name'),
         );
 
-        $own = $page['items'][1];
+        $own = $this->pageItems($page)[1];
         unset($own['id']);
         self::assertSame(['name' => self::OWN_DOMAIN, 'dkim_enabled' => true, 'user_count' => 4, 'alias_count' => 1], $own);
     }
@@ -81,7 +81,7 @@ class DomainToolsTest extends WebTestCase
     {
         $result = $this->call(self::ADMIN, 'domain_list', $arguments);
 
-        self::assertTrue($result['isError'], (string) json_encode($result));
+        self::assertTrue($result['isError'] ?? false, (string) json_encode($result));
         self::assertSame('The limit must be between 1 and 100 and the offset must not be negative.', $result['content'][0]['text']);
     }
 

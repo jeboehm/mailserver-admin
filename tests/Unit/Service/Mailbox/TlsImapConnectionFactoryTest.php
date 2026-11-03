@@ -72,12 +72,13 @@ class TlsImapConnectionFactoryTest extends TestCase
     {
         $this->certificate = $this->selfSignedCertificate();
 
-        $this->process = proc_open(
+        $process = proc_open(
             [\PHP_BINARY, '-d', 'xdebug.mode=off', '-r', self::SERVER, '--', $transport, $this->certificate],
             [1 => ['pipe', 'w']],
             $pipes,
         );
-        self::assertIsResource($this->process);
+        self::assertIsResource($process);
+        $this->process = $process;
 
         $address = fgets($pipes[1]);
         self::assertIsString($address, 'The server did not start.');
@@ -93,12 +94,15 @@ class TlsImapConnectionFactoryTest extends TestCase
         $request = openssl_csr_new(['commonName' => 'mail.example.com'], $key);
         self::assertNotFalse($request);
         self::assertInstanceOf(\OpenSSLCertificateSigningRequest::class, $request);
+        self::assertInstanceOf(\OpenSSLAsymmetricKey::class, $key);
 
         $certificate = openssl_csr_sign($request, null, $key, 1);
         self::assertNotFalse($certificate);
 
         openssl_x509_export($certificate, $pem);
         openssl_pkey_export($key, $privateKey);
+        self::assertIsString($pem);
+        self::assertIsString($privateKey);
 
         $path = tempnam(sys_get_temp_dir(), 'imap-test-');
         self::assertIsString($path);

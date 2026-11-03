@@ -157,6 +157,8 @@ class DkimToolTest extends WebTestCase
         self::assertTrue($status['record_found']);
         self::assertFalse($status['record_valid']);
         self::assertSame('v=DKIM1; p=b3RoZXI=', $status['current_record']);
+        self::assertIsArray($status['issues']);
+        self::assertIsString($status['issues'][0]);
         self::assertStringContainsString('different key pair', $status['issues'][0]);
     }
 
@@ -219,7 +221,7 @@ class DkimToolTest extends WebTestCase
         $secret = $this->storeToken($this->findUserByEntity($domain));
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'dkim_enable', ['domain' => 'not a domain!']);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertStringContainsString('name', $result['content'][0]['text']);
         $this->entityManager()->clear();
         self::assertFalse($this->entityManager()->getRepository(Domain::class)->findOneBy(['name' => 'not a domain!'])?->getDkimEnabled());
@@ -258,6 +260,7 @@ class DkimToolTest extends WebTestCase
 
         $response = $this->mcpRequest('tools/call', ['name' => 'dkim_recreate_key', 'arguments' => $arguments], 'Bearer ' . $secret, $this->initialiseSession($secret));
 
+        /** @var array{error?: mixed, result?: array{isError?: bool}} $body */
         $body = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
         self::assertTrue(isset($body['error']) || true === ($body['result']['isError'] ?? false), (string) $response->getContent());
         self::assertSame($before, $this->privateKey());
@@ -267,13 +270,13 @@ class DkimToolTest extends WebTestCase
     {
         $tool = $this->describeTool('dkim_recreate_key');
 
-        self::assertTrue($tool['annotations']['destructiveHint']);
-        self::assertContains('confirm', $tool['inputSchema']['required']);
+        self::assertTrue($tool['annotations']['destructiveHint'] ?? null);
+        self::assertContains('confirm', $tool['inputSchema']['required'] ?? []);
     }
 
     public function testStatusIsDeclaredReadOnly(): void
     {
-        self::assertTrue($this->describeTool('dkim_status')['annotations']['readOnlyHint']);
+        self::assertTrue($this->describeTool('dkim_status')['annotations']['readOnlyHint'] ?? null);
     }
 
     public function testNoToolOutputContainsThePrivateKey(): void
@@ -364,11 +367,11 @@ class DkimToolTest extends WebTestCase
     }
 
     /**
-     * @param array<string, mixed> $result
+     * @param array{content: list<array{type: string, text: string}>, isError?: bool, structuredContent?: array<string, mixed>} $result
      */
     private function assertDeniedMessage(array $result): void
     {
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
@@ -394,11 +397,8 @@ class DkimToolTest extends WebTestCase
     private function adminCall(string $tool, array $arguments): array
     {
         $secret = $this->storeToken($this->findUser());
-        $result = $this->callTool($secret, $this->initialiseSession($secret), $tool, $arguments);
 
-        self::assertFalse($result['isError'] ?? false, $result['content'][0]['text'] ?? '');
-
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
+        return $this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), $tool, $arguments));
     }
 
     /**
@@ -414,22 +414,13 @@ class DkimToolTest extends WebTestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array{name: string, description?: string, annotations?: array{readOnlyHint?: bool, destructiveHint?: bool, idempotentHint?: bool, openWorldHint?: bool}, inputSchema: array{properties?: array<string, array{type?: string, description?: string, items?: array{type?: string}}>, required?: list<string>}}
      */
     private function describeTool(string $name): array
     {
         $secret = $this->storeToken($this->findUser());
-        $sessionId = $this->initialiseSession($secret);
-        $response = $this->mcpRequest('tools/list', [], 'Bearer ' . $secret, $sessionId);
-        $body = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR);
 
-        foreach ($body['result']['tools'] as $tool) {
-            if ($name === $tool['name']) {
-                return $tool;
-            }
-        }
-
-        self::fail(\sprintf('Tool "%s" is not listed.', $name));
+        return $this->toolDefinition($secret, $this->initialiseSession($secret), $name);
     }
 
     private function expectedRecord(): string
@@ -509,7 +500,6 @@ class DkimToolTest extends WebTestCase
     private function auditHandler(): TestHandler
     {
         $handler = $this->client->getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
 
         return $handler;
     }

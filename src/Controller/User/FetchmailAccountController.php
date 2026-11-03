@@ -113,7 +113,7 @@ class FetchmailAccountController extends GuardedDeleteCrudController
         // runtime infos
         yield DateTimeField::new('lastRun')
             ->hideOnForm()
-            ->formatValue(static function ($value) {
+            ->formatValue(static function (?\DateTimeInterface $value): string {
                 if (null === $value) {
                     return 'N/A';
                 }

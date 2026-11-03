@@ -22,11 +22,17 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Range;
 
+/**
+ * @extends AbstractType<array{name: string, scopes: list<ApiTokenScope>, lifetimeDays: int}>
+ */
 class ApiTokenType extends AbstractType
 {
     #[\Override]
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $maxLifetimeDays = $options['max_lifetime_days'];
+        \assert(\is_int($maxLifetimeDays));
+
         $builder
             ->add('name', TextType::class, [
                 'help' => 'Helps you tell your tokens apart, for example the name of the agent using it.',
@@ -42,9 +48,9 @@ class ApiTokenType extends AbstractType
             ])
             ->add('lifetimeDays', IntegerType::class, [
                 'label' => 'Valid for (days)',
-                'help' => \sprintf('At most %d days.', $options['max_lifetime_days']),
-                'attr' => ['min' => 1, 'max' => $options['max_lifetime_days']],
-                'constraints' => [new NotBlank(), new Range(min: 1, max: $options['max_lifetime_days'])],
+                'help' => \sprintf('At most %d days.', $maxLifetimeDays),
+                'attr' => ['min' => 1, 'max' => $maxLifetimeDays],
+                'constraints' => [new NotBlank(), new Range(min: 1, max: $maxLifetimeDays)],
             ]);
     }
 

@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Helper;
 
+use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
@@ -20,6 +21,7 @@ trait UserTrait
         $client->followRedirects();
 
         $user = $client->getContainer()->get(UserRepository::class)->findOneByEmailAddress($username);
+        self::assertInstanceOf(User::class, $user);
         $client->loginUser($user, 'main');
     }
 }

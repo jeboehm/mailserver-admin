@@ -15,10 +15,10 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method Domain|null find($id, $lockMode = null, $lockVersion = null)
- * @method Domain|null findOneBy(array $criteria, array $orderBy = null)
- * @method Domain[]    findAll()
- * @method Domain[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Domain|null  find($id, $lockMode = null, $lockVersion = null)
+ * @method Domain|null  findOneBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null)
+ * @method Domain[]     findAll()
+ * @method list<Domain> findBy(array<string, mixed> $criteria, array<string, string>|null $orderBy = null, $limit = null, $offset = null)
  *
  * @extends ServiceEntityRepository<Domain>
  */

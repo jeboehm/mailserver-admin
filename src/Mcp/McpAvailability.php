@@ -46,7 +46,9 @@ final readonly class McpAvailability
     #[AsEventListener(event: KernelEvents::REQUEST, priority: 16)]
     public function rejectRoutesWhenDisabled(RequestEvent $event): void
     {
-        if (!$this->enabled && $this->isHidden((string) $event->getRequest()->attributes->get('_route'))) {
+        $route = $event->getRequest()->attributes->get('_route');
+
+        if (!$this->enabled && \is_string($route) && $this->isHidden($route)) {
             throw new NotFoundHttpException();
         }
     }
@@ -67,17 +69,18 @@ final readonly class McpAvailability
 
         $context = $this->router->getContext();
         $method = $context->getMethod();
-        $context->setMethod((string) strtok((string) $exception->getHeaders()['Allow'], ', '));
+        $allow = $exception->getHeaders()['Allow'] ?? '';
+        $context->setMethod((string) strtok(\is_string($allow) ? $allow : '', ', '));
 
         try {
-            $route = (string) ($this->router->match($event->getRequest()->getPathInfo())['_route'] ?? '');
+            $route = $this->router->match($event->getRequest()->getPathInfo())['_route'] ?? '';
         } catch (RoutingException) {
             return;
         } finally {
             $context->setMethod($method);
         }
 
-        if ($this->isHidden($route)) {
+        if (\is_string($route) && $this->isHidden($route)) {
             $event->setThrowable(new NotFoundHttpException());
         }
     }

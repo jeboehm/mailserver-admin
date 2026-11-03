@@ -16,11 +16,11 @@ use App\Mcp\ToolDeniedException;
 use App\Service\ApiToken\ApiTokenScope;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Handler\TestHandler;
 use Monolog\LogRecord;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Tests\Integration\Helper\FakeImapServer;
+use Tests\Integration\Helper\MailToolOutputTrait;
 use Tests\Integration\Helper\McpClientTrait;
 
 /**
@@ -29,6 +29,7 @@ use Tests\Integration\Helper\McpClientTrait;
  */
 class MailReadToolsTest extends WebTestCase
 {
+    use MailToolOutputTrait;
     use McpClientTrait;
 
     private const string RETRYABLE = 'The mailbox is busy or temporarily unavailable. Retry in a few seconds.';
@@ -92,12 +93,9 @@ class MailReadToolsTest extends WebTestCase
     public function testNoToolHasAParameterThatNamesAMailboxUser(): void
     {
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
-        $response = $this->mcpRequest('tools/list', [], 'Bearer ' . $secret, $this->initialiseSession($secret));
-        $tools = json_decode((string) $response->getContent(), true, flags: \JSON_THROW_ON_ERROR)['result']['tools'];
-
         $parameters = [];
 
-        foreach ($tools as $tool) {
+        foreach ($this->toolCatalogue($secret, $this->initialiseSession($secret)) as $tool) {
             $parameters[$tool['name']] = array_keys($tool['inputSchema']['properties'] ?? []);
         }
 
@@ -165,6 +163,7 @@ class MailReadToolsTest extends WebTestCase
         $this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list');
 
         self::assertCount(1, $rows);
+        self::assertIsNumeric($rows[0]['user_id']);
         self::assertSame($actor->getId(), (int) $rows[0]['user_id']);
         self::assertSame('short_lived', $rows[0]['kind']);
         self::assertTrue((bool) $rows[0]['allow_imap']);
@@ -177,7 +176,7 @@ class MailReadToolsTest extends WebTestCase
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
         self::assertFalse($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list')['isError'] ?? false);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testNoCredentialRemainsAfterAFailedLogin(): void
@@ -185,8 +184,8 @@ class MailReadToolsTest extends WebTestCase
         $this->server(['TAG1 NO [AUTHENTICATIONFAILED] Authentication failed.']);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        self::assertTrue($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list')['isError']);
-        self::assertSame(0, $this->credentialRows());
+        self::assertTrue($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list')['isError'] ?? false);
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testConnectionLimitOfTheServerIsReportedAsRetryable(): void
@@ -196,9 +195,9 @@ class MailReadToolsTest extends WebTestCase
 
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list');
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(self::RETRYABLE, $result['content'][0]['text']);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testATemporaryAuthFailureIsReportedAsRetryable(): void
@@ -252,7 +251,7 @@ class MailReadToolsTest extends WebTestCase
 
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
         self::assertSame(0, $server->connections);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testMailboxListShowsEveryMailboxWithItsCounters(): void
@@ -273,7 +272,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list'));
+        $result = $this->asMailboxList($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list')));
 
         self::assertSame(4, $result['total']);
         self::assertSame(['INBOX', 'Archive', 'Prüfung', 'Sent'], array_column($result['mailboxes'], 'name'));
@@ -295,7 +294,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list'));
+        $result = $this->asMailboxList($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list')));
 
         self::assertSame(['2024', '=?UTF-8?B?QQ==?='], array_column($result['mailboxes'], 'name'));
     }
@@ -313,7 +312,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list', ['limit' => 1, 'offset' => 1]));
+        $result = $this->asMailboxList($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'mailbox_list', ['limit' => 1, 'offset' => 1])));
 
         self::assertSame(3, $result['total']);
         self::assertSame(['Junk'], array_column($result['mailboxes'], 'name'));
@@ -334,13 +333,13 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'message_search', [
+        $result = $this->asMessageSearch($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_search', [
             'mailbox' => 'INBOX',
             'subject' => 'Grüße',
             'since' => '2026-01-05',
             'limit' => 2,
             'offset' => 1,
-        ]));
+        ])));
 
         self::assertSame(3, $result['total']);
         self::assertStringContainsString('untrusted', $result['notice']);
@@ -372,7 +371,7 @@ class MailReadToolsTest extends WebTestCase
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
         $value = "x\" OR ALL \"\r\nA1 DELETE INBOX";
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'message_search', ['text' => $value]));
+        $result = $this->asMessageSearch($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_search', ['text' => $value])));
 
         self::assertSame(0, $result['total']);
         self::assertSame(\sprintf('TAG3 UID SEARCH CHARSET UTF-8 TEXT {%d}', \strlen($value)), $server->commands[2]);
@@ -403,7 +402,7 @@ class MailReadToolsTest extends WebTestCase
 
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'message_search', $arguments);
 
-        self::assertTrue($result['isError']);
+        self::assertTrue($result['isError'] ?? false);
         self::assertSame(0, $server->connections);
     }
 
@@ -421,7 +420,6 @@ class MailReadToolsTest extends WebTestCase
         $this->callTool($secret, $this->initialiseSession($secret), 'message_search');
 
         $handler = static::getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
         $records = array_values(array_filter($handler->getRecords(), static fn (LogRecord $record): bool => 'message_search' === ($record->context['tool'] ?? null)));
 
         self::assertCount(1, $records);
@@ -442,7 +440,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 7]));
+        $result = $this->asMessage($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 7])));
 
         self::assertStringContainsString('untrusted', $result['notice']);
         self::assertSame(7, $result['uid']);
@@ -476,7 +474,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 3]));
+        $result = $this->asMessage($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 3])));
 
         self::assertSame('Hello there', $result['untrusted_external_content']['body']);
         self::assertTrue($result['body_converted_from_html']);
@@ -500,7 +498,7 @@ class MailReadToolsTest extends WebTestCase
         ]);
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
 
-        $result = $this->structured($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 3]));
+        $result = $this->asMessage($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 3])));
 
         self::assertTrue($result['body_truncated']);
         self::assertSame($body, $result['untrusted_external_content']['body']);
@@ -515,7 +513,7 @@ class MailReadToolsTest extends WebTestCase
         $result = $this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 99]);
 
         self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
-        self::assertSame(0, $this->credentialRows());
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testAuditLogNamesTheTargetAndNotTheContent(): void
@@ -535,7 +533,6 @@ class MailReadToolsTest extends WebTestCase
         $this->callTool($secret, $this->initialiseSession($secret), 'message_get', ['mailbox' => 'INBOX', 'uid' => 7]);
 
         $handler = static::getContainer()->get('app.test.mcp_audit_records');
-        self::assertInstanceOf(TestHandler::class, $handler);
         $records = array_filter($handler->getRecords(), static fn (LogRecord $record): bool => 'message_get' === ($record->context['tool'] ?? null));
         self::assertCount(1, $records);
 
@@ -557,11 +554,6 @@ class MailReadToolsTest extends WebTestCase
     private function connection(): Connection
     {
         return static::getContainer()->get(Connection::class);
-    }
-
-    private function credentialRows(): int
-    {
-        return (int) $this->connection()->fetchOne("SELECT COUNT(*) FROM mail_mailbox_credentials WHERE kind = 'short_lived'");
     }
 
     private function createUser(string $name): User
@@ -590,17 +582,5 @@ class MailReadToolsTest extends WebTestCase
             \sprintf('* %d FETCH (UID %d FLAGS (\Recent) RFC822.SIZE 520 INTERNALDATE "03-Nov-2026 14:03:09 +0000"%s BODY[HEADER.FIELDS (FROM TO CC REPLY-TO SUBJECT DATE MESSAGE-ID)]<0> {%d}', $sequence, $uid, $extra, \strlen($headers)),
             $headers . ')',
         ];
-    }
-
-    /**
-     * @param array<string, mixed> $result the JSON-RPC result of a tool call
-     *
-     * @return array<string, mixed>
-     */
-    private function structured(array $result): array
-    {
-        self::assertFalse($result['isError'] ?? false, (string) json_encode($result));
-
-        return json_decode($result['content'][0]['text'], true, flags: \JSON_THROW_ON_ERROR);
     }
 }

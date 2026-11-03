@@ -48,6 +48,10 @@
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
     "friendsofphp/php-cs-fixer": "v3.95.27",
+    "phpstan/phpstan": "2.3.1",
+    "phpstan/phpstan-doctrine": "2.1.0",
+    "phpstan/phpstan-phpunit": "2.1.1",
+    "phpstan/phpstan-symfony": "2.1.1",
     "phpunit/phpunit": "^12.0",
     "rector/rector": "2.7.0",
     "roave/security-advisories": "dev-latest",
@@ -104,7 +108,10 @@
     "rector": "vendor/bin/rector process",
     "test": "phpunit --display-all-issues",
     "coverage": "@php -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html=_coverage",
-    "phpstan": "@php -d memory_limit=512M vendor/bin/phpstan analyse --level 3",
+    "phpstan": [
+      "@php bin/console cache:warmup --env=test --quiet",
+      "@php -d memory_limit=2G vendor/bin/phpstan analyse"
+    ],
     "create-tls": "if ! [ -d tls ] && ! [ -f tls/tls.key ] && ! [ -f tls/tls.crt ]; then mkdir tls; fi && openssl req -x509 -newkey rsa:1024 -keyout tls/tls.key -out tls/tls.crt -sha256 -days 365 -nodes -subj \"/C=XX/ST=StateName/L=CityName/O=CompanyName/OU=CompanySectionName/CN=CommonNameOrHostname\""
   },
   "conflict": {

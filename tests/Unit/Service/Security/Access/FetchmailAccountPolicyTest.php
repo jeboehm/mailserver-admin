@@ -50,7 +50,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
         $this->policy->restrictToVisibleAccounts($qb, $this->actor(ActorRole::DomainAdmin, $domain));
 
-        self::assertSame('user.domain = :domain', (string) $qb->getDQLPart('where'));
+        self::assertSame('user.domain = :domain', self::whereClause($qb));
         self::assertStringContainsString('INNER JOIN entity.user user', $qb->getDQL());
         self::assertSame($domain, $qb->getParameter('domain')?->getValue());
     }
@@ -62,7 +62,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
         $this->policy->restrictToVisibleAccounts($qb, $actor);
 
-        self::assertSame('entity.user = :user', (string) $qb->getDQLPart('where'));
+        self::assertSame('entity.user = :user', self::whereClause($qb));
         self::assertSame($actor->user, $qb->getParameter('user')?->getValue());
     }
 
@@ -92,7 +92,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
         $this->policy->restrictToAssignableOwners($qb, $this->actor(ActorRole::DomainAdmin, $domain));
 
-        self::assertSame('entity.domain = :domain', (string) $qb->getDQLPart('where'));
+        self::assertSame('entity.domain = :domain', self::whereClause($qb));
         self::assertSame($domain, $qb->getParameter('domain')?->getValue());
     }
 
@@ -103,7 +103,7 @@ class FetchmailAccountPolicyTest extends TestCase
 
         $this->policy->restrictToAssignableOwners($qb, $actor);
 
-        self::assertSame('entity = :owner', (string) $qb->getDQLPart('where'));
+        self::assertSame('entity = :owner', self::whereClause($qb));
         self::assertSame($actor->user, $qb->getParameter('owner')?->getValue());
     }
 

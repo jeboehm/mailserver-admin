@@ -34,6 +34,12 @@ final readonly class CurrentApiToken
             throw new \LogicException('The current request was not authenticated with an API token.');
         }
 
-        return $token->getAttribute(self::TOKEN_ATTRIBUTE);
+        $apiToken = $token->getAttribute(self::TOKEN_ATTRIBUTE);
+
+        if (!$apiToken instanceof ApiToken) {
+            throw new \LogicException('The current request was not authenticated with an API token.');
+        }
+
+        return $apiToken;
     }
 }

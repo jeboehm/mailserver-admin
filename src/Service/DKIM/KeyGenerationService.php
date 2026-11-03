@@ -23,7 +23,7 @@ class KeyGenerationService
             throw new \LogicException('Cannot read private key.');
         }
 
-        return openssl_pkey_get_details($res)['key'];
+        return $this->publicKeyOf($res);
     }
 
     public function createKeyPair(): KeyPair
@@ -37,8 +37,21 @@ class KeyGenerationService
             ]
         );
 
-        openssl_pkey_export($res, $privateKey);
+        if (false === $res || !openssl_pkey_export($res, $privateKey) || !\is_string($privateKey)) {
+            throw new \LogicException('Cannot create key pair.');
+        }
 
-        return new KeyPair(openssl_pkey_get_details($res)['key'], $privateKey);
+        return new KeyPair($this->publicKeyOf($res), $privateKey);
+    }
+
+    private function publicKeyOf(\OpenSSLAsymmetricKey $key): string
+    {
+        $publicKey = openssl_pkey_get_details($key)['key'] ?? null;
+
+        if (!\is_string($publicKey)) {
+            throw new \LogicException('Cannot read public key.');
+        }
+
+        return $publicKey;
     }
 }

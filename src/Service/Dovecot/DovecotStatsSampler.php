@@ -21,6 +21,8 @@ use Symfony\Contracts\Cache\ItemInterface;
  *
  * This service maintains a rolling buffer of stats samples in cache,
  * respecting the configured sample interval to avoid overwhelming Dovecot.
+ *
+ * @phpstan-import-type StatsDumpData from StatsDumpDto
  */
 readonly class DovecotStatsSampler
 {
@@ -83,7 +85,7 @@ readonly class DovecotStatsSampler
     {
         return $this->cacheApp->get(
             self::CACHE_KEY_LAST_SAMPLE_TIME,
-            static function (ItemInterface $item): ?\DateTimeImmutable {
+            static function (ItemInterface $item): \DateTimeImmutable {
                 $item->expiresAfter(new \DateInterval('PT10S')); // Trigger refetch
 
                 return new \DateTimeImmutable();
@@ -163,6 +165,7 @@ readonly class DovecotStatsSampler
     {
         $ttlMinutes = $this->snapshotTtlMinutes ?? self::DEFAULT_SNAPSHOT_TTL_MINUTES;
 
+        /** @var list<StatsDumpData> $serialized */
         $serialized = $this->cacheApp->get(
             self::CACHE_KEY_SAMPLES,
             static function (ItemInterface $item) use ($ttlMinutes): array {
@@ -173,10 +176,7 @@ readonly class DovecotStatsSampler
         );
 
         // Deserialize arrays back to DTOs
-        return array_map(
-            static fn (array $data) => StatsDumpDto::fromArray($data),
-            $serialized
-        );
+        return array_map(StatsDumpDto::fromArray(...), $serialized);
     }
 
     /**

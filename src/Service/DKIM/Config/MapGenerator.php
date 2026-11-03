@@ -39,7 +39,9 @@ readonly class MapGenerator
         }
 
         // Rspamd signs with whatever it finds in this hash, so a disabled domain's key has to go.
-        $stale = array_diff($this->redis->hkeys(self::KEY_HASHMAP), array_keys($keysDict));
+        /** @var list<string> $storedDomains */
+        $storedDomains = $this->redis->hkeys(self::KEY_HASHMAP);
+        $stale = array_diff($storedDomains, array_keys($keysDict));
 
         if ([] !== $stale) {
             $this->redis->hdel(self::KEY_HASHMAP, array_values($stale));

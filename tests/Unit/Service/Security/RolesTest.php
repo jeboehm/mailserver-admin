@@ -17,8 +17,11 @@ class RolesTest extends TestCase
 {
     public function testConstants(): void
     {
-        $this->assertSame('ROLE_USER', Roles::ROLE_USER);
-        $this->assertSame('ROLE_ADMIN', Roles::ROLE_ADMIN);
-        $this->assertSame('ROLE_DOMAIN_ADMIN', Roles::ROLE_DOMAIN_ADMIN);
+        // Read at runtime: the values end up in stored data and security configuration.
+        $roles = new \ReflectionClass(Roles::class);
+
+        $this->assertSame('ROLE_USER', $roles->getConstant('ROLE_USER'));
+        $this->assertSame('ROLE_ADMIN', $roles->getConstant('ROLE_ADMIN'));
+        $this->assertSame('ROLE_DOMAIN_ADMIN', $roles->getConstant('ROLE_DOMAIN_ADMIN'));
     }
 }

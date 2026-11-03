@@ -12,6 +12,8 @@ namespace App\Service\Dovecot\DTO;
 
 /**
  * Represents a single stats dump sample from Dovecot's statsDump command.
+ *
+ * @phpstan-type StatsDumpData array{fetchedAt: string, counters: array<string, int|float>}
  */
 final readonly class StatsDumpDto
 {
@@ -50,7 +52,7 @@ final readonly class StatsDumpDto
     }
 
     /**
-     * @return array<string, mixed>
+     * @return StatsDumpData
      */
     public function toArray(): array
     {
@@ -61,7 +63,7 @@ final readonly class StatsDumpDto
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param StatsDumpData $data
      */
     public static function fromArray(array $data): self
     {

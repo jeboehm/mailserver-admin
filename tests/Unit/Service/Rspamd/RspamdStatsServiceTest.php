@@ -10,12 +10,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\Rspamd;
 
-use App\Service\Rspamd\DTO\ActionDistributionDto;
-use App\Service\Rspamd\DTO\ActionThresholdDto;
-use App\Service\Rspamd\DTO\HistoryRowDto;
-use App\Service\Rspamd\DTO\RspamdSummaryDto;
-use App\Service\Rspamd\DTO\SymbolCounterDto;
-use App\Service\Rspamd\DTO\TimeSeriesDto;
 use App\Service\Rspamd\RspamdControllerClient;
 use App\Service\Rspamd\RspamdStatsService;
 use PHPUnit\Framework\TestCase;
@@ -52,15 +46,14 @@ final class RspamdStatsServiceTest extends TestCase
         // Create a client that returns pong for ping, stat data for stat, and pie data for pie
         $httpClient = new MockHttpClient([
             new MockResponse('pong', ['http_code' => 200]), // ping
-            new MockResponse(json_encode($statData), ['http_code' => 200]), // stat
-            new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
+            new MockResponse(json_encode($statData, \JSON_THROW_ON_ERROR), ['http_code' => 200]), // stat
+            new MockResponse(json_encode($pieData, \JSON_THROW_ON_ERROR), ['http_code' => 200]), // pie
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $summary = $service->getSummary();
 
-        self::assertInstanceOf(RspamdSummaryDto::class, $summary);
         self::assertTrue($summary->health->isOk());
         self::assertArrayHasKey('scanned', $summary->kpis);
         self::assertArrayHasKey('spam', $summary->kpis);
@@ -81,7 +74,6 @@ final class RspamdStatsServiceTest extends TestCase
         $summary = $service->getSummary();
 
         self::assertTrue($summary->health->isCritical());
-        self::assertInstanceOf(ActionDistributionDto::class, $summary->actionDistribution);
         self::assertTrue($summary->actionDistribution->isEmpty());
     }
 
@@ -111,14 +103,13 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($graphData), ['http_code' => 200]),
+            new MockResponse(json_encode($graphData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
-        self::assertInstanceOf(TimeSeriesDto::class, $series);
         self::assertEquals('day', $series->type);
         self::assertNotEmpty($series->labels);
     }
@@ -130,7 +121,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('invalid');
 
-        self::assertInstanceOf(TimeSeriesDto::class, $series);
         self::assertEquals('invalid', $series->type);
         self::assertEmpty($series->labels);
         self::assertEmpty($series->datasets);
@@ -149,7 +139,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
-        self::assertInstanceOf(TimeSeriesDto::class, $series);
         self::assertTrue($series->isEmpty());
     }
 
@@ -161,14 +150,13 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($pieData), ['http_code' => 200]),
+            new MockResponse(json_encode($pieData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $distribution = $service->getActionDistribution();
 
-        self::assertInstanceOf(ActionDistributionDto::class, $distribution);
         self::assertFalse($distribution->isEmpty());
         self::assertEquals(10, $distribution->actions['reject']);
         self::assertEquals(90, $distribution->actions['no action']);
@@ -186,7 +174,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $distribution = $service->getActionDistribution();
 
-        self::assertInstanceOf(ActionDistributionDto::class, $distribution);
         self::assertTrue($distribution->isEmpty());
     }
 
@@ -199,16 +186,14 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($actionsData), ['http_code' => 200]),
+            new MockResponse(json_encode($actionsData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
-        self::assertIsArray($thresholds);
         self::assertCount(3, $thresholds);
-        self::assertInstanceOf(ActionThresholdDto::class, $thresholds[0]);
         self::assertEquals('reject', $thresholds[0]->action);
         self::assertEquals(15.0, $thresholds[0]->threshold);
     }
@@ -225,7 +210,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $thresholds = $service->getActionThresholds();
 
-        self::assertIsArray($thresholds);
         self::assertEmpty($thresholds);
     }
 
@@ -237,16 +221,14 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($countersData), ['http_code' => 200]),
+            new MockResponse(json_encode($countersData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
-        self::assertIsArray($counters);
         self::assertCount(2, $counters);
-        self::assertInstanceOf(SymbolCounterDto::class, $counters[0]);
         self::assertEquals('SYMBOL1', $counters[0]->name);
         self::assertEquals(100, $counters[0]->hits);
     }
@@ -259,7 +241,7 @@ final class RspamdStatsServiceTest extends TestCase
         }
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($countersData), ['http_code' => 200]),
+            new MockResponse(json_encode($countersData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
@@ -281,7 +263,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $counters = $service->getTopSymbols(10);
 
-        self::assertIsArray($counters);
         self::assertEmpty($counters);
     }
 
@@ -304,16 +285,14 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($historyData), ['http_code' => 200]),
+            new MockResponse(json_encode($historyData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
-        self::assertIsArray($history);
         self::assertCount(1, $history);
-        self::assertInstanceOf(HistoryRowDto::class, $history[0]);
         self::assertEquals('reject', $history[0]->action);
         self::assertEquals(15.5, $history[0]->score);
     }
@@ -330,7 +309,6 @@ final class RspamdStatsServiceTest extends TestCase
         $service = $this->createServiceWithClient($client);
         $history = $service->getHistory(50);
 
-        self::assertIsArray($history);
         self::assertEmpty($history);
     }
 
@@ -342,8 +320,8 @@ final class RspamdStatsServiceTest extends TestCase
         // Only one set of responses needed due to caching
         $httpClient = new MockHttpClient([
             new MockResponse('pong', ['http_code' => 200]), // ping
-            new MockResponse(json_encode($statData), ['http_code' => 200]), // stat
-            new MockResponse(json_encode($pieData), ['http_code' => 200]), // pie
+            new MockResponse(json_encode($statData, \JSON_THROW_ON_ERROR), ['http_code' => 200]), // stat
+            new MockResponse(json_encode($pieData, \JSON_THROW_ON_ERROR), ['http_code' => 200]), // pie
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
@@ -362,14 +340,13 @@ final class RspamdStatsServiceTest extends TestCase
         ];
 
         $httpClient = new MockHttpClient([
-            new MockResponse(json_encode($legacyGraphData), ['http_code' => 200]),
+            new MockResponse(json_encode($legacyGraphData, \JSON_THROW_ON_ERROR), ['http_code' => 200]),
         ]);
 
         $client = new RspamdControllerClient($httpClient, 'http://localhost:11334', 2500, 'test-password');
         $service = $this->createServiceWithClient($client);
         $series = $service->getThroughputSeries('day');
 
-        self::assertInstanceOf(TimeSeriesDto::class, $series);
         self::assertNotEmpty($series->labels);
         self::assertArrayHasKey('reject', $series->datasets);
         self::assertArrayHasKey('no action', $series->datasets);

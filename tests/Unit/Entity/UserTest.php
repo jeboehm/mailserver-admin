@@ -55,14 +55,7 @@ class UserTest extends TestCase
 
         $serialized = $user->__serialize();
 
-        $this->assertIsArray($serialized);
-        $this->assertCount(6, $serialized);
-        $this->assertEquals(123, $serialized[0]);
-        $this->assertEquals('hashed_password', $serialized[1]);
-        $this->assertEquals('example.com', $serialized[2]);
-        $this->assertTrue($serialized[3]);
-        $this->assertFalse($serialized[4]);
-        $this->assertEquals('jeff', $serialized[5]);
+        $this->assertSame([123, 'hashed_password', 'example.com', true, false, 'jeff'], $serialized);
     }
 
     public function testUnserialize(): void

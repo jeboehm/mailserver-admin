@@ -57,7 +57,7 @@ class FetchmailAccount
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     #[ORM\Column(name: 'config_password', type: Types::STRING)]
-    private ?string $password = '';
+    private string $password = '';
 
     #[Assert\NotNull]
     #[ORM\Column(name: 'config_ssl', type: Types::BOOLEAN)]
@@ -122,14 +122,17 @@ class FetchmailAccount
         $this->username = $username;
     }
 
-    public function getPassword(): ?string
+    public function getPassword(): string
     {
         return $this->password;
     }
 
+    /**
+     * Forms hand over null for an empty field, which is then refused by the NotBlank constraint.
+     */
     public function setPassword(?string $password): void
     {
-        $this->password = $password;
+        $this->password = $password ?? '';
     }
 
     public function isSsl(): bool

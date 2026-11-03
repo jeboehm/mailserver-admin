@@ -28,11 +28,11 @@ use Twig\Environment;
 #[AllowMockObjectsWithoutExpectations]
 class DovecotStatsControllerTest extends TestCase
 {
-    private MockObject|Environment $twig;
-    private MockObject|DoveadmHttpClient $httpClient;
-    private MockObject|DovecotStatsSampler $sampler;
-    private MockObject|DovecotRateCalculator $rateCalculator;
-    private MockObject|DovecotChartFactory $chartFactory;
+    private Environment&MockObject $twig;
+    private DoveadmHttpClient&MockObject $httpClient;
+    private DovecotStatsSampler&MockObject $sampler;
+    private DovecotRateCalculator&MockObject $rateCalculator;
+    private DovecotChartFactory&MockObject $chartFactory;
     private DovecotStatsController $controller;
 
     protected function setUp(): void
@@ -429,7 +429,10 @@ class DovecotStatsControllerTest extends TestCase
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('application/json', $response->headers->get('Content-Type'));
 
-        $content = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $body = $response->getContent();
+        self::assertIsString($body);
+        /** @var array{success: bool, fetchedAt: string} $content */
+        $content = json_decode($body, true, 512, \JSON_THROW_ON_ERROR);
         self::assertTrue($content['success']);
         self::assertSame($fetchedAt->format(\DateTimeInterface::ATOM), $content['fetchedAt']);
     }
@@ -448,7 +451,10 @@ class DovecotStatsControllerTest extends TestCase
         self::assertSame(503, $response->getStatusCode());
         self::assertSame('application/json', $response->headers->get('Content-Type'));
 
-        $content = json_decode($response->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+        $body = $response->getContent();
+        self::assertIsString($body);
+        /** @var array{success: bool, error: string} $content */
+        $content = json_decode($body, true, 512, \JSON_THROW_ON_ERROR);
         self::assertFalse($content['success']);
         self::assertSame('Connection failed', $content['error']);
     }
@@ -461,6 +467,9 @@ class DovecotStatsControllerTest extends TestCase
         );
     }
 
+    /**
+     * @param array<string, float|int> $counters
+     */
     private function createSampleWithCounters(array $counters): StatsDumpDto
     {
         return new StatsDumpDto(

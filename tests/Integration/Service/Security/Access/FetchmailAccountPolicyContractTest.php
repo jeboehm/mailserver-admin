@@ -100,12 +100,11 @@ class FetchmailAccountPolicyContractTest extends KernelTestCase
             fn (FetchmailAccount $account): bool => $this->policy->canDelete($actor, $account)
         );
 
-        $hosts = static fn (array $accounts): array => array_map(static fn (FetchmailAccount $account): string => $account->getHost(), array_values($accounts));
         $expected = array_map(static fn (string $name): string => $name . '.example.net', $included);
         $unexpected = array_map(static fn (string $name): string => $name . '.example.net', $excluded);
 
-        self::assertEqualsCanonicalizing($hosts($fromRule), $hosts($fromQuery));
-        self::assertEqualsCanonicalizing($expected, array_values(array_intersect($hosts($fromQuery), [...$expected, ...$unexpected])));
+        self::assertEqualsCanonicalizing($this->hosts($fromRule), $this->hosts($fromQuery));
+        self::assertEqualsCanonicalizing($expected, array_values(array_intersect($this->hosts($fromQuery), [...$expected, ...$unexpected])));
     }
 
     /**
@@ -148,5 +147,15 @@ class FetchmailAccountPolicyContractTest extends KernelTestCase
         $account->setUsername('account');
         $account->setPassword('password');
         $this->entityManager->persist($account);
+    }
+
+    /**
+     * @param array<FetchmailAccount> $accounts
+     *
+     * @return list<string>
+     */
+    private function hosts(array $accounts): array
+    {
+        return array_map(static fn (FetchmailAccount $account): string => $account->getHost(), array_values($accounts));
     }
 }

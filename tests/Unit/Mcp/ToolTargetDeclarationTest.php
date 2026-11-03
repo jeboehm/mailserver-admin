@@ -34,11 +34,16 @@ class ToolTargetDeclarationTest extends TestCase
     public static function tools(): iterable
     {
         foreach (new Finder()->files()->in(\dirname(__DIR__, 3) . '/src/Mcp/Tool')->name('*.php') as $file) {
-            $class = new \ReflectionClass('App\Mcp\Tool\\' . $file->getBasename('.php'));
+            $className = 'App\Mcp\Tool\\' . $file->getBasename('.php');
+            self::assertTrue(class_exists($className), $className);
+            $class = new \ReflectionClass($className);
 
             foreach ($class->getMethods() as $method) {
                 foreach ($method->getAttributes(McpTool::class) as $tool) {
-                    yield $tool->getArguments()['name'] => [$method];
+                    $name = $tool->getArguments()['name'];
+                    self::assertIsString($name);
+
+                    yield $name => [$method];
                 }
             }
         }

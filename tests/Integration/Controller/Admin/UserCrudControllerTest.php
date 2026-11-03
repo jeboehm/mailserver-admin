@@ -14,19 +14,22 @@ use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\UserCrudController;
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Repository\DomainRepository;
-use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Option\EA;
 use EasyCorp\Bundle\EasyAdminBundle\Test\AbstractCrudTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Integration\Helper\CsrfTokenTrait;
+use Tests\Integration\Helper\PersistedIdTrait;
 use Tests\Integration\Helper\UserTrait;
 
+/**
+ * @extends AbstractCrudTestCase<UserCrudController>
+ */
 class UserCrudControllerTest extends AbstractCrudTestCase
 {
     use CsrfTokenTrait;
+    use PersistedIdTrait;
     use UserTrait;
 
     #[\Override]
@@ -39,10 +42,9 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testListUsers(): void
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress('admin@example.com');
         static::assertInstanceOf(User::class, $user);
-        $userId = $user->getId();
+        $userId = $this->persistedId($user->getId());
 
         $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
         static::assertResponseIsSuccessful();
@@ -67,7 +69,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->persist($domain);
         $this->entityManager->flush();
 
-        $userId = $user->getId();
+        $userId = $this->persistedId($user->getId());
 
         $this->client->request(Request::METHOD_GET, $this->generateIndexUrl());
 
@@ -81,7 +83,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testCreateUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -101,7 +102,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         static::assertResponseIsSuccessful();
 
         $userRepository = $this->entityManager->getRepository(User::class);
-        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneBy(['name' => 'newuser', 'domain' => $domain]);
         static::assertInstanceOf(User::class, $user);
         static::assertEquals('newuser', $user->getName());
@@ -112,7 +112,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testEditUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -126,7 +125,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $this->entityManager->flush();
         $this->entityManager->clear();
 
-        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($this->persistedId($user->getId())));
         static::assertResponseIsSuccessful();
         static::assertAnySelectorTextContains('.form-text.form-help', 'Leave empty to keep the current password.');
 
@@ -138,7 +137,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $userRepository = $this->entityManager->getRepository(User::class);
-        \assert($userRepository instanceof UserRepository);
         $updatedUser = $userRepository->find($user->getId());
         static::assertInstanceOf(User::class, $updatedUser);
         static::assertEquals(2000, $updatedUser->getQuota());
@@ -149,7 +147,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testEditUserWithoutPassword(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -164,7 +161,7 @@ class UserCrudControllerTest extends AbstractCrudTestCase
         $originalPassword = $user->getPassword();
         $this->entityManager->clear();
 
-        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($user->getId()));
+        $this->client->request(Request::METHOD_GET, $this->generateEditFormUrl($this->persistedId($user->getId())));
         static::assertResponseIsSuccessful();
 
         $crawler = $this->client->getCrawler();
@@ -175,7 +172,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
 
         $this->entityManager->clear();
         $userRepository = $this->entityManager->getRepository(User::class);
-        \assert($userRepository instanceof UserRepository);
         $updatedUser = $userRepository->find($user->getId());
         static::assertInstanceOf(User::class, $updatedUser);
         static::assertStringStartsWith('$2y$', $updatedUser->getPassword());
@@ -185,7 +181,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     public function testCreateDuplicateUser(): void
     {
         $domainRepository = $this->entityManager->getRepository(Domain::class);
-        \assert($domainRepository instanceof DomainRepository);
         $domain = $domainRepository->findOneBy(['name' => 'example.com']);
         static::assertInstanceOf(Domain::class, $domain);
 
@@ -278,7 +273,6 @@ class UserCrudControllerTest extends AbstractCrudTestCase
     private function findUserId(string $emailAddress): int
     {
         $userRepository = $this->entityManager->getRepository(User::class);
-        \assert($userRepository instanceof UserRepository);
         $user = $userRepository->findOneByEmailAddress($emailAddress);
         static::assertInstanceOf(User::class, $user);
 

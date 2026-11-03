@@ -59,8 +59,6 @@ final class RspamdChartFactoryTest extends TestCase
             }));
 
         $result = $this->factory->throughputLineChart($series);
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testThroughputLineChartHandlesEmptySeries(): void
@@ -77,8 +75,6 @@ final class RspamdChartFactoryTest extends TestCase
         $chart->expects(self::once())->method('setOptions');
 
         $result = $this->factory->throughputLineChart($series);
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testActionsPieChartCreatesDoughnutChart(): void
@@ -107,8 +103,6 @@ final class RspamdChartFactoryTest extends TestCase
             }));
 
         $result = $this->factory->actionsPieChart($distribution);
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testActionsPieChartHandlesEmptyDistribution(): void
@@ -125,8 +119,6 @@ final class RspamdChartFactoryTest extends TestCase
         $chart->expects(self::once())->method('setOptions');
 
         $result = $this->factory->actionsPieChart($distribution);
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testEmptyChartCreatesBarChart(): void
@@ -140,7 +132,10 @@ final class RspamdChartFactoryTest extends TestCase
         $chart->expects(self::once())
             ->method('setData')
             ->with(self::callback(static function (array $data) {
-                return isset($data['labels']) && 'No data available' === $data['labels'][0];
+                self::assertArrayHasKey('labels', $data);
+                self::assertIsArray($data['labels']);
+
+                return 'No data available' === $data['labels'][0];
             }));
 
         $chart->expects(self::once())
@@ -150,8 +145,6 @@ final class RspamdChartFactoryTest extends TestCase
             }));
 
         $result = $this->factory->emptyChart();
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 
     public function testEmptyChartWithCustomMessage(): void
@@ -166,13 +159,14 @@ final class RspamdChartFactoryTest extends TestCase
         $chart->expects(self::once())
             ->method('setData')
             ->with(self::callback(static function (array $data) use ($message) {
-                return isset($data['labels']) && $data['labels'][0] === $message;
+                self::assertArrayHasKey('labels', $data);
+                self::assertIsArray($data['labels']);
+
+                return $data['labels'][0] === $message;
             }));
 
         $chart->expects(self::once())->method('setOptions');
 
         $result = $this->factory->emptyChart($message);
-
-        self::assertInstanceOf(Chart::class, $result);
     }
 }

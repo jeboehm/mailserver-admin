@@ -22,6 +22,9 @@ use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
+/**
+ * @implements UserProviderInterface<User>
+ */
 readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProviderInterface
 {
     public function __construct(
@@ -36,8 +39,8 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
     {
         $emailAddress = method_exists($response, 'getUserIdentifier') ? $response->getUserIdentifier() : $response->getUsername();
 
-        if (!filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
-            throw $this->createUserNotFoundException(username: $emailAddress, message: 'No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
+        if (null === $emailAddress || !filter_var($emailAddress, \FILTER_VALIDATE_EMAIL)) {
+            throw $this->createUserNotFoundException(username: $emailAddress ?? '', message: 'No email address found in OAuth response. Check your OAUTH_PATHS_IDENTIFIER setting.');
         }
 
         $user = $this->findUser($emailAddress) ?? throw $this->createUserNotFoundException($emailAddress, \sprintf("User '%s' not found.", $emailAddress));
@@ -78,7 +81,7 @@ readonly class UserProvider implements UserProviderInterface, OAuthAwareUserProv
         return $user;
     }
 
-    private function findUser(?string $emailAddress): ?User
+    private function findUser(string $emailAddress): ?User
     {
         return $this->userRepository->findOneByEmailAddress(
             mb_strtolower($emailAddress)

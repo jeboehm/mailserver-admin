@@ -62,12 +62,13 @@ final class DovecotChartFactoryTest extends TestCase
             ->with(self::callback(static function (array $data): bool {
                 self::assertArrayHasKey('labels', $data);
                 self::assertArrayHasKey('datasets', $data);
-                self::assertCount(2, $data['labels']);
-                self::assertCount(2, $data['datasets']);
-                self::assertSame('Auth Success', $data['datasets'][0]['label']);
-                self::assertSame('Auth Failure', $data['datasets'][1]['label']);
-                self::assertSame([10.0, 20.0], $data['datasets'][0]['data']);
-                self::assertSame([2.0, 3.0], $data['datasets'][1]['data']);
+                self::assertCount(2, self::labelsOf($data));
+                $datasets = self::datasetsOf($data);
+                self::assertCount(2, $datasets);
+                self::assertSame('Auth Success', $datasets[0]['label']);
+                self::assertSame('Auth Failure', $datasets[1]['label']);
+                self::assertSame([10.0, 20.0], $datasets[0]['data']);
+                self::assertSame([2.0, 3.0], $datasets[1]['data']);
 
                 return true;
             }));
@@ -75,9 +76,7 @@ final class DovecotChartFactoryTest extends TestCase
         $chart->expects(self::once())
             ->method('setOptions')
             ->with(self::callback(static function (array $options): bool {
-                self::assertArrayHasKey('plugins', $options);
-                self::assertArrayHasKey('title', $options['plugins']);
-                self::assertSame('Authentication Rate (/min)', $options['plugins']['title']['text']);
+                self::assertSame('Authentication Rate (/min)', self::titleOf($options));
 
                 return true;
             }));
@@ -111,8 +110,9 @@ final class DovecotChartFactoryTest extends TestCase
         $chart->expects(self::once())
             ->method('setData')
             ->with(self::callback(static function (array $data): bool {
-                self::assertCount(1, $data['datasets']);
-                self::assertSame('Auth Success', $data['datasets'][0]['label']);
+                $datasets = self::datasetsOf($data);
+                self::assertCount(1, $datasets);
+                self::assertSame('Auth Success', $datasets[0]['label']);
 
                 return true;
             }));
@@ -146,8 +146,9 @@ final class DovecotChartFactoryTest extends TestCase
             ->expects(self::once())
             ->method('setData')
             ->with(self::callback(static function (array $data): bool {
-                self::assertCount(1, $data['datasets']);
-                self::assertSame('Auth Failure', $data['datasets'][0]['label']);
+                $datasets = self::datasetsOf($data);
+                self::assertCount(1, $datasets);
+                self::assertSame('Auth Failure', $datasets[0]['label']);
 
                 return true;
             }));
@@ -234,9 +235,10 @@ final class DovecotChartFactoryTest extends TestCase
             ->with(self::callback(static function (array $data): bool {
                 self::assertArrayHasKey('labels', $data);
                 self::assertArrayHasKey('datasets', $data);
-                self::assertCount(1, $data['datasets']);
-                self::assertSame('Mail Deliveries', $data['datasets'][0]['label']);
-                self::assertSame([5.0, 10.0], $data['datasets'][0]['data']);
+                $datasets = self::datasetsOf($data);
+                self::assertCount(1, $datasets);
+                self::assertSame('Mail Deliveries', $datasets[0]['label']);
+                self::assertSame([5.0, 10.0], $datasets[0]['data']);
 
                 return true;
             }));
@@ -244,7 +246,7 @@ final class DovecotChartFactoryTest extends TestCase
         $chart->expects(self::once())
             ->method('setOptions')
             ->with(self::callback(static function (array $options): bool {
-                self::assertSame('Mail Deliveries (/min)', $options['plugins']['title']['text']);
+                self::assertSame('Mail Deliveries (/min)', self::titleOf($options));
 
                 return true;
             }));
@@ -286,9 +288,10 @@ final class DovecotChartFactoryTest extends TestCase
             ->method('setData')
             ->with(self::callback(static function (array $data): bool {
                 // Should use success series labels
-                self::assertCount(2, $data['labels']);
-                self::assertSame('10:00', $data['labels'][0]);
-                self::assertSame('10:01', $data['labels'][1]);
+                $labels = self::labelsOf($data);
+                self::assertCount(2, $labels);
+                self::assertSame('10:00', $labels[0]);
+                self::assertSame('10:01', $labels[1]);
 
                 return true;
             }));
@@ -332,5 +335,48 @@ final class DovecotChartFactoryTest extends TestCase
         $this->factory->createAuthRatesChart([
             'auth_failures' => $failureSeries,
         ]);
+    }
+
+    /**
+     * @param array<mixed> $data
+     *
+     * @return array<mixed>
+     */
+    private static function labelsOf(array $data): array
+    {
+        self::assertArrayHasKey('labels', $data);
+        self::assertIsArray($data['labels']);
+
+        return $data['labels'];
+    }
+
+    /**
+     * @param array<mixed> $data
+     *
+     * @return list<array{label: string, data: list<float>}>
+     */
+    private static function datasetsOf(array $data): array
+    {
+        self::assertArrayHasKey('datasets', $data);
+        self::assertIsArray($data['datasets']);
+
+        /** @var list<array{label: string, data: list<float>}> $datasets */
+        $datasets = $data['datasets'];
+
+        return $datasets;
+    }
+
+    /**
+     * @param array<mixed> $options
+     */
+    private static function titleOf(array $options): mixed
+    {
+        self::assertArrayHasKey('plugins', $options);
+        self::assertIsArray($options['plugins']);
+        self::assertArrayHasKey('title', $options['plugins']);
+        self::assertIsArray($options['plugins']['title']);
+        self::assertArrayHasKey('text', $options['plugins']['title']);
+
+        return $options['plugins']['title']['text'];
     }
 }
