@@ -26,6 +26,11 @@ readonly class RuntimeDataLoader
 
     public function postLoad(Domain $domain): void
     {
+        $domain->deferDkimRuntimeData($this->load(...));
+    }
+
+    private function load(Domain $domain): void
+    {
         $status = $this->dkimStatusService->getStatus($domain);
         $domain->setDkimStatus($status);
 
@@ -35,7 +40,7 @@ readonly class RuntimeDataLoader
                 KeyGenerationService::DIGEST_ALGORITHM
             );
             $domain->setExpectedDnsRecord($expectedRecord);
-            $domain->setCurrentDnsRecord($domain->getDkimStatus()?->getCurrentRecord() ?? '');
+            $domain->setCurrentDnsRecord($status->getCurrentRecord());
         }
     }
 }
