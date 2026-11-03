@@ -229,6 +229,19 @@ class ApiTokenPagesTest extends WebTestCase
         self::assertNull($this->entityManager()->find(ApiToken::class, $tokenId)?->getRevokedAt());
     }
 
+    public function testRevokeFormOnTheListCarriesItsOwnCsrfToken(): void
+    {
+        $tokenId = $this->tokenIdOf(self::REGULAR_USER);
+        $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token');
+
+        $this->client->submit($crawler->filter(\sprintf('form[action*="/api-token/revoke/%d"]', $tokenId))->form());
+
+        self::assertResponseRedirects();
+        $this->entityManager()->clear();
+        self::assertNotNull($this->entityManager()->find(ApiToken::class, $tokenId)?->getRevokedAt());
+    }
+
     public function testRevocationNeedsACsrfToken(): void
     {
         $tokenId = $this->tokenIdOf(self::REGULAR_USER);

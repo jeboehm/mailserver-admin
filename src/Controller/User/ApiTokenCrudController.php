@@ -75,6 +75,8 @@ class ApiTokenCrudController extends AbstractCrudController
             ->setEntityLabelInPlural('API tokens')
             ->setSearchFields(['name'])
             ->setDefaultSort(['createdAt' => 'DESC'])
+            // The dropdown ignores an action's template, so the revoke form would lose its CSRF token.
+            ->showEntityActionsInlined()
             ->setHelp(Crud::PAGE_INDEX, 'API tokens let agents use this server through its MCP endpoint, with your role and within the scopes of the token. They stop working when your password changes or your account is disabled.');
     }
 
