@@ -191,6 +191,15 @@ class DnsValidateToolTest extends WebTestCase
         self::assertNotSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
     }
 
+    public function testLimitIsRefusedInTheWordsOfEveryOtherTool(): void
+    {
+        $secret = $this->storeToken($this->findUser());
+
+        $result = $this->callTool($secret, $this->initialiseSession($secret), 'dns_validate', ['limit' => 51]);
+
+        self::assertSame('The limit must be between 1 and 50 and the offset must not be negative.', $result['content'][0]['text']);
+    }
+
     public function testRunningOutOfTimeOnTheMailHostContinuesWithTheDomains(): void
     {
         FakeDnsLookup::$outOfTimeAt = ['mail.example.com'];

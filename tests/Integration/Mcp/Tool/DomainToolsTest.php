@@ -12,6 +12,7 @@ namespace Tests\Integration\Mcp\Tool;
 
 use App\Entity\Domain;
 use App\Repository\DomainRepository;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Tests\Integration\Helper\ManagementToolsTrait;
 
@@ -62,12 +63,26 @@ class DomainToolsTest extends WebTestCase
         self::assertSame([self::OWN_DOMAIN], $this->pageColumn($page, 'name'));
     }
 
-    public function testListCapsTheLimit(): void
+    /**
+     * @return iterable<string, array{array<string, int>}>
+     */
+    public static function pagesOutOfRange(): iterable
     {
-        $page = $this->assertToolSucceeded($this->call(self::ADMIN, 'domain_list', ['limit' => 100000, 'offset' => -5]));
+        yield 'limit too large' => [['limit' => 101]];
+        yield 'limit too small' => [['limit' => 0]];
+        yield 'negative offset' => [['offset' => -1]];
+    }
 
-        self::assertSame(100, $page['limit']);
-        self::assertSame(0, $page['offset']);
+    /**
+     * @param array<string, int> $arguments
+     */
+    #[DataProvider('pagesOutOfRange')]
+    public function testListRefusesAPageOutOfRange(array $arguments): void
+    {
+        $result = $this->call(self::ADMIN, 'domain_list', $arguments);
+
+        self::assertTrue($result['isError'], (string) json_encode($result));
+        self::assertSame('The limit must be between 1 and 100 and the offset must not be negative.', $result['content'][0]['text']);
     }
 
     public function testListNeverReturnsPrivateKeys(): void

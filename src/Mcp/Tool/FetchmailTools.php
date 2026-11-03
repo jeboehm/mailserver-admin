@@ -12,7 +12,6 @@ namespace App\Mcp\Tool;
 
 use App\Entity\FetchmailAccount;
 use App\Entity\User;
-use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
 use App\Mcp\ToolEntityWriter;
@@ -34,7 +33,6 @@ final readonly class FetchmailTools
         private FetchmailAccountPolicy $policy,
         private CurrentActor $currentActor,
         private ToolEntityWriter $writer,
-        private ToolAuditLog $auditLog,
     ) {
     }
 
@@ -116,7 +114,6 @@ final readonly class FetchmailTools
         $account->setPort($port);
         $account->setSsl($ssl);
         $account->setVerifySsl($verify_ssl);
-        $this->auditLog->target('fetchmail', \sprintf('%s@%s', $username, $host));
 
         $this->writer->validate($account);
         $this->writer->save($account);

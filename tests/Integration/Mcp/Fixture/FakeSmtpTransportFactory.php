@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Mcp\Fixture;
 
 use App\Service\MailboxCredential\ShortLivedCredential;
-use App\Service\MailSend\SmtpTransportFactory;
+use App\Service\MailSend\SmtpTransportFactoryInterface;
 use App\Service\MailSend\TlsSmtpTransportFactory;
 use Symfony\Component\Mailer\Transport\Smtp\Auth\PlainAuthenticator;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
@@ -21,7 +21,7 @@ use Tests\Integration\Helper\FakeSmtpServer;
  * Takes the place of the real factory in the test environment. Connects to the current
  * FakeSmtpServer, or for real when there is none, which is what the end-to-end test relies on.
  */
-final readonly class FakeSmtpTransportFactory implements SmtpTransportFactory
+final readonly class FakeSmtpTransportFactory implements SmtpTransportFactoryInterface
 {
     public function __construct(private TlsSmtpTransportFactory $real)
     {

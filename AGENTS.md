@@ -287,8 +287,11 @@ Key environment variables (see `.env` and `config/services.yaml`):
 A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on the method. `App\Mcp\ToolGate` handles every call: it enforces `#[ToolAccess]`, writes the audit record and hides the reason for a denial. `tools/list` follows the same rule.
 
 - `#[IsGranted]` has no effect on tools. Object-level rules go through the policies in `App\Service\Security\Access`.
-- For a denied or missing object, throw `App\Mcp\ToolDeniedException`. An `AccessDeniedException` from a policy is treated the same. Other messages for the caller go in a `Mcp\Exception\ToolCallException`.
+- For a denied or missing object, throw `App\Mcp\ToolDeniedException`. An `AccessDeniedException` from a policy and a `MailboxDeniedException` are treated the same. Other messages for the caller go in a `Mcp\Exception\ToolCallException`.
 - Declare the audit target in `#[ToolAccess(target: 'user:{id}')]`, a template over the tool's arguments, so that it is also recorded when the call is denied before the tool runs. A tool that knows better calls `App\Mcp\Audit\ToolAuditLog::target()`, and adds the rest through `details()`. Never pass bodies, passwords or tokens.
+- Tool arguments are snake_case (`$domain_admin`, `$send_only`, `$verify_ssl`, `$unseen_only`), unlike all other PHP variables here: their names are the public tool API, so do not rename them.
+- List tools check their page with `App\Mcp\ToolPage::assertRange()`, which refuses a limit or offset out of range rather than correcting it. `ToolPage::of()` does this for Doctrine queries.
+- Write through `App\Mcp\ToolEntityWriter`. The calls of a JSON-RPC batch share one entity manager, so anything a rejected call leaves on a managed entity is saved by the next flush. `validate()` reloads a rejected entity; state that is not mapped, such as a plain password, is up to the tool.
 - Never read authorisation from the MCP session, which is not bound to a token. Use `App\Mcp\CurrentApiToken` and `App\Service\Security\Access\CurrentActor`.
 - Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
 - A tool group that depends on a matching docker-mailserver version names a `App\Mcp\ToolFeature` in `#[ToolAccess]`. `ToolAccessPolicy` holds the flag, so listing and calling follow it.

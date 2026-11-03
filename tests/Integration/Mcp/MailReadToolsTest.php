@@ -407,6 +407,27 @@ class MailReadToolsTest extends WebTestCase
         self::assertSame(0, $server->connections);
     }
 
+    public function testMessageSearchAuditsTheMailboxItDefaultsTo(): void
+    {
+        $this->server([
+            'TAG1 OK Logged in',
+            '* 0 EXISTS',
+            'TAG2 OK Examined',
+            '* SEARCH',
+            'TAG3 OK Searched',
+        ]);
+        $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailRead]);
+
+        $this->callTool($secret, $this->initialiseSession($secret), 'message_search');
+
+        $handler = static::getContainer()->get('app.test.mcp_audit_records');
+        self::assertInstanceOf(TestHandler::class, $handler);
+        $records = array_values(array_filter($handler->getRecords(), static fn (LogRecord $record): bool => 'message_search' === ($record->context['tool'] ?? null)));
+
+        self::assertCount(1, $records);
+        self::assertSame('mailbox:INBOX', $records[0]->context['target']);
+    }
+
     public function testMessageGetReturnsHeadersTextAndAttachmentMetadataWithPeek(): void
     {
         $body = "Gr=FC=DFe\r\n";

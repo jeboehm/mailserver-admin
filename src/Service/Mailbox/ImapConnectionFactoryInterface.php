@@ -12,7 +12,7 @@ namespace App\Service\Mailbox;
 
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 
-interface ImapConnectionFactory
+interface ImapConnectionFactoryInterface
 {
     /**
      * @return ImapConnection connected, not logged in

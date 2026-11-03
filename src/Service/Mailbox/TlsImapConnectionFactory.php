@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * network, and the generated certificate has CN=mail.example.com and no SAN, so it never matches
  * the name "mda". No logger is passed to the connection, as ImapEngine's writes the secret in clear.
  */
-final readonly class TlsImapConnectionFactory implements ImapConnectionFactory
+final readonly class TlsImapConnectionFactory implements ImapConnectionFactoryInterface
 {
     public function __construct(
         #[Autowire('%env(string:MDA_IMAPS_ADDRESS)%')]

@@ -12,7 +12,7 @@ namespace Tests\Unit\Service\Mailbox;
 
 use App\Entity\Domain;
 use App\Entity\User;
-use App\Service\Mailbox\ImapConnectionFactory;
+use App\Service\Mailbox\ImapConnectionFactoryInterface;
 use App\Service\Mailbox\ImapSessions;
 use App\Service\MailboxCredential\MailboxCredentials;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
@@ -38,7 +38,7 @@ trait ImapFixtureTrait
 
         return new ImapSessions(
             new MailboxCredentials($database, 5),
-            new readonly class($server) implements ImapConnectionFactory {
+            new readonly class($server) implements ImapConnectionFactoryInterface {
                 public function __construct(private FakeImapServer $server)
                 {
                 }

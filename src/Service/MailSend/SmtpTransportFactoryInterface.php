@@ -13,7 +13,7 @@ namespace App\Service\MailSend;
 use App\Service\MailboxCredential\ShortLivedCredential;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 
-interface SmtpTransportFactory
+interface SmtpTransportFactoryInterface
 {
     /**
      * @return EsmtpTransport not connected yet, logs in with the credential when started

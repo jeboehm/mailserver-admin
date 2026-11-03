@@ -15,6 +15,7 @@ use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
 use App\Mcp\ToolDomainResolver;
+use App\Mcp\ToolPage;
 use App\Mcp\ToolTimeLimit;
 use App\Service\ApiToken\ApiTokenScope;
 use App\Service\DnsWizard\DnsWizardRow;
@@ -87,9 +88,7 @@ final readonly class DnsValidateTool
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'domain:{domain}')]
     public function __invoke(?string $domain = null, int $limit = self::DEFAULT_LIMIT, ?string $cursor = null): array
     {
-        if ($limit < 1 || $limit > self::MAX_LIMIT) {
-            throw new ToolCallException(\sprintf('limit must be between 1 and %d.', self::MAX_LIMIT));
-        }
+        ToolPage::assertRange($limit, maxLimit: self::MAX_LIMIT);
 
         if (null !== $cursor && !ctype_digit($cursor)) {
             throw new ToolCallException('cursor must be the next_cursor of an earlier call.');

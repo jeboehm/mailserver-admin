@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Mcp;
 
+use App\Exception\Mailbox\MailboxDeniedException;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\Audit\ToolCallResult;
 use Mcp\Capability\Registry\ElementReference;
@@ -61,7 +62,7 @@ final readonly class ToolGate implements ReferenceHandlerInterface
         try {
             $result = $this->inner->handle($reference, $arguments);
         } catch (\Throwable $e) {
-            $denied = $e instanceof AccessDeniedException || $e instanceof ToolDeniedException;
+            $denied = $e instanceof AccessDeniedException || $e instanceof ToolDeniedException || $e instanceof MailboxDeniedException;
 
             $this->auditLog->record($tool, match (true) {
                 $denied => ToolCallResult::Denied,

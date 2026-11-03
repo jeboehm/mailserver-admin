@@ -99,8 +99,8 @@ when@test:
         Tests\Integration\Mcp\Fixture\:
             resource: '../tests/Integration/Mcp/Fixture/*'
 
-        App\Service\Mailbox\ImapConnectionFactory: '@Tests\Integration\Mcp\Fixture\FakeImapConnectionFactory'
-        App\Service\MailSend\SmtpTransportFactory: '@Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory'
+        App\Service\Mailbox\ImapConnectionFactoryInterface: '@Tests\Integration\Mcp\Fixture\FakeImapConnectionFactory'
+        App\Service\MailSend\SmtpTransportFactoryInterface: '@Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory'
         App\Service\DnsWizard\DnsLookupInterface: '@Tests\Integration\Mcp\Fixture\FakeDnsLookup'
 
         # Lets tests read the audit log, with the handler in monolog.yaml.

@@ -41,7 +41,7 @@ final readonly class ImapSessions
 
     public function __construct(
         private MailboxCredentials $credentials,
-        private ImapConnectionFactory $connections,
+        private ImapConnectionFactoryInterface $connections,
         private LoggerInterface $logger,
     ) {
     }

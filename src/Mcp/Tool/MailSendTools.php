@@ -10,14 +10,12 @@ declare(strict_types=1);
 
 namespace App\Mcp\Tool;
 
-use App\Exception\Mailbox\MailboxDeniedException;
 use App\Exception\MailSend\InvalidMailException;
 use App\Exception\MailSend\MailSendFailedException;
 use App\Exception\MailSend\MailSendRateLimitedException;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\CurrentApiToken;
 use App\Mcp\ToolAccess;
-use App\Mcp\ToolDeniedException;
 use App\Mcp\ToolFeature;
 use App\Mcp\ToolTimeLimit;
 use App\Service\ApiToken\ApiTokenScope;
@@ -83,8 +81,6 @@ final readonly class MailSendTools
             $this->auditLog->details(['recipients' => $mail->recipients, 'message_id' => $mail->messageId]);
 
             $copy = $this->sender->send($user, (int) $this->currentApiToken->get()->getId(), $mail);
-        } catch (MailboxDeniedException) {
-            throw new ToolDeniedException();
         } catch (InvalidMailException|MailSendRateLimitedException|MailSendFailedException $e) {
             throw new ToolCallException($e->getMessage());
         }

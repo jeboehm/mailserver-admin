@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Mcp\Fixture;
 
-use App\Service\Mailbox\ImapConnectionFactory;
+use App\Service\Mailbox\ImapConnectionFactoryInterface;
 use App\Service\Mailbox\TlsImapConnectionFactory;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use Tests\Integration\Helper\FakeImapServer;
@@ -19,7 +19,7 @@ use Tests\Integration\Helper\FakeImapServer;
  * Takes the place of the real factory in the test environment. Connects to the current
  * FakeImapServer, or for real when there is none, which is what the end-to-end test relies on.
  */
-final readonly class FakeImapConnectionFactory implements ImapConnectionFactory
+final readonly class FakeImapConnectionFactory implements ImapConnectionFactoryInterface
 {
     public function __construct(private TlsImapConnectionFactory $real)
     {

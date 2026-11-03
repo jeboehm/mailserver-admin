@@ -13,6 +13,7 @@ namespace Tests\Unit\Mcp;
 use App\Entity\ApiToken;
 use App\Entity\Domain;
 use App\Entity\User;
+use App\Exception\Mailbox\MailboxDeniedException;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\Audit\ToolCallResult;
 use App\Mcp\CurrentApiToken;
@@ -124,8 +125,13 @@ class ToolGateTest extends TestCase
         $inner->method('handle')->willThrowException(new ToolDeniedException());
         $notFound = $this->messageOf(fn () => $this->gate($inner, ActorRole::User, [])->handle($this->reference('open'), []));
 
+        $inner = $this->createStub(ReferenceHandlerInterface::class);
+        $inner->method('handle')->willThrowException(new MailboxDeniedException());
+        $noMailbox = $this->messageOf(fn () => $this->gate($inner, ActorRole::User, [])->handle($this->reference('open'), []));
+
         self::assertSame($notFound, $deniedByGate);
         self::assertSame($notFound, $deniedByPolicy);
+        self::assertSame($notFound, $noMailbox);
     }
 
     public function testSuccessIsAudited(): void

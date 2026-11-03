@@ -23,7 +23,7 @@ use Doctrine\ORM\Events;
  * is permanent: an OIDC login re-enabling the user does not bring the tokens back.
  */
 #[AsDoctrineListener(event: Events::onFlush)]
-final class ApiTokenRevocationListener
+final readonly class ApiTokenRevocationListener
 {
     public function onFlush(OnFlushEventArgs $event): void
     {

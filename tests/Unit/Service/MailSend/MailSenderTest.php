@@ -13,14 +13,14 @@ namespace Tests\Unit\Service\MailSend;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Exception\Mailbox\MailboxDeniedException;
-use App\Service\Mailbox\ImapConnectionFactory;
+use App\Service\Mailbox\ImapConnectionFactoryInterface;
 use App\Service\Mailbox\ImapSessions;
 use App\Service\MailboxCredential\MailboxCredentials;
 use App\Service\MailSend\MailComposer;
 use App\Service\MailSend\MailSender;
 use App\Service\MailSend\MailSendRateLimiter;
 use App\Service\MailSend\SentFolder;
-use App\Service\MailSend\SmtpTransportFactory;
+use App\Service\MailSend\SmtpTransportFactoryInterface;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -42,7 +42,7 @@ class MailSenderTest extends TestCase
 
         $connection = $this->createMock(Connection::class);
         $connection->expects(self::never())->method('executeStatement');
-        $transports = $this->createMock(SmtpTransportFactory::class);
+        $transports = $this->createMock(SmtpTransportFactoryInterface::class);
         $transports->expects(self::never())->method('create');
 
         $credentials = new MailboxCredentials($connection, 5);
@@ -51,7 +51,7 @@ class MailSenderTest extends TestCase
             $credentials,
             $transports,
             new MailSendRateLimiter(new ArrayAdapter(), null, 1, 1, 3),
-            new SentFolder(new ImapSessions($credentials, $this->createStub(ImapConnectionFactory::class), $logger), $logger),
+            new SentFolder(new ImapSessions($credentials, $this->createStub(ImapConnectionFactoryInterface::class), $logger), $logger),
             $logger,
         );
 

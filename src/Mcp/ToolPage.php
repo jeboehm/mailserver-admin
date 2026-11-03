@@ -12,6 +12,7 @@ namespace App\Mcp;
 
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Mcp\Exception\ToolCallException;
 
 /**
  * The one shape every list tool answers with.
@@ -22,18 +23,30 @@ final class ToolPage
     private const int MAX_LIMIT = 100;
 
     /**
-     * A limit or offset out of range is corrected, and the answer states what was applied.
+     * A page out of range is refused for every tool, as a caller could take a corrected one for what it
+     * asked for.
      *
+     * @throws ToolCallException
+     */
+    public static function assertRange(int $limit, int $offset = 0, int $maxLimit = self::MAX_LIMIT): void
+    {
+        if ($limit < 1 || $limit > $maxLimit || $offset < 0) {
+            throw new ToolCallException(\sprintf('The limit must be between 1 and %d and the offset must not be negative.', $maxLimit));
+        }
+    }
+
+    /**
      * @template T of object
      *
      * @param \Closure(T): array<string, mixed> $present
+     *
+     * @throws ToolCallException
      *
      * @return array{items: list<array<string, mixed>>, total: int, limit: int, offset: int}
      */
     public static function of(QueryBuilder $queryBuilder, int $limit, int $offset, \Closure $present): array
     {
-        $limit = max(1, min($limit, self::MAX_LIMIT));
-        $offset = max(0, $offset);
+        self::assertRange($limit, $offset);
 
         $queryBuilder->setFirstResult($offset)->setMaxResults($limit);
         $paginator = new Paginator($queryBuilder, false);

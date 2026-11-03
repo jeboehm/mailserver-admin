@@ -31,7 +31,7 @@ final readonly class MailSender
 {
     public function __construct(
         private MailboxCredentials $credentials,
-        private SmtpTransportFactory $transports,
+        private SmtpTransportFactoryInterface $transports,
         private MailSendRateLimiter $rateLimiter,
         private SentFolder $sentFolder,
         private LoggerInterface $logger,

@@ -25,7 +25,7 @@ use Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream;
  * stays on the internal network, and the generated certificate has CN=mail.example.com and no SAN,
  * so it never matches the name "mta". No logger is passed, as the transport logs the SMTP dialogue.
  */
-final readonly class TlsSmtpTransportFactory implements SmtpTransportFactory
+final readonly class TlsSmtpTransportFactory implements SmtpTransportFactoryInterface
 {
     public function __construct(
         #[Autowire('%env(string:MTA_SMTP_SUBMISSION_ADDRESS)%')]
