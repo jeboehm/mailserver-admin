@@ -40,6 +40,11 @@ final readonly class DomainScopePolicy
             ->setParameter('domain', $actor->ownDomain());
     }
 
+    public function canManage(Actor $actor, Alias|User $entity): bool
+    {
+        return $actor->managesDomain($entity->getDomain());
+    }
+
     public function canChooseDomain(Actor $actor): bool
     {
         return $actor->isAdmin();

@@ -286,6 +286,8 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - A tool group that depends on a matching docker-mailserver version names a `App\Mcp\ToolFeature` in `#[ToolAccess]`. `ToolAccessPolicy` holds the flag, so listing and calling follow it.
 - A mailbox user only ever comes from `CurrentActor`, never from a tool parameter. Reach a mailbox through `App\Service\Mailbox\ImapSessions` and log in anywhere else through `App\Service\MailboxCredential\MailboxCredentials`, which issues one credential per operation and always deletes it. Use ImapEngine's connection commands with `EXAMINE` and `BODY.PEEK`, not its fluent API.
 - Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end test `MailReadEndToEndTest` skips the database rollback and needs a real stack, see its class comment.
+- `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
+- The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 
 ## Integration Points
 

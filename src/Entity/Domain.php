@@ -44,14 +44,14 @@ class Domain implements \Stringable
      * @var Collection<int, User>
      */
     #[Assert\Valid]
-    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'domain', cascade: ['persist', 'remove'], fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $users;
 
     /**
      * @var Collection<int, Alias>
      */
     #[Assert\Valid]
-    #[ORM\OneToMany(targetEntity: Alias::class, mappedBy: 'domain', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Alias::class, mappedBy: 'domain', cascade: ['persist', 'remove'], fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $aliases;
 
     public function __construct()

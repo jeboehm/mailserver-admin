@@ -76,6 +76,7 @@ when@test:
             resource: '../tests/Integration/Mcp/Fixture/*'
 
         App\Service\Mailbox\ImapConnectionFactory: '@Tests\Integration\Mcp\Fixture\FakeImapConnectionFactory'
+        App\Service\DnsWizard\DnsLookupInterface: '@Tests\Integration\Mcp\Fixture\FakeDnsLookup'
 
         # Lets tests read the audit log, with the handler in monolog.yaml.
         app.test.mcp_audit_records:

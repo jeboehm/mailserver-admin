@@ -32,32 +32,45 @@ readonly class DnsWizardValidator
      */
     public function validate(string $mailname, ExpectedHostIps $expectedHostIps, array $domains): array
     {
-        $mailnameNormalized = $this->normalizeHostname($mailname);
-        $expectedAll = $expectedHostIps->all();
-
-        $mailHostRows = [];
-
-        foreach ($this->checks as $check) {
-            $rows = $check->validateMailHost($mailnameNormalized, $expectedHostIps, $expectedAll);
-            $mailHostRows = [...$mailHostRows, ...$rows];
-        }
-
+        $mailHostRows = $this->validateMailHost($mailname, $expectedHostIps);
         $domainRows = [];
 
         foreach ($domains as $domain) {
-            $name = $domain->getName();
-            $domainRows[$name] = [];
-
-            foreach ($this->checks as $check) {
-                $rows = $check->validateDomain($mailnameNormalized, $expectedAll, $domain);
-                $domainRows[$name] = [...$domainRows[$name], ...$rows];
-            }
+            $domainRows[$domain->getName()] = $this->validateDomain($mailname, $expectedHostIps, $domain);
         }
 
         return [
             'mailHost' => $mailHostRows,
             'domains' => $domainRows,
         ];
+    }
+
+    /**
+     * @return list<DnsWizardRow>
+     */
+    public function validateMailHost(string $mailname, ExpectedHostIps $expectedHostIps): array
+    {
+        $rows = [];
+
+        foreach ($this->checks as $check) {
+            $rows = [...$rows, ...$check->validateMailHost($this->normalizeHostname($mailname), $expectedHostIps, $expectedHostIps->all())];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return list<DnsWizardRow>
+     */
+    public function validateDomain(string $mailname, ExpectedHostIps $expectedHostIps, Domain $domain): array
+    {
+        $rows = [];
+
+        foreach ($this->checks as $check) {
+            $rows = [...$rows, ...$check->validateDomain($this->normalizeHostname($mailname), $expectedHostIps->all(), $domain)];
+        }
+
+        return $rows;
     }
 
     private function normalizeHostname(string $host): string
