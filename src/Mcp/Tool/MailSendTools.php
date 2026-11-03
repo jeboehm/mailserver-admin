@@ -1,0 +1,116 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * This file is part of the mailserver-admin package.
+ * (c) Jeffrey Boehm <https://github.com/jeboehm/mailserver-admin>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace App\Mcp\Tool;
+
+use App\Exception\Mailbox\MailboxDeniedException;
+use App\Exception\MailSend\InvalidMailException;
+use App\Exception\MailSend\MailSendFailedException;
+use App\Exception\MailSend\MailSendRateLimitedException;
+use App\Mcp\Audit\ToolAuditLog;
+use App\Mcp\CurrentApiToken;
+use App\Mcp\ToolAccess;
+use App\Mcp\ToolDeniedException;
+use App\Mcp\ToolFeature;
+use App\Service\ApiToken\ApiTokenScope;
+use App\Service\MailSend\MailComposer;
+use App\Service\MailSend\MailSender;
+use App\Service\MailSend\SentCopy;
+use App\Service\Security\Access\CurrentActor;
+use Mcp\Capability\Attribute\McpTool;
+use Mcp\Exception\ToolCallException;
+use Mcp\Schema\ToolAnnotations;
+
+/**
+ * Send mail from the authenticated user's own address, and only that: the sender always comes from
+ * the token and no tool has a parameter for it. Roles grant nothing here.
+ */
+final readonly class MailSendTools
+{
+    /**
+     * Above PHP's default of 30: submission and the Sent copy can each wait for an auth penalty of up
+     * to 15 seconds. Running out after the mail has gone would answer with an error, and a caller
+     * would send it again.
+     */
+    private const int TIME_LIMIT_SECONDS = 120;
+
+    private const string COPY_FAILED = 'The mail was sent, but its copy could not be saved in the Sent mailbox. Do not send it again.';
+    private const string COPY_SKIPPED = 'This user has no access to a mailbox, so no copy is kept.';
+
+    public function __construct(
+        private MailComposer $composer,
+        private MailSender $sender,
+        private CurrentActor $currentActor,
+        private CurrentApiToken $currentApiToken,
+        private ToolAuditLog $auditLog,
+    ) {
+    }
+
+    /**
+     * @param string[] $to      the recipients, as plain addresses such as name@example.com
+     * @param string   $subject the subject
+     * @param string   $body    the body, as plain text
+     * @param string[] $cc      recipients everyone can see
+     * @param string[] $bcc     recipients nobody else can see
+     *
+     * @return array<string, mixed>
+     */
+    #[McpTool(
+        name: 'message_send',
+        description: 'Sends a plain text mail from your own address and keeps a copy in your Sent mailbox. A mail cannot be recalled. If "sent" is true in the result it has gone out, whatever the result says about the copy, so do not send it again. Limited per token, per user and overall.',
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true),
+    )]
+    #[ToolAccess(scope: ApiTokenScope::MailSend, feature: ToolFeature::MailSend)]
+    public function messageSend(array $to, string $subject, string $body, array $cc = [], array $bcc = []): array
+    {
+        $timeLimit = (int) \ini_get('max_execution_time');
+
+        if (0 !== $timeLimit && $timeLimit < self::TIME_LIMIT_SECONDS) {
+            set_time_limit(self::TIME_LIMIT_SECONDS);
+        }
+
+        $user = $this->currentActor->get()->user;
+
+        try {
+            $mail = $this->composer->compose($user, array_values($to), array_values($cc), array_values($bcc), $subject, $body);
+
+            $this->auditLog->target('message', $mail->messageId);
+            $this->auditLog->details(['recipients' => $mail->recipients, 'message_id' => $mail->messageId]);
+
+            $copy = $this->sender->send($user, (int) $this->currentApiToken->get()->getId(), $mail);
+        } catch (MailboxDeniedException) {
+            throw new ToolDeniedException();
+        } catch (InvalidMailException|MailSendRateLimitedException|MailSendFailedException $e) {
+            throw new ToolCallException($e->getMessage());
+        }
+
+        $this->auditLog->details(['sent_copy' => $copy->status]);
+
+        return [
+            'sent' => true,
+            'message_id' => $mail->messageId,
+            'from' => (string) $user,
+            'recipients' => $mail->recipients,
+            'sent_copy' => $this->describe($copy),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function describe(SentCopy $copy): array
+    {
+        return match ($copy->status) {
+            SentCopy::STATUS_SAVED => ['status' => $copy->status, 'mailbox' => $copy->mailbox],
+            SentCopy::STATUS_SKIPPED => ['status' => $copy->status, 'reason' => self::COPY_SKIPPED],
+            default => ['status' => $copy->status, 'temporary' => $copy->temporary, 'reason' => self::COPY_FAILED],
+        };
+    }
+}

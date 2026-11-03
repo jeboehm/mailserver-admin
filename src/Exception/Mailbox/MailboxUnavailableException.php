@@ -15,13 +15,18 @@ namespace App\Exception\Mailbox;
  */
 final class MailboxUnavailableException extends \RuntimeException
 {
+    private function __construct(string $message, public readonly bool $retryable)
+    {
+        parent::__construct($message);
+    }
+
     public static function retryable(): self
     {
-        return new self('The mailbox is busy or temporarily unavailable. Retry in a few seconds.');
+        return new self('The mailbox is busy or temporarily unavailable. Retry in a few seconds.', true);
     }
 
     public static function failed(): self
     {
-        return new self('The mailbox could not be read.');
+        return new self('The mailbox could not be read.', false);
     }
 }

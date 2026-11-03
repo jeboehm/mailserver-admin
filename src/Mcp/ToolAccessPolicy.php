@@ -24,6 +24,8 @@ final readonly class ToolAccessPolicy
         private CurrentActor $currentActor,
         #[Autowire('%env(bool:MCP_MAIL_READ_ENABLED)%')]
         private bool $mailReadEnabled,
+        #[Autowire('%env(bool:MCP_MAIL_SEND_ENABLED)%')]
+        private bool $mailSendEnabled,
     ) {
     }
 
@@ -36,6 +38,10 @@ final readonly class ToolAccessPolicy
         }
 
         if (ToolFeature::MailRead === $access->feature && !$this->mailReadEnabled) {
+            return false;
+        }
+
+        if (ToolFeature::MailSend === $access->feature && !$this->mailSendEnabled) {
             return false;
         }
 

@@ -273,6 +273,14 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `MCP_MAIL_MESSAGE_MAX_BYTES`: Size limit of the body `message_get` returns (default `65536`)
 - `MDA_IMAPS_ADDRESS`: Dovecot's implicit TLS address as `host:port` (default `mda:31993`)
 - `MDA_IMAP_TIMEOUT_SECONDS`: IMAP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
+- `MCP_MAIL_SEND_ENABLED`: Enable/disable `message_send`, which needs a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
+- `MCP_MAIL_SEND_MAX_RECIPIENTS`: Recipients per mail, across `to`, `cc` and `bcc` (default `20`)
+- `MCP_MAIL_SEND_MAX_BYTES`: Size limit of a sent message as it goes over the wire (default `1048576`)
+- `MCP_MAIL_SEND_TOKEN_LIMIT_PER_HOUR`: Sends per API token (default `30`)
+- `MCP_MAIL_SEND_USER_LIMIT_PER_HOUR`: Sends per user, across their tokens (default `60`)
+- `MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE`: Sends per rolling minute across everyone. Keep it below Postfix's 20 connections per minute per client address, which Roundcube shares. A third of it is available at once, the rest refills evenly (default `15`)
+- `MTA_SMTP_SUBMISSION_ADDRESS`: Postfix's submission address as `host:port` (default `mta:587`)
+- `MTA_SMTP_TIMEOUT_SECONDS`: SMTP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
 
 ## MCP tools
 
@@ -285,7 +293,8 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
 - A tool group that depends on a matching docker-mailserver version names a `App\Mcp\ToolFeature` in `#[ToolAccess]`. `ToolAccessPolicy` holds the flag, so listing and calling follow it.
 - A mailbox user only ever comes from `CurrentActor`, never from a tool parameter. Reach a mailbox through `App\Service\Mailbox\ImapSessions` and log in anywhere else through `App\Service\MailboxCredential\MailboxCredentials`, which issues one credential per operation and always deletes it. Use ImapEngine's connection commands with `EXAMINE` and `BODY.PEEK`, not its fluent API.
-- Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end test `MailReadEndToEndTest` skips the database rollback and needs a real stack, see its class comment.
+- Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end tests `MailReadEndToEndTest` and `MailSendEndToEndTest` skip the database rollback and need a real stack, see their class comments.
+- Send mail through `App\Service\MailSend\MailSender`. Once Postfix has taken a mail, nothing may look like a failed send, or a caller sends it again: a problem with the Sent copy goes in the result. The test environment replaces the transport factory with `Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory`, which falls through to the real one without a current `FakeSmtpServer`.
 - `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
 - The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 

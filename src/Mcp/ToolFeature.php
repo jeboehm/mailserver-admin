@@ -16,4 +16,5 @@ namespace App\Mcp;
 enum ToolFeature
 {
     case MailRead;
+    case MailSend;
 }
