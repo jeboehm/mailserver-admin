@@ -23,7 +23,8 @@ enum ApiTokenScope: string
     public const array ALL = [self::ManageRead, self::ManageWrite, self::MailRead, self::MailSend];
 
     /**
-     * Sending mail on someone's behalf has to be a deliberate choice.
+     * Writing and sending have to be a deliberate choice: together with mail:read, either lets a mail
+     * the agent reads instruct it to act.
      */
-    public const array PRESELECTED = [self::ManageRead, self::ManageWrite, self::MailRead];
+    public const array PRESELECTED = [self::ManageRead, self::MailRead];
 }

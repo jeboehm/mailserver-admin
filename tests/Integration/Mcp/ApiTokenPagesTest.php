@@ -104,7 +104,7 @@ class ApiTokenPagesTest extends WebTestCase
         }
     }
 
-    public function testFormDoesNotPreselectMailSend(): void
+    public function testFormOnlyPreselectsReadingScopes(): void
     {
         $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
 
@@ -112,7 +112,9 @@ class ApiTokenPagesTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertCount(0, $crawler->filter('input[type=checkbox][value="mail:send"][checked]'));
+        self::assertCount(0, $crawler->filter('input[type=checkbox][value="manage:write"][checked]'));
         self::assertCount(1, $crawler->filter('input[type=checkbox][value="mail:read"][checked]'));
+        self::assertCount(1, $crawler->filter('input[type=checkbox][value="manage:read"][checked]'));
         self::assertSame('90', $crawler->filter('input[name="api_token[lifetimeDays]"]')->attr('value'));
     }
 
