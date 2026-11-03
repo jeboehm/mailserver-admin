@@ -44,10 +44,15 @@ final class ApiTokenRevocationListener
     }
 
     /**
+     * A plain password is only hashed in preUpdate, after this listener. The change set does not show
+     * it yet, unless the empty password the forms set happens to differ from the stored one.
+     *
      * @param array<string, mixed> $changes
      */
     private function invalidatesTokens(array $changes, User $user): bool
     {
-        return isset($changes['password']) || (isset($changes['enabled']) && !$user->getEnabled());
+        return isset($changes['password'])
+            || !empty($user->getPlainPassword())
+            || (isset($changes['enabled']) && !$user->getEnabled());
     }
 }

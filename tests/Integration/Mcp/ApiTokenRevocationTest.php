@@ -84,6 +84,29 @@ class ApiTokenRevocationTest extends WebTestCase
         $this->assertTokenRejected($secret);
     }
 
+    /**
+     * OIDC users have no stored password. For them, the empty password the forms set changes nothing,
+     * so the change only shows up when the hashing listener runs, after revocation has looked.
+     */
+    public function testSettingAPasswordOnAUserWithoutOneRevokesTokens(): void
+    {
+        $user = $this->findUser(self::OTHER_USER);
+        $user->setPassword('');
+        $this->entityManager()->flush();
+
+        $secret = $this->storeToken($this->findUser(self::OTHER_USER));
+
+        $user = $this->findUser(self::OTHER_USER);
+        $user->setPlainPassword('a-new-Passw0rd!');
+        $user->setPassword('');
+        $user->setQuota(5);
+        $this->entityManager()->flush();
+
+        $this->entityManager()->clear();
+        self::assertNotSame('', $this->findUser(self::OTHER_USER)->getPassword());
+        $this->assertTokenRejected($secret);
+    }
+
     public function testTokensOfOtherUsersStayValid(): void
     {
         $bystander = $this->storeToken($this->findUser());
