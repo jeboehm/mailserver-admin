@@ -176,6 +176,56 @@ final class DoveadmHttpClientTest extends TestCase
         self::assertStringContainsString('Authentication failed', $health->message);
     }
 
+    public function testFlushAuthCacheSendsTheAddressesAsUserMasks(): void
+    {
+        $sent = null;
+        $httpClient = new MockHttpClient([
+            static function (string $method, string $url, array $options) use (&$sent) {
+                $sent = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
+
+                return new MockResponse(
+                    json_encode([['doveadmResponse', [['entries' => '2']], $sent[0][2]]]),
+                    ['http_code' => 200],
+                );
+            },
+        ]);
+        $client = new DoveadmHttpClient($httpClient, self::HTTP_URL, self::API_KEY, null, true);
+
+        $client->flushAuthCache(['a@example.com', 'b@example.com']);
+
+        self::assertSame('authCacheFlush', $sent[0][0]);
+        self::assertSame(['userMask' => ['a@example.com', 'b@example.com']], $sent[0][1]);
+    }
+
+    public function testFlushAuthCacheThrowsOnADoveadmError(): void
+    {
+        $httpClient = new MockHttpClient([
+            static function (string $method, string $url, array $options) {
+                $payload = json_decode($options['body'], true, 5, \JSON_THROW_ON_ERROR);
+
+                return new MockResponse(
+                    json_encode([['error', ['type' => 'exitCode', 'exitCode' => 75], $payload[0][2]]]),
+                    ['http_code' => 200],
+                );
+            },
+        ]);
+        $client = new DoveadmHttpClient($httpClient, self::HTTP_URL, self::API_KEY, null, true);
+
+        $this->expectException(DoveadmResponseException::class);
+
+        $client->flushAuthCache(['a@example.com']);
+    }
+
+    public function testFlushAuthCacheThrowsWhenDoveadmIsUnreachable(): void
+    {
+        $httpClient = new MockHttpClient([new MockResponse('', ['error' => 'connection refused'])]);
+        $client = new DoveadmHttpClient($httpClient, self::HTTP_URL, self::API_KEY, null, true);
+
+        $this->expectException(DoveadmConnectionException::class);
+
+        $client->flushAuthCache(['a@example.com']);
+    }
+
     public function testStatsDumpReturnsStatsDumpDto(): void
     {
         $httpClient = new MockHttpClient([
