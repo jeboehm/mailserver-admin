@@ -34,12 +34,7 @@ class ApiTokenType extends AbstractType
             ])
             ->add('scopes', EnumType::class, [
                 'class' => ApiTokenScope::class,
-                'choice_label' => static fn (ApiTokenScope $scope): string => match ($scope) {
-                    ApiTokenScope::ManageRead => 'Read domains, users, aliases, fetchmail accounts and DKIM status; run DNS validation (manage:read)',
-                    ApiTokenScope::ManageWrite => 'Create, update and delete the same (manage:write)',
-                    ApiTokenScope::MailRead => 'Read your own mailbox (mail:read)',
-                    ApiTokenScope::MailSend => 'Send mail from your own address (mail:send)',
-                },
+                'choice_label' => static fn (ApiTokenScope $scope): string => \sprintf('%s (%s)', $scope->description(), $scope->value),
                 'multiple' => true,
                 'expanded' => true,
                 'help' => 'What a token can do is also limited by your role.',

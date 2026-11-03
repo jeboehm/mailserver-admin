@@ -62,6 +62,7 @@ class McpAvailabilityTest extends WebTestCase
 
         yield 'PUT on a token page' => [Request::METHOD_PUT, '/api-token'];
         yield 'GET on a POST-only token route' => [Request::METHOD_GET, '/api-token/revoke/1'];
+        yield 'GET on the setup page' => [Request::METHOD_GET, '/mcp-setup'];
     }
 
     #[DataProvider('disabledRoutesByMethod')]

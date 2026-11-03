@@ -109,6 +109,10 @@ class DashboardController extends AbstractDashboardController
             ->setPermission(Roles::ROLE_DOMAIN_ADMIN);
         yield MenuItem::linkToRoute('iOS/MacOS Profile', 'fa fa-mobile-alt', 'admin_mobileconfig_download');
 
+        if ($this->mcpAvailability->isEnabled()) {
+            yield MenuItem::linkToRoute('MCP', 'fa fa-robot', 'admin_mcp_setup_index');
+        }
+
         $webmail = MenuItem::linkToUrl('Webmail', 'fa fa-envelope', '/webmail')
             ->setLinkRel('noreferrer');
 

@@ -23,7 +23,9 @@
                         Valid until {{ issued.token.expiresAt|date('Y-m-d H:i') }}. Scopes: {{ issued.token.scopeNames }}.
                     </p>
 
-                    <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end gap-2">
+                        {# In a new tab, because leaving this page loses the secret. #}
+                        <a href="{{ path('admin_mcp_setup_index') }}" target="_blank" rel="noopener" class="btn btn-secondary" data-mcp-setup-link>Set up your agent</a>
                         <a href="{{ ea_url().setController('App\\Controller\\User\\ApiTokenCrudController').setAction('index') }}" class="btn btn-primary">Done</a>
                     </div>
                 </div>

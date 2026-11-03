@@ -27,4 +27,14 @@ enum ApiTokenScope: string
      * the agent reads instruct it to act.
      */
     public const array PRESELECTED = [self::ManageRead, self::MailRead];
+
+    public function description(): string
+    {
+        return match ($this) {
+            self::ManageRead => 'Read domains, users, aliases, fetchmail accounts and DKIM status; run DNS validation',
+            self::ManageWrite => 'Create, update and delete the same',
+            self::MailRead => 'Read your own mailbox',
+            self::MailSend => 'Send mail from your own address',
+        };
+    }
 }

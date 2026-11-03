@@ -29,7 +29,7 @@ use Symfony\Component\Routing\RouterInterface;
  */
 final readonly class McpAvailability
 {
-    private const array ROUTE_PREFIXES = ['_mcp_endpoint_', 'admin_api_token_'];
+    private const array ROUTE_PREFIXES = ['_mcp_endpoint_', 'admin_api_token_', 'admin_mcp_setup_'];
 
     public function __construct(
         #[Autowire('%env(bool:MCP_ENABLED)%')]
