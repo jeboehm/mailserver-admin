@@ -89,7 +89,8 @@ final readonly class MailComposer
 
     /**
      * Plain addresses only: they end up in SMTP commands and headers, so the validation must see all
-     * of the value.
+     * of the value. A non-ASCII local part needs SMTPUTF8 from every server on the way, so it is left
+     * out; a non-ASCII domain is fine, as it goes out encoded.
      *
      * @param list<string> $addresses
      *
@@ -98,9 +99,17 @@ final readonly class MailComposer
     private function addresses(array $addresses): array
     {
         try {
-            return array_map(static fn (string $address): Address => new Address($address), $addresses);
+            $parsed = array_map(static fn (string $address): Address => new Address($address), $addresses);
         } catch (InvalidArgumentException|RfcComplianceException) {
             throw new InvalidMailException('Every recipient must be a plain address such as name@example.com.');
         }
+
+        foreach ($parsed as $address) {
+            if (1 === preg_match('/[^\x00-\x7F]/', (string) strstr($address->getAddress(), '@', true))) {
+                throw new InvalidMailException('Addresses with non-ASCII characters before the @ are not supported.');
+            }
+        }
+
+        return $parsed;
     }
 }

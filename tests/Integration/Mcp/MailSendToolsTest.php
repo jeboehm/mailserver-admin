@@ -452,6 +452,7 @@ class MailSendToolsTest extends WebTestCase
         yield 'an invalid recipient' => [['to' => ['not an address'], 'subject' => 's', 'body' => 'b']];
         yield 'a recipient smuggling a command' => [['to' => ["bob@example.com>\r\nRCPT TO:<eve@example.com"], 'subject' => 's', 'body' => 'b']];
         yield 'a recipient with a display name' => [['to' => ['Bob <bob@example.com>'], 'subject' => 's', 'body' => 'b']];
+        yield 'a non-ASCII local part' => [['to' => ['jörg@example.com'], 'subject' => 's', 'body' => 'b']];
         yield 'an empty subject' => [['to' => ['bob@example.com'], 'subject' => ' ', 'body' => 'b']];
         yield 'a subject smuggling a header' => [['to' => ['bob@example.com'], 'subject' => "s\r\nBcc: eve@example.com", 'body' => 'b']];
         yield 'an empty body' => [['to' => ['bob@example.com'], 'subject' => 's', 'body' => '']];
@@ -468,6 +469,15 @@ class MailSendToolsTest extends WebTestCase
         $this->sendExpectingError($this->findUser(), $mail);
 
         self::assertSame(0, $smtp->connections);
+    }
+
+    public function testANonAsciiDomainGoesOutEncoded(): void
+    {
+        $smtp = $this->servers();
+
+        $this->send($this->findUser(), [...$this->mail(), 'to' => ['bob@bücher.example.com']]);
+
+        self::assertSame(['bob@xn--bcher-kva.example.com'], $smtp->rcptTo);
     }
 
     public function testTooManyRecipientsAreRefusedAcrossAllFields(): void
