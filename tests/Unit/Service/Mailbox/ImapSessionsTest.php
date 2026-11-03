@@ -13,7 +13,6 @@ namespace Tests\Unit\Service\Mailbox;
 use App\Exception\Mailbox\MailboxDeniedException;
 use App\Exception\Mailbox\MailboxUnavailableException;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
-use DirectoryTree\ImapEngine\Exceptions\ImapConnectionFailedException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Integration\Helper\FakeImapServer;
@@ -155,22 +154,18 @@ class ImapSessionsTest extends TestCase
         }
     }
 
-    public function testALostConnectionIsRetryable(): void
+    public function testAServerThatStopsAnsweringIsRetryable(): void
     {
         $server = new FakeImapServer(['TAG1 OK Logged in']);
 
-        $failure = null;
-
         try {
-            $this->sessions($server)->run($this->mailUser(), static function (): void {
-                throw new ImapConnectionFailedException('Unable to connect');
+            $this->sessions($server)->run($this->mailUser(), static function (ImapConnection $connection): void {
+                $connection->noop();
             });
+            self::fail('Expected the session to fail.');
         } catch (MailboxUnavailableException $e) {
-            $failure = $e;
+            self::assertTrue($e->retryable);
         }
-
-        self::assertNotNull($failure);
-        self::assertTrue($failure->retryable);
     }
 
     public function testTheOperationsOwnExceptionsReachTheCaller(): void
