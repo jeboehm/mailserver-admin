@@ -56,23 +56,14 @@ final readonly class MailboxReader
     public function listMailboxes(User $user, int $limit, int $offset): array
     {
         return $this->sessions->run($user, function (ImapConnection $connection) use ($limit, $offset): array {
-            $listed = [];
-
-            foreach ($connection->list() as $response) {
-                $attributes = $response->tokenAt(2);
-                $name = $response->tokenAt(4);
-
-                if ($attributes instanceof ListData && $name instanceof Token) {
-                    $listed[mb_scrub(Str::fromImapUtf7($name->value), 'UTF-8')] = $attributes->values();
-                }
-            }
+            $listed = ListedMailboxes::of($connection);
 
             uksort($listed, static fn (string $a, string $b): int => ['INBOX' !== $a, $a] <=> ['INBOX' !== $b, $b]);
 
             $mailboxes = [];
 
             foreach (\array_slice($listed, $offset, $limit, true) as $name => $attributes) {
-                $mailboxes[] = $this->summarise($connection, (string) $name, array_values($attributes));
+                $mailboxes[] = $this->summarise($connection, (string) $name, $attributes);
             }
 
             return ['total' => \count($listed), 'mailboxes' => $mailboxes];

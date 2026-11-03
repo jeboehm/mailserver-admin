@@ -386,7 +386,7 @@ idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 1. **Always use devenv**: Commands must run within the devenv environment
 2. **Strict Types**: All PHP files must declare strict types
 3. **Service Layer**: Business logic belongs in services, not controllers
-4. **Doctrine**: Use Entity API, not direct database queries
+4. **Doctrine**: Use Entity API, not direct database queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with
 5. **Testing**: Maintain high test coverage, especially for services
 6. **Code Style**: Run `composer run csfix` before committing
 7. **Static Analysis**: Ensure PHPStan passes at level 6

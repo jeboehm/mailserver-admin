@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\Mcp\Fixture;
 
-use App\Service\DnsWizard\DnsDeadlineExceededException;
+use App\Exception\DnsDeadlineExceededException;
 use App\Service\DnsWizard\DnsLookupInterface;
 
 /**

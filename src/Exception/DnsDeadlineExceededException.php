@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace App\Service\DnsWizard;
+namespace App\Exception;
 
 /**
  * The time for a validation has run out. Not the same as a missing record, so a lookup must never

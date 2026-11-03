@@ -22,4 +22,25 @@ final class ToolDeniedException extends \RuntimeException
     {
         parent::__construct(self::PUBLIC_MESSAGE);
     }
+
+    /**
+     * For an object looked up by a tool argument: missing and out of reach are the same to the caller.
+     *
+     * @template T of object
+     *
+     * @param T|null            $object
+     * @param callable(T): bool $allowed
+     *
+     * @throws self
+     *
+     * @return T
+     */
+    public static function unlessAllowed(?object $object, callable $allowed): object
+    {
+        if (null === $object || !$allowed($object)) {
+            throw new self();
+        }
+
+        return $object;
+    }
 }

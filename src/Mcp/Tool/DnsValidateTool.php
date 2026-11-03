@@ -14,6 +14,8 @@ use App\Entity\Domain;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
+use App\Mcp\ToolDomainResolver;
+use App\Mcp\ToolTimeLimit;
 use App\Service\ApiToken\ApiTokenScope;
 use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\ExpectedHostIps;
@@ -97,7 +99,7 @@ final readonly class DnsValidateTool
         $offset = (int) $cursor;
         $page = \array_slice($domains, $offset, $limit);
 
-        $this->raiseTimeLimit();
+        ToolTimeLimit::raiseTo(self::TIME_LIMIT_SECONDS);
 
         $mailname = $this->mailname ?? (string) $this->requestStack->getMainRequest()?->getHost();
         $expectedHostIps = $this->resolveExpectedHostIps();
@@ -139,7 +141,7 @@ final readonly class DnsValidateTool
             return $domains;
         }
 
-        $name = rtrim(mb_strtolower($name), '.');
+        $name = ToolDomainResolver::normalise($name);
         $this->auditLog->target('domain', $name);
 
         foreach ($domains as $domain) {
@@ -149,18 +151,6 @@ final readonly class DnsValidateTool
         }
 
         throw new ToolDeniedException();
-    }
-
-    /**
-     * Only ever raises it. A limit of zero means there is none, and setting one would introduce it.
-     */
-    private function raiseTimeLimit(): void
-    {
-        $current = (int) \ini_get('max_execution_time');
-
-        if ($current > 0 && $current < self::TIME_LIMIT_SECONDS) {
-            set_time_limit(self::TIME_LIMIT_SECONDS);
-        }
     }
 
     private function resolveExpectedHostIps(): ExpectedHostIps

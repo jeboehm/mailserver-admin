@@ -77,13 +77,13 @@ final readonly class FetchmailTools
     }
 
     /**
-     * @param string      $host      Host name of the server to fetch from
-     * @param string      $username  Login at that server
-     * @param string      $password  Password at that server. It passes through the context of the agent and a failing call can write it to the error log.
-     * @param string|null $owner     Address of the user the mail is fetched for. Defaults to yourself
-     * @param string      $protocol  imap or pop3
-     * @param int         $port      Port of the server
-     * @param bool        $ssl       Whether to connect with SSL, for SSL-only connections or implicit TLS
+     * @param string      $host       Host name of the server to fetch from
+     * @param string      $username   Login at that server
+     * @param string      $password   Password at that server. It passes through the context of the agent and a failing call can write it to the error log.
+     * @param string|null $owner      Address of the user the mail is fetched for. Defaults to yourself
+     * @param string      $protocol   imap or pop3
+     * @param int         $port       Port of the server
+     * @param bool        $ssl        Whether to connect with SSL, for SSL-only connections or implicit TLS
      * @param bool        $verify_ssl Whether to verify the certificate of the server
      *
      * @return array<string, mixed>
@@ -125,14 +125,14 @@ final readonly class FetchmailTools
     }
 
     /**
-     * @param int         $id        The ID from fetchmail_list
-     * @param string|null $owner     Address of the user the mail is fetched for
-     * @param string|null $host      Host name of the server to fetch from
-     * @param string|null $username  Login at that server
-     * @param string|null $password  New password at that server. Leave out to keep the current one. It passes through the context of the agent and a failing call can write it to the error log.
-     * @param string|null $protocol  imap or pop3
-     * @param int|null    $port      Port of the server
-     * @param bool|null   $ssl       Whether to connect with SSL, for SSL-only connections or implicit TLS
+     * @param int         $id         The ID from fetchmail_list
+     * @param string|null $owner      Address of the user the mail is fetched for
+     * @param string|null $host       Host name of the server to fetch from
+     * @param string|null $username   Login at that server
+     * @param string|null $password   New password at that server. Leave out to keep the current one. It passes through the context of the agent and a failing call can write it to the error log.
+     * @param string|null $protocol   imap or pop3
+     * @param int|null    $port       Port of the server
+     * @param bool|null   $ssl        Whether to connect with SSL, for SSL-only connections or implicit TLS
      * @param bool|null   $verify_ssl Whether to verify the certificate of the server
      *
      * @return array<string, mixed>
@@ -220,13 +220,7 @@ final readonly class FetchmailTools
 
     private function findManaged(Actor $actor, int $id): FetchmailAccount
     {
-        $account = $this->accounts->find($id);
-
-        if (null === $account || !$this->policy->canManage($actor, $account)) {
-            throw new ToolDeniedException();
-        }
-
-        return $account;
+        return ToolDeniedException::unlessAllowed($this->accounts->find($id), fn (FetchmailAccount $account): bool => $this->policy->canManage($actor, $account));
     }
 
     private function assignableOwner(Actor $actor, string $address): User

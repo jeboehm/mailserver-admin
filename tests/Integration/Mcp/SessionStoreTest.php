@@ -16,7 +16,8 @@ use Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler
 
 /**
  * The test environment uses mock session storage, so this pins the production handler itself.
- * The two-replica behaviour is verified against a real stack, see the ticket.
+ * Two replicas cannot be shown here. That was checked by hand on a real FrankenPHP stack: a session
+ * created on replica A worked on replica B and back.
  */
 class SessionStoreTest extends KernelTestCase
 {

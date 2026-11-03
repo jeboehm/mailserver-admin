@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Service\Mailbox;
 
+use App\Service\ServiceAddress;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Streams\ImapStream;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -34,11 +35,11 @@ final readonly class TlsImapConnectionFactory implements ImapConnectionFactory
     #[\Override]
     public function connect(): ImapConnection
     {
-        [$host, $port] = explode(':', $this->address, 2) + [1 => '993'];
+        $address = ServiceAddress::parse($this->address, 993);
 
         $stream = new ImapStream();
         $connection = new ImapConnection($stream);
-        $connection->connect($host, (int) $port, [
+        $connection->connect($address->host, $address->port, [
             'encryption' => 'ssl',
             'validate_cert' => false,
             'timeout' => $this->timeoutSeconds,

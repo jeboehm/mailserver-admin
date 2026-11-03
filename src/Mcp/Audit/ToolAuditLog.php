@@ -26,7 +26,6 @@ use Symfony\Contracts\Service\ResetInterface;
 #[WithMonologChannel('mcp_audit')]
 final class ToolAuditLog implements ResetInterface
 {
-
     private const int MAX_TARGET_LENGTH = 255;
 
     private ?string $target = null;

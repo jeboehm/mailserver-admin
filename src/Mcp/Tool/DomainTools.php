@@ -14,6 +14,7 @@ use App\Entity\Domain;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
+use App\Mcp\ToolDomainResolver;
 use App\Mcp\ToolEntityWriter;
 use App\Mcp\ToolPage;
 use App\Repository\DomainRepository;
@@ -71,7 +72,7 @@ final readonly class DomainTools
     public function create(string $name): array
     {
         $domain = new Domain();
-        $domain->setName(mb_strtolower($name));
+        $domain->setName(ToolDomainResolver::normalise($name));
         $this->auditLog->target('domain', $domain->getName());
 
         $this->writer->validate($domain);

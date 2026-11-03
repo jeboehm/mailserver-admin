@@ -15,7 +15,6 @@ namespace App\Service\MailSend;
  */
 final readonly class SentCopy
 {
-
     private function __construct(
         public SentCopyStatus $status,
         public ?string $mailbox = null,

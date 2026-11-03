@@ -19,6 +19,7 @@ use App\Mcp\CurrentApiToken;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
 use App\Mcp\ToolFeature;
+use App\Mcp\ToolTimeLimit;
 use App\Service\ApiToken\ApiTokenScope;
 use App\Service\MailSend\MailComposer;
 use App\Service\MailSend\MailSender;
@@ -71,11 +72,7 @@ final readonly class MailSendTools
     #[ToolAccess(scope: ApiTokenScope::MailSend, feature: ToolFeature::MailSend)]
     public function messageSend(array $to, string $subject, string $body, array $cc = [], array $bcc = []): array
     {
-        $timeLimit = (int) \ini_get('max_execution_time');
-
-        if (0 !== $timeLimit && $timeLimit < self::TIME_LIMIT_SECONDS) {
-            set_time_limit(self::TIME_LIMIT_SECONDS);
-        }
+        ToolTimeLimit::raiseTo(self::TIME_LIMIT_SECONDS);
 
         $user = $this->currentActor->get()->user;
 

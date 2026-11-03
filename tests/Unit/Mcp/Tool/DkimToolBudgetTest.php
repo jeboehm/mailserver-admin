@@ -42,23 +42,24 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class DkimToolBudgetTest extends TestCase
 {
+    private DeadlineDnsLookup $deadline;
+
     public function testStatusRunsUnderTheDnsBudget(): void
     {
         $clock = new MockClock();
-        $deadline = null;
 
         $slow = $this->createStub(DnsLookupInterface::class);
-        $slow->method('lookupTxt')->willReturnCallback(static function (string $name) use ($clock, &$deadline): array {
+        $slow->method('lookupTxt')->willReturnCallback(function (string $name) use ($clock): array {
             if ('again' === $name) {
                 return [];
             }
 
             $clock->sleep(3600);
 
-            return $deadline->lookupTxt('again');
+            return $this->deadline->lookupTxt('again');
         });
 
-        $deadline = new DeadlineDnsLookup($slow, $clock);
+        $this->deadline = new DeadlineDnsLookup($slow, $clock);
 
         $keys = new KeyGenerationService();
         $domain = new Domain();
@@ -71,9 +72,9 @@ class DkimToolBudgetTest extends TestCase
 
         $tool = new DkimTool(
             $domains,
-            new DKIMStatusService(new DomainKeyReaderService($deadline, new RecordParser()), new FormatterService(), $keys, new RecordParser()),
+            new DKIMStatusService(new DomainKeyReaderService($this->deadline, new RecordParser()), new FormatterService(), $keys, new RecordParser()),
             new KeyRecreationService($keys, $this->createStub(EntityManagerInterface::class), new DkimPolicy()),
-            new TimeBoxedDnsValidation(new DnsWizardValidator([$this->createStub(DnsCheckInterface::class)]), $deadline),
+            new TimeBoxedDnsValidation(new DnsWizardValidator([$this->createStub(DnsCheckInterface::class)]), $this->deadline),
             new CurrentActor($this->createStub(Security::class)),
             new ToolEntityWriter($this->createStub(EntityManagerInterface::class), $this->createStub(ValidatorInterface::class)),
             new ToolAuditLog(new Logger('test'), new RequestStack()),
@@ -86,6 +87,6 @@ class DkimToolBudgetTest extends TestCase
         self::assertNull($status['record_valid']);
         self::assertStringContainsString('p=', $status['expected_record']);
 
-        self::assertSame([], $deadline->lookupTxt('again'), 'The budget must end with the tool call.');
+        self::assertSame([], $this->deadline->lookupTxt('again'), 'The budget must end with the tool call.');
     }
 }

@@ -169,13 +169,7 @@ final readonly class AliasTools
 
     private function findManaged(Actor $actor, int $id): Alias
     {
-        $alias = $this->aliases->find($id);
-
-        if (null === $alias || !$this->domainScopePolicy->canManage($actor, $alias)) {
-            throw new ToolDeniedException();
-        }
-
-        return $alias;
+        return ToolDeniedException::unlessAllowed($this->aliases->find($id), fn (Alias $alias): bool => $this->domainScopePolicy->canManage($actor, $alias));
     }
 
     private function address(Alias $alias): string

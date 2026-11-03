@@ -159,14 +159,18 @@ class ImapSessionsTest extends TestCase
     {
         $server = new FakeImapServer(['TAG1 OK Logged in']);
 
+        $failure = null;
+
         try {
             $this->sessions($server)->run($this->mailUser(), static function (): void {
                 throw new ImapConnectionFailedException('Unable to connect');
             });
-            self::fail('Expected the session to fail.');
         } catch (MailboxUnavailableException $e) {
-            self::assertTrue($e->retryable);
+            $failure = $e;
         }
+
+        self::assertNotNull($failure);
+        self::assertTrue($failure->retryable);
     }
 
     public function testTheOperationsOwnExceptionsReachTheCaller(): void

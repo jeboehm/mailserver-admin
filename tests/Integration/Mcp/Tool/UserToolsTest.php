@@ -99,6 +99,17 @@ class UserToolsTest extends WebTestCase
         self::assertSame($missing, $foreign);
     }
 
+    public function testADomainIsFoundWithCapitalsAndARootDot(): void
+    {
+        $created = $this->assertToolSucceeded($this->call(self::ADMIN, 'user_create', [
+            'name' => 'dotted',
+            'password' => self::STRONG_PASSWORD,
+            'domain' => strtoupper(self::FOREIGN_DOMAIN) . '.',
+        ]));
+
+        self::assertSame('dotted@' . self::FOREIGN_DOMAIN, $created['address']);
+    }
+
     public function testDomainAdminCreatesAUserInTheirDomainByDefault(): void
     {
         $result = $this->call(self::DOMAIN_ADMIN, 'user_create', [

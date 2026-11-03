@@ -23,6 +23,10 @@ use Mcp\Capability\Registry\ToolReference;
 #[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class ToolAccess
 {
+    /**
+     * @param string|null $target the audit target as a template over tool arguments, such as "user:{id}".
+     *                            Name no argument the audit log has to stay free of
+     */
     public function __construct(
         public ?ApiTokenScope $scope = null,
         public ActorRole $minimumRole = ActorRole::User,

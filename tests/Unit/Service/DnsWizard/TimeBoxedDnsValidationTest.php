@@ -11,9 +11,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\DnsWizard;
 
 use App\Entity\Domain;
+use App\Exception\DnsDeadlineExceededException;
 use App\Service\DnsWizard\Check\DnsCheckInterface;
 use App\Service\DnsWizard\DeadlineDnsLookup;
-use App\Service\DnsWizard\DnsDeadlineExceededException;
 use App\Service\DnsWizard\DnsLookupInterface;
 use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\DnsWizardStatus;

@@ -11,22 +11,22 @@ declare(strict_types=1);
 namespace App\Mcp\Tool;
 
 use App\Entity\Domain;
+use App\Exception\DnsDeadlineExceededException;
 use App\Mcp\Audit\ToolAuditLog;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolDeniedException;
+use App\Mcp\ToolDomainResolver;
 use App\Mcp\ToolEntityWriter;
 use App\Repository\DomainRepository;
 use App\Service\ApiToken\ApiTokenScope;
 use App\Service\DKIM\DKIMStatusService;
 use App\Service\DKIM\KeyRecreationService;
-use App\Service\DnsWizard\DnsDeadlineExceededException;
 use App\Service\DnsWizard\TimeBoxedDnsValidation;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\CurrentActor;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Exception\ToolCallException;
 use Mcp\Schema\ToolAnnotations;
-
 
 /**
  * The DKIM page of the web interface as tools. Every result is built by status(), which must never
@@ -118,7 +118,7 @@ final readonly class DkimTool
      */
     private function findDomain(string $name): Domain
     {
-        $name = rtrim(mb_strtolower($name), '.');
+        $name = ToolDomainResolver::normalise($name);
         $this->auditLog->target('domain', $name);
 
         return $this->domainRepository->findOneBy(['name' => $name]) ?? throw new ToolDeniedException();

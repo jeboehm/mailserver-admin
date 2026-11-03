@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Service\DnsWizard;
 
+use App\Exception\DnsDeadlineExceededException;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;

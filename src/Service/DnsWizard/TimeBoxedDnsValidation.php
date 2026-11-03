@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Service\DnsWizard;
 
 use App\Entity\Domain;
+use App\Exception\DnsDeadlineExceededException;
 
 /**
  * Runs DnsWizardValidator for as long as a time budget allows and reports how far it got, for callers

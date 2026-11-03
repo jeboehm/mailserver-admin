@@ -91,6 +91,13 @@ class DomainToolsTest extends WebTestCase
         self::assertStringContainsString('PRIVATE KEY', $domain->getDkimPrivateKey());
     }
 
+    public function testCreateDropsTheRootDot(): void
+    {
+        $created = $this->assertToolSucceeded($this->call(self::ADMIN, 'domain_create', ['name' => 'New.Example.NET.']));
+
+        self::assertSame('new.example.net', $created['name']);
+    }
+
     public function testCreateRejectsAnInvalidName(): void
     {
         $this->assertToolRejectedField($this->call(self::ADMIN, 'domain_create', ['name' => 'not a domain']), 'name');

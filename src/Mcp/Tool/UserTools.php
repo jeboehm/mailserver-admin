@@ -84,12 +84,12 @@ final readonly class UserTools
     }
 
     /**
-     * @param string      $name        Local part of the address, lowercase
-     * @param string      $password    Password of the new user. It passes through the context of the agent and a failing call can write it to the error log.
-     * @param string|null $domain      Domain name. Defaults to your own domain; only admins can choose another one
-     * @param int         $quota       Disk space in megabytes, 0 for unlimited
-     * @param bool        $enabled     Whether the user can log in
-     * @param bool|null   $admin       Whether the user is an admin. Only admins can set this
+     * @param string      $name         Local part of the address, lowercase
+     * @param string      $password     Password of the new user. It passes through the context of the agent and a failing call can write it to the error log.
+     * @param string|null $domain       Domain name. Defaults to your own domain; only admins can choose another one
+     * @param int         $quota        Disk space in megabytes, 0 for unlimited
+     * @param bool        $enabled      Whether the user can log in
+     * @param bool|null   $admin        Whether the user is an admin. Only admins can set this
      * @param bool        $domain_admin Whether the user can manage their domain
      * @param bool        $send_only    Whether the user can only send mail and receives none
      *
@@ -137,11 +137,11 @@ final readonly class UserTools
     }
 
     /**
-     * @param int         $id          The ID from user_list
-     * @param string|null $password    New password. Leave out to keep the current one. It passes through the context of the agent and a failing call can write it to the error log.
-     * @param int|null    $quota       Disk space in megabytes, 0 for unlimited
-     * @param bool|null   $enabled     Whether the user can log in. Disabling a user revokes their API tokens
-     * @param bool|null   $admin       Whether the user is an admin. Only admins can set this
+     * @param int         $id           The ID from user_list
+     * @param string|null $password     New password. Leave out to keep the current one. It passes through the context of the agent and a failing call can write it to the error log.
+     * @param int|null    $quota        Disk space in megabytes, 0 for unlimited
+     * @param bool|null   $enabled      Whether the user can log in. Disabling a user revokes their API tokens
+     * @param bool|null   $admin        Whether the user is an admin. Only admins can set this
      * @param bool|null   $domain_admin Whether the user can manage their domain
      * @param bool|null   $send_only    Whether the user can only send mail and receives none
      *
@@ -220,13 +220,7 @@ final readonly class UserTools
 
     private function findManaged(Actor $actor, int $id): User
     {
-        $user = $this->users->find($id);
-
-        if (null === $user || !$this->domainScopePolicy->canManage($actor, $user)) {
-            throw new ToolDeniedException();
-        }
-
-        return $user;
+        return ToolDeniedException::unlessAllowed($this->users->find($id), fn (User $user): bool => $this->domainScopePolicy->canManage($actor, $user));
     }
 
     private function setAdminFlag(Actor $actor, User $user, ?bool $admin): void

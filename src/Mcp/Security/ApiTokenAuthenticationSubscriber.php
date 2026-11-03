@@ -24,7 +24,6 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
  */
 final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriberInterface
 {
-
     public function __construct(private EntityManagerInterface $entityManager)
     {
     }

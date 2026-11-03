@@ -14,9 +14,8 @@ use App\Entity\User;
 use App\Exception\Mailbox\MailboxDeniedException;
 use App\Exception\Mailbox\MailboxUnavailableException;
 use App\Service\Mailbox\ImapSessions;
+use App\Service\Mailbox\ListedMailboxes;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
-use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
-use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
 use DirectoryTree\ImapEngine\Support\Str;
 use Psr\Log\LoggerInterface;
@@ -66,12 +65,9 @@ final readonly class SentFolder
     {
         $marked = [];
 
-        foreach ($connection->list() as $response) {
-            $attributes = $response->tokenAt(2);
-            $name = $response->tokenAt(4);
-
-            if ($attributes instanceof ListData && $name instanceof Token && \in_array('\sent', array_map(strtolower(...), $attributes->values()), true)) {
-                $marked[] = mb_scrub(Str::fromImapUtf7($name->value), 'UTF-8');
+        foreach (ListedMailboxes::of($connection) as $name => $attributes) {
+            if (\in_array('\sent', array_map(strtolower(...), $attributes), true)) {
+                $marked[] = (string) $name;
             }
         }
 

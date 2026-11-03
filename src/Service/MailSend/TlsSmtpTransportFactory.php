@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Service\MailSend;
 
 use App\Service\MailboxCredential\ShortLivedCredential;
+use App\Service\ServiceAddress;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mailer\Transport;
 use Symfony\Component\Mailer\Transport\Smtp\Auth\PlainAuthenticator;
@@ -37,14 +38,14 @@ final readonly class TlsSmtpTransportFactory implements SmtpTransportFactory
     #[\Override]
     public function create(ShortLivedCredential $credential): EsmtpTransport
     {
-        [$host, $port] = explode(':', $this->address, 2) + [1 => '587'];
+        $address = ServiceAddress::parse($this->address, 587);
 
         $transport = Transport::fromDsn(\sprintf(
             'smtp://%s:%s@%s:%d?verify_peer=0&require_tls=1',
             rawurlencode($credential->login),
             rawurlencode($credential->secret),
-            $host,
-            (int) $port,
+            $address->host,
+            $address->port,
         ));
 
         if (!$transport instanceof EsmtpTransport) {

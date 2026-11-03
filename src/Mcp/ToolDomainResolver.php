@@ -27,6 +27,14 @@ final readonly class ToolDomainResolver
     }
 
     /**
+     * Domains are stored in lowercase and without the root dot a caller may well write.
+     */
+    public static function normalise(string $name): string
+    {
+        return rtrim(mb_strtolower($name), '.');
+    }
+
+    /**
      * Forms do not offer the field to domain admins. A tool gets the argument anyway, and naming their
      * own domain is harmless.
      *
@@ -34,7 +42,7 @@ final readonly class ToolDomainResolver
      */
     public function chosenBy(Actor $actor, string $name): Domain
     {
-        $domain = $this->domains->findOneBy(['name' => mb_strtolower($name)]);
+        $domain = $this->domains->findOneBy(['name' => self::normalise($name)]);
 
         if (null === $domain || !($this->domainScopePolicy->canChooseDomain($actor) || $actor->managesDomain($domain))) {
             throw new ToolDeniedException();
