@@ -10,7 +10,9 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Controller\User\ApiTokenCrudController;
 use App\Controller\User\FetchmailAccountController;
+use App\Mcp\McpAvailability;
 use App\Service\Security\Roles;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
@@ -26,6 +28,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted(Roles::ROLE_USER)]
 class DashboardController extends AbstractDashboardController
 {
+    public function __construct(private readonly McpAvailability $mcpAvailability)
+    {
+    }
+
     #[\Override]
     public function index(): Response
     {
@@ -90,6 +96,11 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Security');
         yield MenuItem::linkToRoute('Change Password', 'fa fa-key', 'admin_change_password_index');
+
+        if ($this->mcpAvailability->isEnabled()) {
+            yield MenuItem::linkTo(ApiTokenCrudController::class, 'API tokens', 'fa fa-plug');
+        }
+
         yield MenuItem::linkTo(DKIMCrudController::class, 'DKIM', 'fa fa-shield-alt')
             ->setPermission(Roles::ROLE_ADMIN);
 

@@ -157,6 +157,18 @@
     "php-cs-fixer/diff": {
         "version": "v1.3.0"
     },
+    "php-http/discovery": {
+        "version": "1.20",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.18",
+            "ref": "f45b5dd173a27873ab19f5e3180b2f661c21de02"
+        },
+        "files": [
+            "config/packages/http_discovery.yaml"
+        ]
+    },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
     },
@@ -402,6 +414,19 @@
     },
     "symfony/intl": {
         "version": "v4.0.6"
+    },
+    "symfony/mcp-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.13",
+            "ref": "6fbd19b68290f2d5decdb926636484950d185e4b"
+        },
+        "files": [
+            "config/packages/mcp.yaml",
+            "config/routes/mcp.yaml"
+        ]
     },
     "symfony/monolog-bundle": {
         "version": "3.10",

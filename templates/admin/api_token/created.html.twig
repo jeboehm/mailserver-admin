@@ -1,0 +1,33 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}{% endblock %}
+{% block page_title %}API token created{% endblock %}
+
+{% block main %}
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="card-title mb-0">
+                        <i class="fa fa-plug me-2"></i>{{ issued.token.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        Copy this token now. It is only shown once and cannot be recovered.
+                    </div>
+
+                    <div data-api-token-secret style="word-wrap: anywhere; font-family: monospace">{{ issued.secret }}</div>
+
+                    <p class="text-muted mt-3">
+                        Valid until {{ issued.token.expiresAt|date('Y-m-d H:i') }}. Scopes: {{ issued.token.scopeNames }}.
+                    </p>
+
+                    <div class="d-flex justify-content-end">
+                        <a href="{{ ea_url().setController('App\\Controller\\User\\ApiTokenCrudController').setAction('index') }}" class="btn btn-primary">Done</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

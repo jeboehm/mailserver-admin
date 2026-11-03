@@ -265,6 +265,19 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `CSRF_ENABLED`: Enable/disable CSRF protection
 - `RSPAMD_TIMEOUT_MS`: Rspamd API timeout
 - `RSPAMD_CACHE_TTL_SECONDS`: Rspamd cache TTL
+- `MCP_ENABLED`: Enable/disable the MCP endpoint and the API token pages (default `false`)
+- `MCP_ALLOWED_HOSTS`: Comma-separated hosts the MCP endpoint answers for. Matched against the raw `Host` header, so a reverse proxy has to preserve it
+- `MCP_TOKEN_MAX_LIFETIME_DAYS`: Default and maximum lifetime of an API token (default `90`)
+
+## MCP tools
+
+A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on the method. `App\Mcp\ToolGate` handles every call: it enforces `#[ToolAccess]`, writes the audit record and hides the reason for a denial. `tools/list` follows the same rule.
+
+- `#[IsGranted]` has no effect on tools. Object-level rules go through the policies in `App\Service\Security\Access`.
+- For a denied or missing object, throw `App\Mcp\ToolDeniedException`. An `AccessDeniedException` from a policy is treated the same. Other messages for the caller go in a `Mcp\Exception\ToolCallException`.
+- Tell the audit log about the target through `App\Mcp\Audit\ToolAuditLog::target()` and `details()`. Never pass bodies, passwords or tokens.
+- Never read authorisation from the MCP session, which is not bound to a token. Use `App\Mcp\CurrentApiToken` and `App\Service\Security\Access\CurrentActor`.
+- Do not use `ClientGateway`: streaming holds a PHP thread the web interface needs. PHP's 30-second limit applies, so give outbound calls explicit timeouts.
 
 ## Integration Points
 

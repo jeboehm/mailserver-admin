@@ -15,4 +15,18 @@ enum ActorRole
     case Admin;
     case DomainAdmin;
     case User;
+
+    public function isAtLeast(self $role): bool
+    {
+        return $this->rank() >= $role->rank();
+    }
+
+    private function rank(): int
+    {
+        return match ($this) {
+            self::Admin => 2,
+            self::DomainAdmin => 1,
+            self::User => 0,
+        };
+    }
 }

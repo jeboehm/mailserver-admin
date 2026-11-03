@@ -15,6 +15,15 @@ security:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
 
+    mcp:
+      pattern: ^/mcp$
+      stateless: true
+      provider: app_user_provider
+      user_checker: App\Service\Security\User\EnabledUserChecker
+      entry_point: App\Mcp\Security\BearerEntryPoint
+      access_token:
+        token_handler: App\Mcp\Security\ApiTokenHandler
+
     main:
       lazy: true
       provider: app_user_provider
