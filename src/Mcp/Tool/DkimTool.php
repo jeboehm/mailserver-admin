@@ -54,7 +54,7 @@ final readonly class DkimTool
         description: 'Returns whether DKIM is enabled for a domain, its selector, whether the DNS record was found and is valid, and the record to publish.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function status(string $domain): array
     {
         return $this->describe($this->findDomain($domain));
@@ -68,7 +68,7 @@ final readonly class DkimTool
         description: 'Enables DKIM signing for a domain, creating a key if it has none. Publish expected_record in DNS: receivers reject signatures they cannot verify.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function enable(string $domain): array
     {
         return $this->setEnabled($this->findDomain($domain), true);
@@ -82,7 +82,7 @@ final readonly class DkimTool
         description: 'Disables DKIM signing for a domain. The key is kept, so enabling it again needs no DNS change.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function disable(string $domain): array
     {
         return $this->setEnabled($this->findDomain($domain), false);
@@ -96,7 +96,7 @@ final readonly class DkimTool
         description: 'Replaces the DKIM key of a domain. The published DNS record no longer matches afterwards, so expected_record has to be published again. Only runs with confirm set to true.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function recreateKey(string $domain, bool $confirm): array
     {
         $entity = $this->findDomain($domain);

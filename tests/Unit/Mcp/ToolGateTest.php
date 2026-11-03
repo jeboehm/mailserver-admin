@@ -40,8 +40,13 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
 final class GateFixtureTools
 {
-    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function managed(): void
+    {
+    }
+
+    #[ToolAccess(target: 'message:{mailbox}/{uid}')]
+    public function openWithTarget(): void
     {
     }
 
@@ -176,6 +181,73 @@ class ToolGateTest extends TestCase
         }
 
         self::assertSame('denied', $this->singleAuditRecord()['result']);
+    }
+
+    public function testDenialByTheGateRecordsTheTargetButNoOtherArgument(): void
+    {
+        $this->messageOf(fn () => $this->gate($this->createStub(ReferenceHandlerInterface::class), ActorRole::User, [])->handle(
+            $this->reference('managed'),
+            ['id' => 12, 'password' => 'sentinel-password', 'body' => 'sentinel-body'],
+        ));
+
+        $record = $this->singleAuditRecord();
+        self::assertSame('denied', $record['result']);
+        self::assertSame('user:12', $record['target']);
+        self::assertStringNotContainsString('sentinel', (string) json_encode($record));
+    }
+
+    public function testDenialInsideTheToolRecordsTheTargetFromTheArguments(): void
+    {
+        $inner = $this->createStub(ReferenceHandlerInterface::class);
+        $inner->method('handle')->willThrowException(new ToolDeniedException());
+
+        $this->messageOf(fn () => $this->gate($inner, ActorRole::User, [])->handle($this->reference('openWithTarget'), ['mailbox' => 'INBOX', 'uid' => 3]));
+
+        self::assertSame('message:INBOX/3', $this->singleAuditRecord()['target']);
+    }
+
+    public function testTheToolCanStateTheTargetMorePrecisely(): void
+    {
+        $auditLog = $this->auditLog(null);
+        $inner = $this->createStub(ReferenceHandlerInterface::class);
+        $inner->method('handle')->willReturnCallback(static function () use ($auditLog): string {
+            $auditLog->target('message', 'canonical');
+
+            return 'result';
+        });
+
+        $this->gate($inner, ActorRole::User, [], auditLog: $auditLog)->handle($this->reference('openWithTarget'), ['mailbox' => 'INBOX', 'uid' => 3]);
+
+        self::assertSame('message:canonical', $this->singleAuditRecord()['target']);
+    }
+
+    /**
+     * Denied calls are refused before the SDK checks the arguments, so these can be anything.
+     *
+     * @return iterable<string, array{array<string, mixed>, string|null}>
+     */
+    public static function unusualTargetArguments(): iterable
+    {
+        yield 'none given' => [[], null];
+        yield 'not a scalar' => [['mailbox' => ['a' => 'b'], 'uid' => null], null];
+        yield 'a boolean' => [['mailbox' => true], null];
+        yield 'partly given' => [['mailbox' => 'INBOX'], 'message:INBOX/?'];
+        yield 'control characters cannot forge a log line' => [['mailbox' => "a\r\nb\x00c", 'uid' => 1], 'message:abc/1'];
+        yield 'length is bounded' => [['mailbox' => str_repeat('x', 1000), 'uid' => 1], 'message:' . str_repeat('x', 247)];
+    }
+
+    /**
+     * @param array<string, mixed> $arguments
+     */
+    #[DataProvider('unusualTargetArguments')]
+    public function testUnusualArgumentsAreRecordedSafely(array $arguments, ?string $target): void
+    {
+        $inner = $this->createStub(ReferenceHandlerInterface::class);
+        $inner->method('handle')->willThrowException(new ToolDeniedException());
+
+        $this->messageOf(fn () => $this->gate($inner, ActorRole::User, [])->handle($this->reference('openWithTarget'), $arguments));
+
+        self::assertSame($target, $this->singleAuditRecord()['target']);
     }
 
     public function testToolFailureIsAuditedAndKeepsItsMessage(): void

@@ -186,6 +186,21 @@ class ToolAccessTest extends WebTestCase
         self::assertStringNotContainsString($secret, (string) json_encode($record->context));
     }
 
+    public function testCallWithoutTheScopeIsAuditedWithTheTargetItAskedFor(): void
+    {
+        $secret = $this->storeToken($this->findUser(), [ApiTokenScope::ManageRead]);
+        $sessionId = $this->initialiseSession($secret);
+
+        $result = $this->callTool($secret, $sessionId, 'user_update', ['id' => 12, 'password' => 'sentinel-password']);
+
+        self::assertSame(ToolDeniedException::PUBLIC_MESSAGE, $result['content'][0]['text']);
+        $record = $this->lastAuditRecord();
+        self::assertSame('user_update', $record->context['tool']);
+        self::assertSame('denied', $record->context['result']);
+        self::assertSame('user:12', $record->context['target']);
+        self::assertStringNotContainsString('sentinel-password', (string) json_encode($record->context));
+    }
+
     /**
      * The 2026-07-28 revision has no handshake: every request carries its own metadata.
      *

@@ -44,6 +44,13 @@ final readonly class ToolGate implements ReferenceHandlerInterface
         $tool = $reference->tool->name;
         $token = $this->currentApiToken->get();
 
+        // Up front, as a denied call never reaches the tool. The tool can still state it more precisely.
+        $target = ToolAccess::of($reference)?->target;
+
+        if (null !== $target) {
+            $this->auditLog->targetFrom($target, $arguments);
+        }
+
         if (!$this->policy->allows($reference)) {
             $this->auditLog->record($tool, ToolAuditLog::RESULT_DENIED, $token);
 

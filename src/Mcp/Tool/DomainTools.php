@@ -67,7 +67,7 @@ final readonly class DomainTools
         description: 'Creates a mail domain. A DKIM key is generated for it, but DKIM stays disabled.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{name}')]
     public function create(string $name): array
     {
         $domain = new Domain();
@@ -90,10 +90,9 @@ final readonly class DomainTools
         description: 'Deletes a mail domain. Only a domain without users and aliases can be deleted.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{id}')]
     public function delete(int $id): array
     {
-        $this->auditLog->target('domain', $id);
         $domain = $this->domains->find($id) ?? throw new ToolDeniedException();
 
         $this->domainPolicy->denyUnlessCanDelete($this->currentActor->get(), $domain);

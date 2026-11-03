@@ -74,7 +74,7 @@ final readonly class AliasTools
         description: 'Returns one mail alias.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function get(int $id): array
     {
         return $this->present($this->findManaged($this->currentActor->get(), $id));
@@ -92,7 +92,7 @@ final readonly class AliasTools
         description: 'Creates a mail alias, which forwards mail to the destination.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{name}@{domain}')]
     public function create(string $name, string $destination, ?string $domain = null): array
     {
         $actor = $this->currentActor->get();
@@ -126,7 +126,7 @@ final readonly class AliasTools
         description: 'Updates a mail alias; arguments left out stay as they are. The domain cannot be changed.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function update(int $id, ?string $name = null, ?string $destination = null): array
     {
         $alias = $this->findManaged($this->currentActor->get(), $id);
@@ -155,7 +155,7 @@ final readonly class AliasTools
         description: 'Deletes a mail alias.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function delete(int $id): array
     {
         $actor = $this->currentActor->get();
@@ -169,7 +169,6 @@ final readonly class AliasTools
 
     private function findManaged(Actor $actor, int $id): Alias
     {
-        $this->auditLog->target('alias', $id);
         $alias = $this->aliases->find($id);
 
         if (null === $alias || !$this->domainScopePolicy->canManage($actor, $alias)) {

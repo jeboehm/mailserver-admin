@@ -95,7 +95,7 @@ final readonly class MailReadTools
         description: 'Searches one mailbox of your own mailbox, newest first. Returns headers only; use message_get for the body. Does not mark anything as read. All given criteria must match; without any, lists the mailbox.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::MailRead, feature: ToolFeature::MailRead)]
+    #[ToolAccess(scope: ApiTokenScope::MailRead, feature: ToolFeature::MailRead, target: 'mailbox:{mailbox}')]
     public function messageSearch(
         string $mailbox = 'INBOX',
         ?string $text = null,
@@ -142,11 +142,9 @@ final readonly class MailReadTools
         description: 'Reads one message of your own mailbox: headers, the text body (HTML is converted to text, and long bodies are truncated) and a list of attachments without their content. Does not mark it as read.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::MailRead, feature: ToolFeature::MailRead)]
+    #[ToolAccess(scope: ApiTokenScope::MailRead, feature: ToolFeature::MailRead, target: 'message:{mailbox}/{uid}')]
     public function messageGet(string $mailbox, int $uid): array
     {
-        $this->auditLog->target('message', \sprintf('%s/%d', $mailbox, $uid));
-
         if ($uid < 1) {
             throw new ToolDeniedException();
         }

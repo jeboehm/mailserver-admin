@@ -82,7 +82,7 @@ final readonly class DnsValidateTool
         description: 'Checks the DNS records of the mail host and of your domains, as the DNS wizard does. Results come in pages: while next_cursor is set, call again with it. The mail host is only checked in the first call. Domains in timed_out were not checked, so nothing is known about their records.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'domain:{domain}')]
     public function __invoke(?string $domain = null, int $limit = self::DEFAULT_LIMIT, ?string $cursor = null): array
     {
         if ($limit < 1 || $limit > self::MAX_LIMIT) {

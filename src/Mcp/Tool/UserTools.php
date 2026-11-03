@@ -77,7 +77,7 @@ final readonly class UserTools
         description: 'Returns one mail user. Passwords are never returned.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function get(int $id): array
     {
         return $this->present($this->findManaged($this->currentActor->get(), $id));
@@ -100,7 +100,7 @@ final readonly class UserTools
         description: 'Creates a mail user. The password is validated and never returned.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{name}@{domain}')]
     public function create(
         string $name,
         #[\SensitiveParameter]
@@ -152,7 +152,7 @@ final readonly class UserTools
         description: 'Updates a mail user; arguments left out stay as they are. Name and domain cannot be changed. On your own user, role and enabled state stay as they are. Changing a password revokes the API tokens of that user, including this one if it is your own.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function update(
         int $id,
         #[\SensitiveParameter]
@@ -206,7 +206,7 @@ final readonly class UserTools
         description: 'Deletes a mail user. You cannot delete yourself.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function delete(int $id): array
     {
         $actor = $this->currentActor->get();
@@ -220,7 +220,6 @@ final readonly class UserTools
 
     private function findManaged(Actor $actor, int $id): User
     {
-        $this->auditLog->target('user', $id);
         $user = $this->users->find($id);
 
         if (null === $user || !$this->domainScopePolicy->canManage($actor, $user)) {

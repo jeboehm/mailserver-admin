@@ -70,7 +70,7 @@ final readonly class FetchmailTools
         description: 'Returns one fetchmail account. Its password is never returned.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageRead)]
+    #[ToolAccess(scope: ApiTokenScope::ManageRead, target: 'fetchmail:{id}')]
     public function get(int $id): array
     {
         return $this->present($this->findManaged($this->currentActor->get(), $id));
@@ -93,7 +93,7 @@ final readonly class FetchmailTools
         description: 'Creates a fetchmail account. The password is stored and can never be read back.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{username}@{host}')]
     public function create(
         string $host,
         string $username,
@@ -142,7 +142,7 @@ final readonly class FetchmailTools
         description: 'Updates a fetchmail account; arguments left out stay as they are. The password can be replaced, but never read back.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{id}')]
     public function update(
         int $id,
         ?string $owner = null,
@@ -206,7 +206,7 @@ final readonly class FetchmailTools
         description: 'Deletes a fetchmail account.',
         annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
     )]
-    #[ToolAccess(scope: ApiTokenScope::ManageWrite)]
+    #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{id}')]
     public function delete(int $id): array
     {
         $actor = $this->currentActor->get();
@@ -220,7 +220,6 @@ final readonly class FetchmailTools
 
     private function findManaged(Actor $actor, int $id): FetchmailAccount
     {
-        $this->auditLog->target('fetchmail', $id);
         $account = $this->accounts->find($id);
 
         if (null === $account || !$this->policy->canManage($actor, $account)) {

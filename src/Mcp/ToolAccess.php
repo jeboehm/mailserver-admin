@@ -27,6 +27,7 @@ final readonly class ToolAccess
         public ?ApiTokenScope $scope = null,
         public ActorRole $minimumRole = ActorRole::User,
         public ?ToolFeature $feature = null,
+        public ?string $target = null,
     ) {
     }
 
