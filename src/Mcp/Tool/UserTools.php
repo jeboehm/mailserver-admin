@@ -40,7 +40,7 @@ final readonly class UserTools
         private ToolDomainResolver $domainResolver,
         private ToolEntityWriter $writer,
         private ToolAuditLog $auditLog,
-        private UserChangeListener $passwordHashing,
+        private UserChangeListener $userChangeListener,
     ) {
     }
 
@@ -90,8 +90,8 @@ final readonly class UserTools
      * @param int         $quota       Disk space in megabytes, 0 for unlimited
      * @param bool        $enabled     Whether the user can log in
      * @param bool|null   $admin       Whether the user is an admin. Only admins can set this
-     * @param bool        $domainAdmin Whether the user can manage their domain
-     * @param bool        $sendOnly    Whether the user can only send mail and receives none
+     * @param bool        $domain_admin Whether the user can manage their domain
+     * @param bool        $send_only    Whether the user can only send mail and receives none
      *
      * @return array<string, mixed>
      */
@@ -109,8 +109,8 @@ final readonly class UserTools
         int $quota = 0,
         bool $enabled = true,
         ?bool $admin = null,
-        bool $domainAdmin = false,
-        bool $sendOnly = false,
+        bool $domain_admin = false,
+        bool $send_only = false,
     ): array {
         $actor = $this->currentActor->get();
 
@@ -127,8 +127,8 @@ final readonly class UserTools
         $this->setAdminFlag($actor, $user, $admin);
         $user->setQuota($quota);
         $user->setEnabled($enabled);
-        $user->setDomainAdmin($domainAdmin);
-        $user->setSendOnly($sendOnly);
+        $user->setDomainAdmin($domain_admin);
+        $user->setSendOnly($send_only);
         $user->setPlainPassword($password);
 
         $this->save($user, ['Default', 'register']);
@@ -142,8 +142,8 @@ final readonly class UserTools
      * @param int|null    $quota       Disk space in megabytes, 0 for unlimited
      * @param bool|null   $enabled     Whether the user can log in. Disabling a user revokes their API tokens
      * @param bool|null   $admin       Whether the user is an admin. Only admins can set this
-     * @param bool|null   $domainAdmin Whether the user can manage their domain
-     * @param bool|null   $sendOnly    Whether the user can only send mail and receives none
+     * @param bool|null   $domain_admin Whether the user can manage their domain
+     * @param bool|null   $send_only    Whether the user can only send mail and receives none
      *
      * @return array<string, mixed>
      */
@@ -160,8 +160,8 @@ final readonly class UserTools
         ?int $quota = null,
         ?bool $enabled = null,
         ?bool $admin = null,
-        ?bool $domainAdmin = null,
-        ?bool $sendOnly = null,
+        ?bool $domain_admin = null,
+        ?bool $send_only = null,
     ): array {
         $actor = $this->currentActor->get();
         $user = $this->findManaged($actor, $id);
@@ -176,12 +176,12 @@ final readonly class UserTools
             $user->setEnabled($enabled);
         }
 
-        if (null !== $domainAdmin) {
-            $user->setDomainAdmin($domainAdmin);
+        if (null !== $domain_admin) {
+            $user->setDomainAdmin($domain_admin);
         }
 
-        if (null !== $sendOnly) {
-            $user->setSendOnly($sendOnly);
+        if (null !== $send_only) {
+            $user->setSendOnly($send_only);
         }
 
         $this->userPolicy->keepOwnRoleAndEnabledState($actor, $user);
@@ -253,7 +253,7 @@ final readonly class UserTools
     {
         $this->writer->validate($user, $groups, self::PASSWORD_FIELD);
 
-        $this->passwordHashing->processUserPassword($user);
+        $this->userChangeListener->processUserPassword($user);
         $user->setPlainPassword(null);
 
         $this->writer->save($user);
@@ -272,8 +272,8 @@ final readonly class UserTools
             'quota' => $user->getQuota(),
             'enabled' => $user->getEnabled(),
             'admin' => $user->isAdmin(),
-            'domainAdmin' => $user->isDomainAdmin(),
-            'sendOnly' => $user->getSendOnly(),
+            'domain_admin' => $user->isDomainAdmin(),
+            'send_only' => $user->getSendOnly(),
         ];
     }
 }

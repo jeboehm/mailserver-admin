@@ -26,10 +26,6 @@ use Symfony\Contracts\Service\ResetInterface;
 #[WithMonologChannel('mcp_audit')]
 final class ToolAuditLog implements ResetInterface
 {
-    public const string RESULT_OK = 'ok';
-    public const string RESULT_DENIED = 'denied';
-    public const string RESULT_FAILED = 'failed';
-    public const string RESULT_ERROR = 'error';
 
     private const int MAX_TARGET_LENGTH = 255;
 
@@ -84,7 +80,7 @@ final class ToolAuditLog implements ResetInterface
         $this->details = [...$this->details, ...$details];
     }
 
-    public function record(string $tool, string $result, ApiToken $token): void
+    public function record(string $tool, ToolCallResult $result, ApiToken $token): void
     {
         $owner = $token->getOwner();
 
@@ -95,7 +91,7 @@ final class ToolAuditLog implements ResetInterface
             'user' => $owner->getUserIdentifier(),
             'tool' => $tool,
             'target' => $this->target,
-            'result' => $result,
+            'result' => $result->value,
             'client_ip' => $this->requestStack->getMainRequest()?->getClientIp(),
         ]);
 

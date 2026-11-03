@@ -111,9 +111,9 @@ final readonly class DomainTools
         return [
             'id' => $domain->getId(),
             'name' => $domain->getName(),
-            'dkimEnabled' => $domain->getDkimEnabled(),
-            'userCount' => \count($domain->getUsers()),
-            'aliasCount' => \count($domain->getAliases()),
+            'dkim_enabled' => $domain->getDkimEnabled(),
+            'user_count' => \count($domain->getUsers()),
+            'alias_count' => \count($domain->getAliases()),
         ];
     }
 }

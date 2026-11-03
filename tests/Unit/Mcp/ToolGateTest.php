@@ -14,6 +14,7 @@ use App\Entity\ApiToken;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Mcp\Audit\ToolAuditLog;
+use App\Mcp\Audit\ToolCallResult;
 use App\Mcp\CurrentApiToken;
 use App\Mcp\ToolAccess;
 use App\Mcp\ToolAccessPolicy;
@@ -166,8 +167,8 @@ class ToolGateTest extends TestCase
     {
         $auditLog = $this->auditLog(null);
         $auditLog->target('user', 12);
-        $auditLog->record('first', 'ok', $this->storedToken([]));
-        $auditLog->record('second', 'ok', $this->storedToken([]));
+        $auditLog->record('first', ToolCallResult::Ok, $this->storedToken([]));
+        $auditLog->record('second', ToolCallResult::Ok, $this->storedToken([]));
 
         self::assertNull($this->auditRecords->getRecords()[1]->context['target']);
     }

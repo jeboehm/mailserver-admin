@@ -83,9 +83,9 @@ class FetchmailToolsTest extends WebTestCase
             'port' => 143,
             'username' => 'regular',
             'ssl' => false,
-            'verifySsl' => true,
-            'lastRun' => null,
-            'lastRunSucceeded' => null,
+            'verify_ssl' => true,
+            'last_run' => null,
+            'last_run_succeeded' => null,
         ], $this->assertToolSucceeded($result));
         self::assertStringNotContainsString(self::SECRET, (string) json_encode($result));
     }

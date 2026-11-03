@@ -77,8 +77,8 @@ class UserToolsTest extends WebTestCase
             'quota' => 0,
             'enabled' => true,
             'admin' => false,
-            'domainAdmin' => false,
-            'sendOnly' => false,
+            'domain_admin' => false,
+            'send_only' => false,
         ], $this->assertToolSucceeded($result));
         self::assertStringNotContainsString('initial-hash', (string) json_encode($result));
     }
@@ -105,15 +105,15 @@ class UserToolsTest extends WebTestCase
             'name' => 'fresh',
             'password' => self::STRONG_PASSWORD,
             'quota' => 500,
-            'sendOnly' => true,
-            'domainAdmin' => true,
+            'send_only' => true,
+            'domain_admin' => true,
         ]);
 
         $created = $this->assertToolSucceeded($result);
         self::assertSame('fresh@example.com', $created['address']);
         self::assertSame(500, $created['quota']);
-        self::assertTrue($created['sendOnly']);
-        self::assertTrue($created['domainAdmin']);
+        self::assertTrue($created['send_only']);
+        self::assertTrue($created['domain_admin']);
         self::assertStringNotContainsString(self::STRONG_PASSWORD, (string) json_encode($result));
 
         $user = $this->findUser('fresh@example.com');
@@ -236,11 +236,11 @@ class UserToolsTest extends WebTestCase
         $updated = $this->assertToolSucceeded($this->call(self::DOMAIN_ADMIN, 'user_update', [
             'id' => $this->userId(self::PEER),
             'quota' => 750,
-            'sendOnly' => true,
+            'send_only' => true,
         ]));
 
         self::assertSame(750, $updated['quota']);
-        self::assertTrue($updated['sendOnly']);
+        self::assertTrue($updated['send_only']);
         self::assertTrue($updated['enabled']);
         self::assertSame('initial-hash', $this->findUser(self::PEER)->getPassword());
     }
@@ -352,11 +352,11 @@ class UserToolsTest extends WebTestCase
     {
         $updated = $this->assertToolSucceeded($this->call(self::DOMAIN_ADMIN, 'user_update', [
             'id' => $this->userId(self::DOMAIN_ADMIN),
-            'domainAdmin' => false,
+            'domain_admin' => false,
             'enabled' => false,
         ]));
 
-        self::assertTrue($updated['domainAdmin']);
+        self::assertTrue($updated['domain_admin']);
         self::assertTrue($updated['enabled']);
     }
 

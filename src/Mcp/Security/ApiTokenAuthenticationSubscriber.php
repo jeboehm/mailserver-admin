@@ -24,10 +24,6 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
  */
 final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriberInterface
 {
-    /**
-     * Writing on every request would turn each read into a database write.
-     */
-    private const int LAST_USED_RESOLUTION_SECONDS = 60;
 
     public function __construct(private EntityManagerInterface $entityManager)
     {
@@ -60,15 +56,8 @@ final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriber
             return;
         }
 
-        $apiToken = $token->getAttribute(CurrentApiToken::TOKEN_ATTRIBUTE);
-        $now = new \DateTimeImmutable();
-        $lastUsedAt = $apiToken->getLastUsedAt();
-
-        if (null !== $lastUsedAt && $now->getTimestamp() - $lastUsedAt->getTimestamp() < self::LAST_USED_RESOLUTION_SECONDS) {
-            return;
+        if ($token->getAttribute(CurrentApiToken::TOKEN_ATTRIBUTE)->markUsed(new \DateTimeImmutable())) {
+            $this->entityManager->flush();
         }
-
-        $apiToken->markUsed($now);
-        $this->entityManager->flush();
     }
 }

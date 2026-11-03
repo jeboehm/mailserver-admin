@@ -23,6 +23,7 @@ use App\Service\ApiToken\ApiTokenScope;
 use App\Service\MailSend\MailComposer;
 use App\Service\MailSend\MailSender;
 use App\Service\MailSend\SentCopy;
+use App\Service\MailSend\SentCopyStatus;
 use App\Service\Security\Access\CurrentActor;
 use Mcp\Capability\Attribute\McpTool;
 use Mcp\Exception\ToolCallException;
@@ -91,7 +92,7 @@ final readonly class MailSendTools
             throw new ToolCallException($e->getMessage());
         }
 
-        $this->auditLog->details(['sent_copy' => $copy->status]);
+        $this->auditLog->details(['sent_copy' => $copy->status->value]);
 
         return [
             'sent' => true,
@@ -107,10 +108,10 @@ final readonly class MailSendTools
      */
     private function describe(SentCopy $copy): array
     {
-        return match ($copy->status) {
-            SentCopy::STATUS_SAVED => ['status' => $copy->status, 'mailbox' => $copy->mailbox],
-            SentCopy::STATUS_SKIPPED => ['status' => $copy->status, 'reason' => self::COPY_SKIPPED],
-            default => ['status' => $copy->status, 'temporary' => $copy->temporary, 'reason' => self::COPY_FAILED],
-        };
+        return ['status' => $copy->status->value, ...match ($copy->status) {
+            SentCopyStatus::Saved => ['mailbox' => $copy->mailbox],
+            SentCopyStatus::Skipped => ['reason' => self::COPY_SKIPPED],
+            SentCopyStatus::Failed => ['temporary' => $copy->temporary, 'reason' => self::COPY_FAILED],
+        }];
     }
 }

@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace App\Mcp;
 
 use App\Mcp\Audit\ToolAuditLog;
+use App\Mcp\Audit\ToolCallResult;
 use Mcp\Capability\Registry\ElementReference;
 use Mcp\Capability\Registry\ReferenceHandlerInterface;
 use Mcp\Capability\Registry\ToolReference;
@@ -52,7 +53,7 @@ final readonly class ToolGate implements ReferenceHandlerInterface
         }
 
         if (!$this->policy->allows($reference)) {
-            $this->auditLog->record($tool, ToolAuditLog::RESULT_DENIED, $token);
+            $this->auditLog->record($tool, ToolCallResult::Denied, $token);
 
             throw new ToolCallException(ToolDeniedException::PUBLIC_MESSAGE);
         }
@@ -63,15 +64,15 @@ final readonly class ToolGate implements ReferenceHandlerInterface
             $denied = $e instanceof AccessDeniedException || $e instanceof ToolDeniedException;
 
             $this->auditLog->record($tool, match (true) {
-                $denied => ToolAuditLog::RESULT_DENIED,
-                $e instanceof ToolCallException => ToolAuditLog::RESULT_FAILED,
-                default => ToolAuditLog::RESULT_ERROR,
+                $denied => ToolCallResult::Denied,
+                $e instanceof ToolCallException => ToolCallResult::Failed,
+                default => ToolCallResult::Error,
             }, $token);
 
             throw $denied ? new ToolCallException(ToolDeniedException::PUBLIC_MESSAGE) : $e;
         }
 
-        $this->auditLog->record($tool, ToolAuditLog::RESULT_OK, $token);
+        $this->auditLog->record($tool, ToolCallResult::Ok, $token);
 
         return $result;
     }

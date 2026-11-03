@@ -18,8 +18,8 @@ use App\Service\Security\Access\ActorRole;
 use Mcp\Capability\Attribute\McpTool;
 
 /**
- * A tool with a scope and a role requirement, as the only production tool has neither. Only
- * registered in the test environment.
+ * Tools that behave in a way the production tools do not on demand: a scope and a role no real tool
+ * combines, and a denial after the tool has named its target. Only registered in the test environment.
  */
 final readonly class SendFixtureTool
 {

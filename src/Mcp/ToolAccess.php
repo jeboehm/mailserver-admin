@@ -20,7 +20,7 @@ use Mcp\Capability\Registry\ToolReference;
  * This decides about the tool as a whole. Whether the actor may touch a particular object is up to
  * the tool, through the policies in App\Service\Security\Access.
  */
-#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::TARGET_CLASS)]
+#[\Attribute(\Attribute::TARGET_METHOD)]
 final readonly class ToolAccess
 {
     public function __construct(
@@ -41,8 +41,7 @@ final readonly class ToolAccess
             return null;
         }
 
-        $attributes = new \ReflectionMethod($class, $method)->getAttributes(self::class)
-            ?: new \ReflectionClass($class)->getAttributes(self::class);
+        $attributes = new \ReflectionMethod($class, $method)->getAttributes(self::class);
 
         return [] === $attributes ? null : $attributes[0]->newInstance();
     }

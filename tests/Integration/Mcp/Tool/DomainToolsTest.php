@@ -49,7 +49,7 @@ class DomainToolsTest extends WebTestCase
 
         $own = $page['items'][1];
         unset($own['id']);
-        self::assertSame(['name' => self::OWN_DOMAIN, 'dkimEnabled' => true, 'userCount' => 4, 'aliasCount' => 1], $own);
+        self::assertSame(['name' => self::OWN_DOMAIN, 'dkim_enabled' => true, 'user_count' => 4, 'alias_count' => 1], $own);
     }
 
     public function testListIsPaginated(): void
@@ -83,7 +83,7 @@ class DomainToolsTest extends WebTestCase
         $created = $this->assertToolSucceeded($this->call(self::ADMIN, 'domain_create', ['name' => 'New.Example.NET']));
 
         self::assertSame('new.example.net', $created['name']);
-        self::assertSame(0, $created['userCount']);
+        self::assertSame(0, $created['user_count']);
 
         $domain = static::getContainer()->get(DomainRepository::class)->find($created['id']);
         self::assertInstanceOf(Domain::class, $domain);

@@ -25,6 +25,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'api_tokens')]
 class ApiToken
 {
+    private const int LAST_USED_RESOLUTION_SECONDS = 60;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -153,8 +155,18 @@ class ApiToken
         $this->revokedAt ??= new \DateTimeImmutable();
     }
 
-    public function markUsed(\DateTimeImmutable $at): void
+    /**
+     * @return bool whether anything changed, as writing on every request would turn each read into a
+     *              database write
+     */
+    public function markUsed(\DateTimeImmutable $at): bool
     {
+        if (null !== $this->lastUsedAt && $at->getTimestamp() - $this->lastUsedAt->getTimestamp() < self::LAST_USED_RESOLUTION_SECONDS) {
+            return false;
+        }
+
         $this->lastUsedAt = $at;
+
+        return true;
     }
 }

@@ -84,7 +84,7 @@ final readonly class FetchmailTools
      * @param string      $protocol  imap or pop3
      * @param int         $port      Port of the server
      * @param bool        $ssl       Whether to connect with SSL, for SSL-only connections or implicit TLS
-     * @param bool        $verifySsl Whether to verify the certificate of the server
+     * @param bool        $verify_ssl Whether to verify the certificate of the server
      *
      * @return array<string, mixed>
      */
@@ -103,7 +103,7 @@ final readonly class FetchmailTools
         string $protocol = 'imap',
         int $port = 143,
         bool $ssl = false,
-        bool $verifySsl = true,
+        bool $verify_ssl = true,
     ): array {
         $actor = $this->currentActor->get();
 
@@ -115,7 +115,7 @@ final readonly class FetchmailTools
         $account->setProtocol($protocol);
         $account->setPort($port);
         $account->setSsl($ssl);
-        $account->setVerifySsl($verifySsl);
+        $account->setVerifySsl($verify_ssl);
         $this->auditLog->target('fetchmail', \sprintf('%s@%s', $username, $host));
 
         $this->writer->validate($account);
@@ -133,7 +133,7 @@ final readonly class FetchmailTools
      * @param string|null $protocol  imap or pop3
      * @param int|null    $port      Port of the server
      * @param bool|null   $ssl       Whether to connect with SSL, for SSL-only connections or implicit TLS
-     * @param bool|null   $verifySsl Whether to verify the certificate of the server
+     * @param bool|null   $verify_ssl Whether to verify the certificate of the server
      *
      * @return array<string, mixed>
      */
@@ -153,7 +153,7 @@ final readonly class FetchmailTools
         ?string $protocol = null,
         ?int $port = null,
         ?bool $ssl = null,
-        ?bool $verifySsl = null,
+        ?bool $verify_ssl = null,
     ): array {
         $actor = $this->currentActor->get();
         $account = $this->findManaged($actor, $id);
@@ -186,8 +186,8 @@ final readonly class FetchmailTools
             $account->setSsl($ssl);
         }
 
-        if (null !== $verifySsl) {
-            $account->setVerifySsl($verifySsl);
+        if (null !== $verify_ssl) {
+            $account->setVerifySsl($verify_ssl);
         }
 
         $this->writer->validate($account);
@@ -256,9 +256,9 @@ final readonly class FetchmailTools
             'port' => $account->getPort(),
             'username' => $account->getUsername(),
             'ssl' => $account->isSsl(),
-            'verifySsl' => $account->isVerifySsl(),
-            'lastRun' => $account->lastRun?->format(\DATE_ATOM),
-            'lastRunSucceeded' => $account->isSuccess,
+            'verify_ssl' => $account->isVerifySsl(),
+            'last_run' => $account->lastRun?->format(\DATE_ATOM),
+            'last_run_succeeded' => $account->isSuccess,
         ];
     }
 }

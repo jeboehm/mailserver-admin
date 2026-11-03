@@ -15,12 +15,9 @@ namespace App\Service\MailSend;
  */
 final readonly class SentCopy
 {
-    public const string STATUS_SAVED = 'saved';
-    public const string STATUS_SKIPPED = 'skipped';
-    public const string STATUS_FAILED = 'failed';
 
     private function __construct(
-        public string $status,
+        public SentCopyStatus $status,
         public ?string $mailbox = null,
         public bool $temporary = false,
     ) {
@@ -28,7 +25,7 @@ final readonly class SentCopy
 
     public static function saved(string $mailbox): self
     {
-        return new self(self::STATUS_SAVED, $mailbox);
+        return new self(SentCopyStatus::Saved, $mailbox);
     }
 
     /**
@@ -36,11 +33,11 @@ final readonly class SentCopy
      */
     public static function skipped(): self
     {
-        return new self(self::STATUS_SKIPPED);
+        return new self(SentCopyStatus::Skipped);
     }
 
     public static function failed(bool $temporary): self
     {
-        return new self(self::STATUS_FAILED, temporary: $temporary);
+        return new self(SentCopyStatus::Failed, temporary: $temporary);
     }
 }
