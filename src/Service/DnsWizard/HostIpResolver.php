@@ -37,6 +37,7 @@ readonly class HostIpResolver
                 'Accept' => 'text/plain',
             ],
             'timeout' => 5.0,
+            'max_duration' => 5.0,
         ]);
 
         $body = $response->getContent();
