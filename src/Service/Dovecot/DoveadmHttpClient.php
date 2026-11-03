@@ -115,6 +115,23 @@ readonly class DoveadmHttpClient
     }
 
     /**
+     * Remove the given users' entries from Dovecot's auth cache, so that their next login is
+     * checked against the database again. Addresses must be lower case, as Dovecot stores them.
+     *
+     * @param list<string> $addresses
+     *
+     * @throws DoveadmConnectionException     When the API cannot be reached
+     * @throws DoveadmAuthenticationException When authentication fails
+     * @throws DoveadmResponseException       When the command fails
+     */
+    public function flushAuthCache(array $addresses): void
+    {
+        $tag = 'auth_cache_' . bin2hex(random_bytes(4));
+
+        $this->executeCommand('authCacheFlush', ['userMask' => $addresses], $tag);
+    }
+
+    /**
      * List available commands by issuing a GET request to /doveadm/v1.
      *
      * @throws DoveadmConnectionException     When the API cannot be reached
