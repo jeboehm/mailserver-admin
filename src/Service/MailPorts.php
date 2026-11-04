@@ -28,9 +28,6 @@ final readonly class MailPorts
     /** Message submission with STARTTLS. */
     public const int SUBMISSION = 587;
 
-    /** Message submission with implicit TLS. */
-    public const int SUBMISSIONS = 465;
-
     /** HTTPS endpoint serving the Microsoft autodiscover XML. */
     public const int AUTODISCOVER = 443;
 
