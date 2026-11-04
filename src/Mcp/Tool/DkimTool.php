@@ -55,7 +55,7 @@ final readonly class DkimTool
     #[McpTool(
         name: 'dkim_status',
         description: 'Returns whether DKIM is enabled for a domain, its selector, whether the DNS record was found and is valid, and the record to publish. If timed_out is true the DNS lookup did not finish, so nothing is known about the published record.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: true),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function status(string $domain): array
@@ -69,7 +69,7 @@ final readonly class DkimTool
     #[McpTool(
         name: 'dkim_enable',
         description: 'Enables DKIM signing for a domain, creating a key if it has none. Publish expected_record in DNS: receivers reject signatures they cannot verify.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function enable(string $domain): array
@@ -83,7 +83,7 @@ final readonly class DkimTool
     #[McpTool(
         name: 'dkim_disable',
         description: 'Disables DKIM signing for a domain. The key is kept, so enabling it again needs no DNS change.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function disable(string $domain): array
@@ -97,7 +97,7 @@ final readonly class DkimTool
     #[McpTool(
         name: 'dkim_recreate_key',
         description: 'Replaces the DKIM key of a domain. The published DNS record no longer matches afterwards, so expected_record has to be published again. Only runs with confirm set to true.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{domain}')]
     public function recreateKey(string $domain, bool $confirm): array

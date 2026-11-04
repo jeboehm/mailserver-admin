@@ -32,7 +32,7 @@ final readonly class WhoamiTool
     #[McpTool(
         name: 'whoami',
         description: 'Returns the authenticated user, their role and domain, and the scopes of this API token.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess]
     public function __invoke(): array
