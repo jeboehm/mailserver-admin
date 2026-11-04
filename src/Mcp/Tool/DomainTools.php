@@ -45,7 +45,7 @@ final readonly class DomainTools
     #[McpTool(
         name: 'domain_list',
         description: 'Lists mail domains, sorted by name, with their number of users and aliases.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::Admin)]
     public function list(int $limit = ToolPage::DEFAULT_LIMIT, int $offset = 0): array
@@ -66,7 +66,7 @@ final readonly class DomainTools
     #[McpTool(
         name: 'domain_create',
         description: 'Creates a mail domain. A DKIM key is generated for it, but DKIM stays disabled.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{name}')]
     public function create(string $name): array
@@ -89,7 +89,7 @@ final readonly class DomainTools
     #[McpTool(
         name: 'domain_delete',
         description: 'Deletes a mail domain. Only a domain without users and aliases can be deleted.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::Admin, target: 'domain:{id}')]
     public function delete(int $id): array

@@ -53,7 +53,7 @@ final readonly class UserTools
     #[McpTool(
         name: 'user_list',
         description: 'Lists the mail users you manage, sorted by domain and name.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
     public function list(int $limit = ToolPage::DEFAULT_LIMIT, int $offset = 0): array
@@ -75,7 +75,7 @@ final readonly class UserTools
     #[McpTool(
         name: 'user_get',
         description: 'Returns one mail user. Passwords are never returned.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function get(int $id): array
@@ -98,7 +98,7 @@ final readonly class UserTools
     #[McpTool(
         name: 'user_create',
         description: 'Creates a mail user. The password is validated and never returned.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{name}@{domain}')]
     public function create(
@@ -150,7 +150,7 @@ final readonly class UserTools
     #[McpTool(
         name: 'user_update',
         description: 'Updates a mail user; arguments left out stay as they are. Name and domain cannot be changed. Domain admins cannot change admins. On your own user, role and enabled state stay as they are. Changing a password revokes the API tokens of that user, including this one if it is your own.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function update(
@@ -204,7 +204,7 @@ final readonly class UserTools
     #[McpTool(
         name: 'user_delete',
         description: 'Deletes a mail user. You cannot delete yourself, and domain admins cannot delete admins.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'user:{id}')]
     public function delete(int $id): array

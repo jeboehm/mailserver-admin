@@ -49,7 +49,7 @@ final readonly class AliasTools
     #[McpTool(
         name: 'alias_list',
         description: 'Lists the mail aliases you manage, sorted by domain and name.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin)]
     public function list(int $limit = ToolPage::DEFAULT_LIMIT, int $offset = 0): array
@@ -72,7 +72,7 @@ final readonly class AliasTools
     #[McpTool(
         name: 'alias_get',
         description: 'Returns one mail alias.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function get(int $id): array
@@ -90,7 +90,7 @@ final readonly class AliasTools
     #[McpTool(
         name: 'alias_create',
         description: 'Creates a mail alias, which forwards mail to the destination.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{name}@{domain}')]
     public function create(string $name, string $destination, ?string $domain = null): array
@@ -124,7 +124,7 @@ final readonly class AliasTools
     #[McpTool(
         name: 'alias_update',
         description: 'Updates a mail alias; arguments left out stay as they are. The domain cannot be changed.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function update(int $id, ?string $name = null, ?string $destination = null): array
@@ -153,7 +153,7 @@ final readonly class AliasTools
     #[McpTool(
         name: 'alias_delete',
         description: 'Deletes a mail alias.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function delete(int $id): array

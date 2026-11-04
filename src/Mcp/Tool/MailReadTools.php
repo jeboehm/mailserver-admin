@@ -55,7 +55,7 @@ final readonly class MailReadTools
     #[McpTool(
         name: 'mailbox_list',
         description: 'Lists the mailboxes (folders) of your own mailbox with their message counts.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::MailRead, feature: ToolFeature::MailRead)]
     public function mailboxList(int $limit = 50, int $offset = 0): array

@@ -45,7 +45,7 @@ final readonly class FetchmailTools
     #[McpTool(
         name: 'fetchmail_list',
         description: 'Lists the fetchmail accounts you manage, which fetch mail from other servers. Passwords are never returned.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead)]
     public function list(int $limit = ToolPage::DEFAULT_LIMIT, int $offset = 0): array
@@ -66,7 +66,7 @@ final readonly class FetchmailTools
     #[McpTool(
         name: 'fetchmail_get',
         description: 'Returns one fetchmail account. Its password is never returned.',
-        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageRead, target: 'fetchmail:{id}')]
     public function get(int $id): array
@@ -89,7 +89,7 @@ final readonly class FetchmailTools
     #[McpTool(
         name: 'fetchmail_create',
         description: 'Creates a fetchmail account. The password is stored and can never be read back.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{username}@{host}')]
     public function create(
@@ -137,7 +137,7 @@ final readonly class FetchmailTools
     #[McpTool(
         name: 'fetchmail_update',
         description: 'Updates a fetchmail account; arguments left out stay as they are. The password can be replaced, but never read back.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{id}')]
     public function update(
@@ -201,7 +201,7 @@ final readonly class FetchmailTools
     #[McpTool(
         name: 'fetchmail_delete',
         description: 'Deletes a fetchmail account.',
-        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false),
+        annotations: new ToolAnnotations(readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false),
     )]
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, target: 'fetchmail:{id}')]
     public function delete(int $id): array
