@@ -13,10 +13,12 @@ namespace Tests\Unit\Service\DnsWizard\Check;
 use App\Entity\Domain;
 use App\Service\DnsWizard\Check\AutodiscoveryRecordCheck;
 use App\Service\DnsWizard\DnsLookupInterface;
+use App\Service\DnsWizard\DnsWizardRow;
 use App\Service\DnsWizard\DnsWizardStatus;
 use App\Service\DnsWizard\ExpectedHostIps;
 use App\Service\DnsWizard\Scopes;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -84,9 +86,6 @@ class AutodiscoveryRecordCheckTest extends TestCase
                     '_submission._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 587, 'target' => $mailname],
                     ],
-                    '_submissions._tcp.example.com' => [
-                        ['priority' => 0, 'weight' => 0, 'port' => 465, 'target' => $mailname],
-                    ],
                     '_autodiscover._tcp.example.com' => [
                         ['priority' => 0, 'weight' => 0, 'port' => 443, 'target' => 'autodiscover.example.com'],
                     ],
@@ -96,7 +95,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(10, $result);
+        self::assertCount(9, $result);
 
         // Check autoconfig A record
         $row = $result[0];
@@ -150,15 +149,8 @@ class AutodiscoveryRecordCheckTest extends TestCase
         self::assertSame(['0 0 587 mail.example.com'], $row->expectedValues);
         self::assertSame(DnsWizardStatus::OK, $row->status);
 
-        // Check _submissions._tcp SRV record, which has to point to the implicit TLS submission port
-        $row = $result[8];
-        self::assertSame('_submissions._tcp.example.com', $row->subject);
-        self::assertSame('SRV', $row->recordType);
-        self::assertSame(['0 0 465 mail.example.com'], $row->expectedValues);
-        self::assertSame(DnsWizardStatus::OK, $row->status);
-
         // Check _autodiscover._tcp SRV record
-        $row = $result[9];
+        $row = $result[8];
         self::assertSame('_autodiscover._tcp.example.com', $row->subject);
         self::assertSame('SRV', $row->recordType);
         self::assertSame(DnsWizardStatus::OK, $row->status);
@@ -180,7 +172,7 @@ class AutodiscoveryRecordCheckTest extends TestCase
 
         $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
 
-        self::assertCount(10, $result);
+        self::assertCount(9, $result);
 
         // Check that A records are marked as ERROR
         self::assertSame(DnsWizardStatus::WARNING, $result[0]->status); // autoconfig
@@ -334,5 +326,67 @@ class AutodiscoveryRecordCheckTest extends TestCase
         self::assertSame('SRV', $srvRow->recordType);
         self::assertSame(DnsWizardStatus::WARNING, $srvRow->status);
         self::assertStringContainsString('missing', $srvRow->message);
+    }
+
+    /**
+     * The mail server has no listener on port 465, so `_submissions._tcp` is neither suggested nor
+     * checked, whether or not the administrator has published it.
+     *
+     * @param list<array{priority: int, weight: int, port: int, target: string}> $submissionsRecords
+     */
+    #[DataProvider('submissionsRecordProvider')]
+    public function testValidateDomainReturnsOnlySrvRowsForServicesTheMailServerOffers(array $submissionsRecords): void
+    {
+        $domain = new Domain();
+        $domain->setName('example.com');
+        $mailname = 'mail.example.com';
+        $expectedAll = ['1.2.3.4'];
+
+        $this->dns->method('lookupA')->willReturn($expectedAll);
+        $this->dns->method('lookupAaaa')->willReturn([]);
+        $this->dns->method('lookupCname')->willReturn([]);
+        $this->dns->method('lookupTxt')->willReturn([]);
+        $this->dns->method('lookupSrv')
+            ->willReturnCallback(static function (string $name) use ($mailname, $submissionsRecords) {
+                return match ($name) {
+                    '_imap._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 143, 'target' => $mailname],
+                    ],
+                    '_imaps._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 993, 'target' => $mailname],
+                    ],
+                    '_submission._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 587, 'target' => $mailname],
+                    ],
+                    '_submissions._tcp.example.com' => $submissionsRecords,
+                    '_autodiscover._tcp.example.com' => [
+                        ['priority' => 0, 'weight' => 0, 'port' => 443, 'target' => 'autodiscover.example.com'],
+                    ],
+                    default => [],
+                };
+            });
+
+        $result = $this->check->validateDomain($mailname, $expectedAll, $domain);
+
+        $srvRows = array_values(array_filter($result, static fn (DnsWizardRow $row): bool => 'SRV' === $row->recordType));
+
+        self::assertSame(
+            [
+                ['_imap._tcp.example.com', ['0 0 143 mail.example.com'], DnsWizardStatus::OK],
+                ['_imaps._tcp.example.com', ['0 0 993 mail.example.com'], DnsWizardStatus::OK],
+                ['_submission._tcp.example.com', ['0 0 587 mail.example.com'], DnsWizardStatus::OK],
+                ['_autodiscover._tcp.example.com', ['0 0 443 autodiscover.example.com'], DnsWizardStatus::OK],
+            ],
+            array_map(static fn (DnsWizardRow $row): array => [$row->subject, $row->expectedValues, $row->status], $srvRows),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{list<array{priority: int, weight: int, port: int, target: string}>}>
+     */
+    public static function submissionsRecordProvider(): iterable
+    {
+        yield 'not published' => [[]];
+        yield 'published' => [[['priority' => 0, 'weight' => 0, 'port' => 465, 'target' => 'mail.example.com']]];
     }
 }

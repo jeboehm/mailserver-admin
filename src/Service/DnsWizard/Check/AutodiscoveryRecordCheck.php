@@ -57,7 +57,6 @@ readonly class AutodiscoveryRecordCheck implements DnsCheckInterface
             $this->validateSrv($domainName, '_imap._tcp', MailPorts::IMAP, $mailname),
             $this->validateSrv($domainName, '_imaps._tcp', MailPorts::IMAPS, $mailname),
             $this->validateSrv($domainName, '_submission._tcp', MailPorts::SUBMISSION, $mailname),
-            $this->validateSrv($domainName, '_submissions._tcp', MailPorts::SUBMISSIONS, $mailname),
             $this->validateSrv($domainName, '_autodiscover._tcp', MailPorts::AUTODISCOVER, \sprintf('autodiscover.%s', $domainName)),
         ];
     }
