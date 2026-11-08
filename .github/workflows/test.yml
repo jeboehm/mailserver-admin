@@ -104,7 +104,7 @@ jobs:
           - 5432:5432
         options: --health-cmd="pg_isready -U symfony" --health-interval=10s --health-timeout=5s --health-retries=3
       redis:
-        image: redis@sha256:97ec88159e6d7cfb5ddef9015386087d58a912de80112f06ebdfa78fa5989901
+        image: redis@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53
         ports:
           - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
