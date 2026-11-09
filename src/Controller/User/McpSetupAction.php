@@ -54,7 +54,7 @@ final readonly class McpSetupAction
             'clients' => $this->clientGuides->forEndpoint($endpointUrl),
             'tokenVariable' => McpClientGuides::TOKEN_VARIABLE,
             'scopes' => array_map(fn (ApiTokenScope $scope): array => ['scope' => $scope, 'offSetting' => $this->settingThatIsOff($scope)], ApiTokenScope::ALL),
-            'actingScopes' => $this->mailSendEnabled ? [ApiTokenScope::ManageWrite, ApiTokenScope::MailSend] : [ApiTokenScope::ManageWrite],
+            'actingScopes' => $this->mailSendEnabled ? [ApiTokenScope::ManageWrite, ApiTokenScope::MailDraft, ApiTokenScope::MailSend] : [ApiTokenScope::ManageWrite, ApiTokenScope::MailDraft],
             'mailReadAvailable' => $this->mailReadEnabled,
         ]));
     }

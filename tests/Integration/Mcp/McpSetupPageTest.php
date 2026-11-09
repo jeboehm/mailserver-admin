@@ -154,7 +154,7 @@ class McpSetupPageTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSame(
-            ['manage:read', 'manage:write', 'mail:read', 'mail:send'],
+            ['manage:read', 'manage:write', 'mail:read', 'mail:send', 'mail:draft'],
             $crawler->filter('[data-mcp-scope]')->each(static fn (Crawler $scope): string => $scope->text()),
         );
         self::assertSame(

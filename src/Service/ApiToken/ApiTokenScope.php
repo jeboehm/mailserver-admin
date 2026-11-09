@@ -19,8 +19,9 @@ enum ApiTokenScope: string
     case ManageWrite = 'manage:write';
     case MailRead = 'mail:read';
     case MailSend = 'mail:send';
+    case MailDraft = 'mail:draft';
 
-    public const array ALL = [self::ManageRead, self::ManageWrite, self::MailRead, self::MailSend];
+    public const array ALL = [self::ManageRead, self::ManageWrite, self::MailRead, self::MailSend, self::MailDraft];
 
     /**
      * Writing and sending have to be a deliberate choice: together with mail:read, either lets a mail
@@ -35,6 +36,7 @@ enum ApiTokenScope: string
             self::ManageWrite => 'Create, update and delete the same',
             self::MailRead => 'Read your own mailbox',
             self::MailSend => 'Send mail from your own address',
+            self::MailDraft => 'Mail drafts: save a draft in your Drafts mailbox, never sends',
         };
     }
 }
