@@ -52,6 +52,27 @@ class ToolAccessTest extends WebTestCase
         self::assertContains('fixture_admin_send', $tools);
     }
 
+    public function testDraftingAndSendingAreSeparateScopes(): void
+    {
+        $this->setEnvironment('MCP_MAIL_SEND_ENABLED', 'true');
+        self::ensureKernelShutdown();
+        $this->client = static::createClient();
+
+        try {
+            $draft = $this->storeToken($this->findUser(), [ApiTokenScope::MailDraft]);
+            $draftTools = $this->listTools($draft, $this->initialiseSession($draft));
+            self::assertContains('message_draft', $draftTools);
+            self::assertNotContains('message_send', $draftTools);
+
+            $send = $this->storeToken($this->findUser(), [ApiTokenScope::MailSend]);
+            $sendTools = $this->listTools($send, $this->initialiseSession($send));
+            self::assertContains('message_send', $sendTools);
+            self::assertNotContains('message_draft', $sendTools);
+        } finally {
+            $this->unsetEnvironment('MCP_MAIL_SEND_ENABLED');
+        }
+    }
+
     public function testListHidesToolsOutsideTheScopesOfTheToken(): void
     {
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::ManageRead]);
