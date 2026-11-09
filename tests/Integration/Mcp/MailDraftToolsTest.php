@@ -322,9 +322,31 @@ class MailDraftToolsTest extends WebTestCase
         self::assertTrue($second['isError'] ?? false);
         self::assertMatchesRegularExpression('/not saved.*Retry in \d+ seconds/', $second['content'][0]['text']);
         self::assertSame(1, FakeImapServer::$current?->connections);
+        self::assertSame(0, $this->shortLivedCredentialCount());
 
         $this->servers();
         self::assertTrue($this->draft($user, $this->mail())['drafted'], 'Another token has a limit of its own.');
+    }
+
+    public function testTheDefaultLimitIsSixtyDraftsPerTokenPerHour(): void
+    {
+        $this->servers();
+        $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailDraft]);
+        $session = $this->initialiseSession($secret);
+
+        for ($i = 1; $i <= 60; ++$i) {
+            FakeImapServer::$current = new FakeImapServer(self::SAVED_IN_DRAFTS);
+            $result = $this->callTool($secret, $session, 'message_draft', $this->mail());
+            self::assertFalse($result['isError'] ?? false, \sprintf('Draft %d: %s', $i, json_encode($result)));
+        }
+
+        FakeImapServer::$current = new FakeImapServer(self::SAVED_IN_DRAFTS);
+        $refused = $this->callTool($secret, $session, 'message_draft', $this->mail());
+
+        self::assertTrue($refused['isError'] ?? false);
+        self::assertMatchesRegularExpression('/not saved.*Retry in \d+ seconds/', $refused['content'][0]['text']);
+        self::assertSame(0, FakeImapServer::$current->connections);
+        self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
     public function testAuditLogHasRecipientsMessageIdAndFolderButNotTheContent(): void
