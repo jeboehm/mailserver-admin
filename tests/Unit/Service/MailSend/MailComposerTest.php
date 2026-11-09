@@ -50,6 +50,15 @@ class MailComposerTest extends TestCase
         self::assertMatchesRegularExpression('/^<[0-9a-f]{32}@example\.com>$/', $this->compose(['bob@example.org'])->messageId);
     }
 
+    public function testTheMailCarriesExactlyOneFixedXMailerHeader(): void
+    {
+        $mail = $this->compose(['bob@example.org']);
+
+        self::assertCount(1, iterator_to_array($mail->email->getHeaders()->all('X-Mailer')));
+        self::assertSame('mailserver-admin (https://github.com/jeboehm/mailserver-admin)', $mail->email->getHeaders()->getHeaderBody('X-Mailer'));
+        self::assertSame(1, substr_count($mail->sentCopy(), "X-Mailer: mailserver-admin (https://github.com/jeboehm/mailserver-admin)\r\n"));
+    }
+
     public function testTheSentCopyAloneShowsBlindCopies(): void
     {
         $mail = $this->compose(['bob@example.org'], [], ['hidden@example.org']);

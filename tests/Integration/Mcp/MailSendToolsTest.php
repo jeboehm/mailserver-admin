@@ -183,6 +183,18 @@ class MailSendToolsTest extends WebTestCase
         self::assertStringContainsString('sch=C3=B6ne Gr=C3=BC=C3=9Fe.', $smtp->data);
     }
 
+    public function testTheMailAndItsCopyCarryTheSameFixedXMailerHeader(): void
+    {
+        $smtp = $this->servers();
+
+        $this->send($this->findUser(), $this->mail());
+
+        $header = "X-Mailer: mailserver-admin (https://github.com/jeboehm/mailserver-admin)\r\n";
+        self::assertSame(1, substr_count($smtp->data, 'X-Mailer:'));
+        self::assertStringContainsString($header, $smtp->data);
+        self::assertStringContainsString($header, FakeImapServer::$current?->sent() ?? '');
+    }
+
     public function testBlindCopiesAreDeliveredButOnlyVisibleInTheSentCopy(): void
     {
         $smtp = $this->servers();
