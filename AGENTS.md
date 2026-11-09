@@ -272,6 +272,7 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `MCP_MAIL_READ_ENABLED`: Enable/disable the mail read tools, which need a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
 - `MCP_MAIL_MAX_IMAP_SESSIONS`: Parallel IMAP sessions per user. Keep it below Dovecot's `mail_max_userip_connections` of 10, which Roundcube shares (default `5`)
 - `MCP_MAIL_MESSAGE_MAX_BYTES`: Size limit of the body `message_get` returns (default `65536`)
+- `MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR`: Drafts per API token for `message_draft`. There is no per-user or global limit, as Postfix is not involved (default `60`)
 - `MDA_IMAPS_ADDRESS`: Dovecot's implicit TLS address as `host:port` (default `mda:31993`)
 - `MDA_IMAP_TIMEOUT_SECONDS`: IMAP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
 - `MCP_MAIL_SEND_ENABLED`: Enable/disable `message_send`, which needs a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
@@ -282,7 +283,6 @@ Key environment variables (see `.env` and `config/services.yaml`):
 - `MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE`: Sends per rolling minute across everyone. Keep it below Postfix's 20 connections per minute per client address, which Roundcube shares. A third of it is available at once, the rest refills evenly (default `15`)
 - `MTA_SMTP_SUBMISSION_ADDRESS`: Postfix's submission address as `host:port` (default `mta:587`)
 - `MTA_SMTP_TIMEOUT_SECONDS`: SMTP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
-- `MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR`: Drafts per API token for `message_draft`. There is no per-user or global limit, as Postfix is not involved (default `60`)
 
 ## MCP tools
 
@@ -300,7 +300,7 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - A mailbox user only ever comes from `CurrentActor`, never from a tool parameter. Reach a mailbox through `App\Service\Mailbox\ImapSessions` and log in anywhere else through `App\Service\MailboxCredential\MailboxCredentials`, which issues one credential per operation and always deletes it. Use ImapEngine's connection commands with `EXAMINE` and `BODY.PEEK`, not its fluent API.
 - Do not run these inside a transaction: Dovecot only sees committed rows. For the same reason the end-to-end tests `MailReadEndToEndTest` and `MailSendEndToEndTest` skip the database rollback and need a real stack, see their class comments.
 - Send mail through `App\Service\MailSend\MailSender`. Once Postfix has taken a mail, nothing may look like a failed send, or a caller sends it again: a problem with the Sent copy goes in the result. The test environment replaces the transport factory with `Tests\Integration\Mcp\Fixture\FakeSmtpTransportFactory`, which falls through to the real one without a current `FakeSmtpServer`.
-- `message_draft` (`App\Mcp\Tool\MailDraftTools`) saves a composed mail in the owner's Drafts mailbox with `\Draft` and `\Seen` and sends nothing. Its scope `mail:draft` is independent of `mail:send`, and the scope is the only gate: no `ToolFeature`, no flag. It takes the same arguments as `message_send` and composes through the same `MailComposer`. Save it through `App\Service\MailDraft\MailDrafter`, which picks the `\Drafts` mailbox with the shared `SpecialUseMailbox` and applies a per-token limit (`MailDraftRateLimiter`). Unlike the Sent copy, nothing has happened yet when the save fails, so every failure is a `MailDraftFailedException`, shown as a `ToolCallException` that names a retry only where one can help. There is no "skipped" outcome, and a mailbox user without access is refused like for the read tools. The audit record holds `message_id`, `recipients` and `draft_folder`, never the body.
+- `message_draft` (`App\Mcp\Tool\MailDraftTools`) saves a composed mail in the owner's Drafts mailbox with `\Draft` and `\Seen` and sends nothing. Its scope `mail:draft` is independent of `mail:send` and is the only gate: no `ToolFeature`, no flag. It takes the same arguments as `message_send` and composes through the same `MailComposer`, saves through `App\Service\MailDraft\MailDrafter` (shared `SpecialUseMailbox`, per-token limit in `MailDraftRateLimiter`). Nothing has happened yet when the save fails, so every failure is a `MailDraftFailedException`, shown as a `ToolCallException` that names a retry only where one can help. There is no "skipped" outcome. The audit record holds `message_id`, `recipients` and `draft_folder`, never the body.
 - `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
 - The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 
