@@ -9,7 +9,7 @@
     "ext-iconv": "*",
     "ext-mbstring": "*",
     "ext-openssl": "*",
-    "composer/ca-bundle": "1.6.0",
+    "composer/ca-bundle": "1.6.1",
     "directorytree/imapengine": "v1.25.8",
     "doctrine/dbal": "4.5.0",
     "doctrine/doctrine-bundle": "3.3.3",
