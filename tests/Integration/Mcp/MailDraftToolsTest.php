@@ -95,6 +95,25 @@ class MailDraftToolsTest extends WebTestCase
         self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
+    public function testDraftingWorksAndIsListedWithSendingAndReadingSwitchedOff(): void
+    {
+        $this->setEnvironment('MCP_MAIL_SEND_ENABLED', 'false');
+        $this->setEnvironment('MCP_MAIL_READ_ENABLED', 'false');
+        $this->servers();
+
+        try {
+            $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailDraft]);
+            $session = $this->initialiseSession($secret);
+            self::assertContains('message_draft', $this->listTools($secret, $session));
+
+            $result = $this->draft($this->findUser(), $this->mail());
+            self::assertTrue($result['drafted']);
+        } finally {
+            $this->unsetEnvironment('MCP_MAIL_SEND_ENABLED');
+            $this->unsetEnvironment('MCP_MAIL_READ_ENABLED');
+        }
+    }
+
     public function testTheSenderIsTheOwnerWhateverTheArgumentsSay(): void
     {
         $this->servers();

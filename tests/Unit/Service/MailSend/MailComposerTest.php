@@ -59,6 +59,23 @@ class MailComposerTest extends TestCase
         self::assertSame(1, substr_count($mail->sentCopy(), "X-Mailer: mailserver-admin (https://github.com/jeboehm/mailserver-admin)\r\n"));
     }
 
+    public function testTheXMailerValueDoesNotDependOnTheSender(): void
+    {
+        $other = new User();
+        $other->setName('bob');
+        $domain = new Domain();
+        $domain->setName('example.net');
+        $other->setDomain($domain);
+
+        $first = $this->compose(['x@example.org']);
+        $second = new MailComposer(20, 1048576)->compose($other, ['x@example.org'], [], [], 'Other', 'Other body');
+
+        self::assertSame(
+            $first->email->getHeaders()->getHeaderBody('X-Mailer'),
+            $second->email->getHeaders()->getHeaderBody('X-Mailer'),
+        );
+    }
+
     public function testTheSentCopyAloneShowsBlindCopies(): void
     {
         $mail = $this->compose(['bob@example.org'], [], ['hidden@example.org']);
