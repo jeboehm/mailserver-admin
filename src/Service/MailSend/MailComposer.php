@@ -24,6 +24,8 @@ use Symfony\Component\Mime\Exception\RfcComplianceException;
  */
 final readonly class MailComposer
 {
+    private const string X_MAILER = 'mailserver-admin (https://github.com/jeboehm/mailserver-admin)';
+
     public function __construct(
         #[Autowire('%env(int:MCP_MAIL_SEND_MAX_RECIPIENTS)%')]
         private int $maxRecipients,
@@ -79,6 +81,8 @@ final readonly class MailComposer
             ->date(new \DateTimeImmutable())
             ->text($body);
         $email->getHeaders()->addIdHeader('Message-ID', $messageId);
+        // A fixed value: nothing about the instance, the token or the caller belongs in it.
+        $email->getHeaders()->addTextHeader('X-Mailer', self::X_MAILER);
 
         if (\strlen($email->toString()) > $this->maxBytes) {
             throw new InvalidMailException(\sprintf('The message is larger than the limit of %d bytes.', $this->maxBytes));
