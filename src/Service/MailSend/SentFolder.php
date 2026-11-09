@@ -14,10 +14,8 @@ use App\Entity\User;
 use App\Exception\Mailbox\MailboxDeniedException;
 use App\Exception\Mailbox\MailboxUnavailableException;
 use App\Service\Mailbox\ImapSessions;
-use App\Service\Mailbox\ListedMailboxes;
+use App\Service\Mailbox\SpecialUseMailbox;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
-use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
-use DirectoryTree\ImapEngine\Support\Str;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -39,11 +37,8 @@ final readonly class SentFolder
     public function save(User $user, string $message): SentCopy
     {
         try {
-            return SentCopy::saved($this->sessions->run($user, function (ImapConnection $connection) use ($message): string {
-                $mailbox = $this->pickMailbox($connection);
-                $this->append($connection, $mailbox, $message);
-
-                return $mailbox;
+            return SentCopy::saved($this->sessions->run($user, static function (ImapConnection $connection) use ($message): string {
+                return new SpecialUseMailbox()->append($connection, '\\sent', self::DEFAULT_MAILBOX, $message, ['\\Seen']);
             }));
         } catch (MailboxDeniedException) {
             return SentCopy::skipped();
@@ -54,55 +49,6 @@ final readonly class SentFolder
             $this->logger->error('Saving the Sent copy failed with {class}.', ['class' => $e::class]);
 
             return SentCopy::failed(false);
-        }
-    }
-
-    /**
-     * Sent and Sent Messages can both carry \Sent. Sent wins, then the first by name, so it is always
-     * the same one. Without any marked mailbox, Sent gets created.
-     */
-    private function pickMailbox(ImapConnection $connection): string
-    {
-        $marked = [];
-
-        foreach (ListedMailboxes::of($connection) as $name => $attributes) {
-            if (\in_array('\sent', array_map(strtolower(...), $attributes), true)) {
-                $marked[] = (string) $name;
-            }
-        }
-
-        sort($marked);
-
-        return \in_array(self::DEFAULT_MAILBOX, $marked, true) || [] === $marked ? self::DEFAULT_MAILBOX : $marked[0];
-    }
-
-    private function append(ImapConnection $connection, string $mailbox, string $message): void
-    {
-        $encoded = Str::toImapUtf7($mailbox);
-
-        try {
-            $connection->append($encoded, $message, ['\Seen']);
-        } catch (ImapCommandException $e) {
-            if (!str_contains((string) $e->response(), '[TRYCREATE]')) {
-                throw $e;
-            }
-
-            $this->create($connection, $encoded);
-            $connection->append($encoded, $message, ['\Seen']);
-        }
-    }
-
-    /**
-     * A parallel send may have created it in the meantime, which is just as good.
-     */
-    private function create(ImapConnection $connection, string $encodedMailbox): void
-    {
-        try {
-            $connection->create($encodedMailbox);
-        } catch (ImapCommandException $e) {
-            if (!str_contains((string) $e->response(), '[ALREADYEXISTS]')) {
-                throw $e;
-            }
         }
     }
 }
