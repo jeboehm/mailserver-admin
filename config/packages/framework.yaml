@@ -8,6 +8,36 @@ framework:
     # would have nothing to log in with.
     mailer:
         enabled: false
+    # Limits of the tools that send and draft mail. They share a Redis pool and a lock factory (see
+    # services.yaml), because a limiter reads, adds and writes back.
+    rate_limiter:
+        send_token:
+            policy: sliding_window
+            limit: '%env(int:MCP_MAIL_SEND_TOKEN_LIMIT_PER_HOUR)%'
+            interval: '1 hour'
+            cache_pool: app.mail_send_limit_pool
+            lock_factory: app.mail_send_lock_factory
+        send_user:
+            policy: sliding_window
+            limit: '%env(int:MCP_MAIL_SEND_USER_LIMIT_PER_HOUR)%'
+            interval: '1 hour'
+            cache_pool: app.mail_send_limit_pool
+            lock_factory: app.mail_send_lock_factory
+        # Size and refill come from one variable, see MailSendGlobalLimitEnvProcessor.
+        send_global:
+            policy: token_bucket
+            limit: '%env(send_bucket_size:MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE)%'
+            rate:
+                interval: '%env(send_bucket_refill:MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE)%'
+                amount: 1
+            cache_pool: app.mail_send_limit_pool
+            lock_factory: app.mail_send_lock_factory
+        draft_token:
+            policy: sliding_window
+            limit: '%env(int:MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR)%'
+            interval: '1 hour'
+            cache_pool: app.mail_send_limit_pool
+            lock_factory: app.mail_send_lock_factory
 
 when@test:
     framework:

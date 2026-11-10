@@ -11,33 +11,20 @@ declare(strict_types=1);
 namespace App\Service\MailDraft;
 
 use App\Exception\MailDraft\MailDraftRateLimitedException;
-use Psr\Cache\CacheItemPoolInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\RateLimiter\Storage\CacheStorage;
+use Symfony\Component\DependencyInjection\Attribute\Target;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Counts every draft against its token. There is no limit per user or overall, because Postfix is
- * not involved. It shares the pool of the send limits under an id of its own.
+ * not involved. The limiter is `draft_token` in `framework.rate_limiter`, which shares the pool of the
+ * send limits.
  */
 final readonly class MailDraftRateLimiter
 {
-    private RateLimiterFactory $perToken;
-
     public function __construct(
-        #[Autowire(service: 'app.mail_send_limit_pool')]
-        CacheItemPoolInterface $pool,
-        #[Autowire(service: 'app.mail_send_lock_factory')]
-        ?LockFactory $locks,
-        #[Autowire('%env(int:MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR)%')]
-        int $tokenLimitPerHour,
+        #[Target('draft_token.limiter')]
+        private RateLimiterFactoryInterface $perToken,
     ) {
-        $this->perToken = new RateLimiterFactory(
-            ['id' => 'draft_token', 'policy' => 'sliding_window', 'limit' => $tokenLimitPerHour, 'interval' => '1 hour'],
-            new CacheStorage($pool),
-            $locks,
-        );
     }
 
     /**

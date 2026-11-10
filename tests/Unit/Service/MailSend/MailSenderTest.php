@@ -18,13 +18,12 @@ use App\Service\Mailbox\ImapSessions;
 use App\Service\MailboxCredential\MailboxCredentials;
 use App\Service\MailSend\MailComposer;
 use App\Service\MailSend\MailSender;
-use App\Service\MailSend\MailSendRateLimiter;
 use App\Service\MailSend\SentFolder;
 use App\Service\MailSend\SmtpTransportFactoryInterface;
 use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Tests\Unit\Helper\Limiters;
 
 class MailSenderTest extends TestCase
 {
@@ -50,7 +49,7 @@ class MailSenderTest extends TestCase
         $sender = new MailSender(
             $credentials,
             $transports,
-            new MailSendRateLimiter(new ArrayAdapter(), null, 1, 1, 3),
+            Limiters::send(1, 1, 3),
             new SentFolder(new ImapSessions($credentials, $this->createStub(ImapConnectionFactoryInterface::class), $logger), $logger),
             $logger,
         );
