@@ -11,12 +11,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Service\MailSend;
 
 use App\Exception\MailSend\MailSendRateLimitedException;
-use App\Service\MailSend\MailSendRateLimiter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bridge\PhpUnit\ClockMock;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Tests\Unit\Helper\Limiters;
 
 #[Group('time-sensitive')]
 class MailSendRateLimiterTest extends TestCase
@@ -52,7 +51,7 @@ class MailSendRateLimiterTest extends TestCase
     #[DataProvider('globalLimits')]
     public function testNoRollingMinuteExceedsTheGlobalLimit(int $limit): void
     {
-        $limiter = new MailSendRateLimiter(new ArrayAdapter(), null, self::PLENTY, self::PLENTY, $limit);
+        $limiter = Limiters::send(self::PLENTY, self::PLENTY, $limit);
         $accepted = [];
 
         for ($second = 0; $second < 600; ++$second) {
@@ -75,7 +74,7 @@ class MailSendRateLimiterTest extends TestCase
 
     public function testARefusalSaysWhenToRetry(): void
     {
-        $limiter = new MailSendRateLimiter(new ArrayAdapter(), null, 1, self::PLENTY, self::PLENTY);
+        $limiter = Limiters::send(1, self::PLENTY, self::PLENTY);
         $limiter->consume(1, 1);
 
         $this->expectException(MailSendRateLimitedException::class);
@@ -86,7 +85,7 @@ class MailSendRateLimiterTest extends TestCase
 
     public function testARefusalByTheTokenLimitLeavesTheGlobalLimitAlone(): void
     {
-        $limiter = new MailSendRateLimiter(new ArrayAdapter(), null, 1, self::PLENTY, 3);
+        $limiter = Limiters::send(1, self::PLENTY, 3);
         $limiter->consume(1, 1);
 
         for ($i = 0; $i < 5; ++$i) {

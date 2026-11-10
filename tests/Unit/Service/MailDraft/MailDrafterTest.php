@@ -18,9 +18,9 @@ use App\Service\MailDraft\MailDraftRateLimiter;
 use App\Service\MailSend\OutgoingMail;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Mime\Email;
 use Tests\Integration\Helper\FakeImapServer;
+use Tests\Unit\Helper\Limiters;
 use Tests\Unit\Service\Mailbox\ImapFixtureTrait;
 
 class MailDrafterTest extends TestCase
@@ -174,7 +174,7 @@ class MailDrafterTest extends TestCase
 
     private function limiter(int $limit): MailDraftRateLimiter
     {
-        return new MailDraftRateLimiter(new ArrayAdapter(), null, $limit);
+        return Limiters::draft($limit);
     }
 
     private function mail(): OutgoingMail
