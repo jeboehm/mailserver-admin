@@ -339,7 +339,7 @@ class SenderBindingTest extends WebTestCase
     {
         yield 'an alias of the primary address' => [[['info', 'example.com', 'admin@example.com']], 'info@example.com', true];
         yield 'an alias, bound in mixed case' => [[['info', 'example.com', 'admin@example.com']], 'Info@Example.COM', true];
-        yield 'an alias with a destination in mixed case' => [[['info', 'example.com', 'Admin@Example.com']], 'info@example.com', true];
+        yield 'an alias with a destination in mixed case' => [[['info', 'example.com', 'Admin@Example.com']], 'info@example.com', false];
         yield 'an alias stored in upper case' => [[['Info', 'example.com', 'admin@example.com']], 'info@example.com', false];
         yield 'an alias with several destinations, one of them the user' => [
             [['team', 'example.com', 'bob@external.test'], ['team', 'example.com', 'admin@example.com']],

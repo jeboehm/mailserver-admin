@@ -19,8 +19,8 @@ use App\Repository\AliasRepository;
  * address as one of its destinations. This follows the email-submission query behind Postfix's
  * smtpd_sender_login_maps, narrowed on purpose:
  *
- * - Postfix lower-cases the sender but not the stored data, so a stored address with an upper-case
- *   letter can never be used and does not count.
+ * - Postfix lower-cases the sender but not the stored data, so a stored address or destination
+ *   with an upper-case letter can never be relied on and does not count.
  * - A catch-all, an address extension, an alias chain and an external destination do not count.
  * - Every role owns the same: its own addresses, never those of other users.
  */
