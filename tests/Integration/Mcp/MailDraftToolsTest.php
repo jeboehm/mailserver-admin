@@ -125,12 +125,12 @@ class MailDraftToolsTest extends WebTestCase
         self::assertStringNotContainsString('victim', FakeImapServer::$current?->sent() ?? '');
     }
 
-    public function testNoParameterNamesASenderOrAMailbox(): void
+    public function testNoParameterNamesAMailboxAndTheSenderIsOptional(): void
     {
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailDraft]);
         $tool = $this->toolDefinition($secret, $this->initialiseSession($secret), 'message_draft');
 
-        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc'], array_keys($tool['inputSchema']['properties'] ?? []));
+        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc', 'from_address'], array_keys($tool['inputSchema']['properties'] ?? []));
         self::assertFalse($tool['annotations']['readOnlyHint'] ?? null);
         self::assertFalse($tool['annotations']['destructiveHint'] ?? null);
         self::assertFalse($tool['annotations']['idempotentHint'] ?? null);
