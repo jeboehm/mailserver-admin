@@ -235,6 +235,42 @@ class ApiTokenPagesTest extends WebTestCase
     }
 
     /**
+     * The page starts in the state the browser would toggle it to, so the sender choice stays out of
+     * the way without JavaScript too.
+     */
+    public function testSenderChoiceStartsHiddenWithoutASendingScope(): void
+    {
+        $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token/new');
+
+        self::assertCount(1, $crawler->filter('[data-api-token-sender-target="sender"][hidden]'));
+        self::assertCount(1, $crawler->filter('[data-api-token-sender-target="address"][hidden]'));
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>, bool}>
+     */
+    public static function redisplayedSenders(): iterable
+    {
+        yield 'fixed shows the address' => [['senderMode' => 'fixed', 'senderAddress' => self::NEIGHBOUR], true];
+        yield 'any hides the address' => [['senderMode' => 'any'], false];
+    }
+
+    /**
+     * @param array<string, string> $sender
+     */
+    #[DataProvider('redisplayedSenders')]
+    public function testRefusedFormKeepsTheSenderChoiceVisible(array $sender, bool $addressVisible): void
+    {
+        $crawler = $this->submitNewToken(self::REGULAR_USER, '', ['mail:send'], $sender);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        self::assertCount(1, $crawler->filter('[data-api-token-sender-target="sender"]:not([hidden])'));
+        self::assertCount($addressVisible ? 1 : 0, $crawler->filter('[data-api-token-sender-target="address"]:not([hidden])'));
+    }
+
+    /**
      * @return iterable<string, array{list<string>, array<string, string>, SenderMode, ?string}>
      */
     public static function senderChoices(): iterable

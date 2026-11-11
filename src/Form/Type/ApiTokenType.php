@@ -18,6 +18,8 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\Count;
@@ -28,7 +30,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * The sender fields only matter for a token with mail:send or mail:draft. The page shows them only
- * then, and the controller ignores them otherwise, whatever was submitted.
+ * then, and the issuer ignores them otherwise, whatever was submitted.
  *
  * @extends AbstractType<array{name: string, scopes: list<ApiTokenScope>, senderMode: SenderMode, senderAddress: ?string, lifetimeDays: int}>
  */
@@ -88,6 +90,21 @@ class ApiTokenType extends AbstractType
                 'attr' => ['min' => 1, 'max' => $maxLifetimeDays],
                 'constraints' => [new NotBlank(), new Range(min: 1, max: $maxLifetimeDays)],
             ]);
+    }
+
+    /**
+     * Starts the sender fields in the state the Stimulus controller would toggle them to, so the page
+     * is right before and without JavaScript.
+     */
+    #[\Override]
+    public function finishView(FormView $view, FormInterface $form, array $options): void
+    {
+        $scopes = $form->get('scopes')->getData();
+        $sendsMail = \is_array($scopes) && ApiTokenScope::anySenderBound($scopes);
+        $fixed = SenderMode::Fixed === $form->get('senderMode')->getData();
+
+        $view['senderMode']->vars['row_attr']['hidden'] = !$sendsMail;
+        $view['senderAddress']->vars['row_attr']['hidden'] = !$sendsMail || !$fixed;
     }
 
     /**
