@@ -30,20 +30,24 @@ class AliasRepository extends ServiceEntityRepository
     }
 
     /**
-     * Compared case-insensitively on every engine: PostgreSQL compares case-sensitively by default,
-     * the MySQL collations used so far do not.
+     * Matches a stored destination only if it equals the lower-cased address: how Postfix treats a
+     * destination in another case is unverified (docker-mailserver ADR-0004), and PostgreSQL compares
+     * case-sensitively anyway. The MySQL collations used so far do not, so a stored destination in
+     * another case is filtered out here.
      *
      * @return list<Alias>
      */
     public function findByDestination(string $destination): array
     {
+        $destination = mb_strtolower($destination);
+
         /** @var list<Alias> $aliases */
         $aliases = $this->createQueryBuilder('alias')
-            ->andWhere('LOWER(alias.destination) = :destination')
-            ->setParameter('destination', mb_strtolower($destination))
+            ->andWhere('alias.destination = :destination')
+            ->setParameter('destination', $destination)
             ->getQuery()
             ->getResult();
 
-        return $aliases;
+        return array_values(array_filter($aliases, static fn (Alias $alias): bool => $alias->getDestination() === $destination));
     }
 }
