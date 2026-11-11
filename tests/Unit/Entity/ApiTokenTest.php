@@ -13,8 +13,8 @@ namespace Tests\Unit\Entity;
 use App\Entity\ApiToken;
 use App\Entity\User;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderBinding;
 use App\Service\ApiToken\SenderMode;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ApiTokenTest extends TestCase
@@ -92,45 +92,21 @@ class ApiTokenTest extends TestCase
 
     public function testSendsAsThePrimaryAddressByDefault(): void
     {
-        $token = $this->token();
-
-        self::assertSame(SenderMode::Primary, $token->getSenderMode());
-        self::assertNull($token->getSenderAddress());
+        self::assertEquals(SenderBinding::primary(), $this->token([ApiTokenScope::MailSend])->getSender());
     }
 
-    public function testAFixedSenderKeepsItsAddressInLowerCase(): void
+    public function testKeepsTheChosenSender(): void
     {
-        $token = new ApiToken(new User(), 'test', ApiToken::hashSecret('secret'), [ApiTokenScope::MailSend], new \DateTimeImmutable('+1 day'), SenderMode::Fixed, 'Info@Example.com');
+        $token = new ApiToken(new User(), 'test', ApiToken::hashSecret('secret'), [ApiTokenScope::MailDraft], new \DateTimeImmutable('+1 day'), new SenderBinding(SenderMode::Fixed, 'Info@Example.com'));
 
-        self::assertSame(SenderMode::Fixed, $token->getSenderMode());
-        self::assertSame('info@example.com', $token->getSenderAddress());
+        self::assertEquals(new SenderBinding(SenderMode::Fixed, 'info@example.com'), $token->getSender());
     }
 
-    public function testAnyAddressNeedsNoAddress(): void
+    public function testHasNoSenderWithoutSendingOrDrafting(): void
     {
-        $token = new ApiToken(new User(), 'test', ApiToken::hashSecret('secret'), [ApiTokenScope::MailSend], new \DateTimeImmutable('+1 day'), SenderMode::Any);
+        $token = new ApiToken(new User(), 'test', ApiToken::hashSecret('secret'), [ApiTokenScope::MailRead, ApiTokenScope::ManageWrite], new \DateTimeImmutable('+1 day'), new SenderBinding(SenderMode::Any));
 
-        self::assertSame(SenderMode::Any, $token->getSenderMode());
-        self::assertNull($token->getSenderAddress());
-    }
-
-    /**
-     * @return iterable<string, array{SenderMode, string|null}>
-     */
-    public static function inconsistentSenders(): iterable
-    {
-        yield 'fixed without an address' => [SenderMode::Fixed, null];
-        yield 'fixed with an empty address' => [SenderMode::Fixed, ''];
-        yield 'primary with an address' => [SenderMode::Primary, 'info@example.com'];
-        yield 'any with an address' => [SenderMode::Any, 'info@example.com'];
-    }
-
-    #[DataProvider('inconsistentSenders')]
-    public function testRefusesASenderAddressThatDoesNotFitTheMode(SenderMode $mode, ?string $address): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        new ApiToken(new User(), 'test', ApiToken::hashSecret('secret'), [ApiTokenScope::MailSend], new \DateTimeImmutable('+1 day'), $mode, $address);
+        self::assertNull($token->getSender());
     }
 
     /**

@@ -14,6 +14,7 @@ use App\Entity\ApiToken;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderBinding;
 use App\Service\ApiToken\SenderMode;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -71,7 +72,7 @@ trait McpClientTrait
         $secret ??= 'test_' . bin2hex(random_bytes(16));
 
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $entityManager->persist(new ApiToken($owner, 'test token', ApiToken::hashSecret($secret), $scopes, new \DateTimeImmutable($expiry), $senderMode, $senderAddress));
+        $entityManager->persist(new ApiToken($owner, 'test token', ApiToken::hashSecret($secret), $scopes, new \DateTimeImmutable($expiry), new SenderBinding($senderMode, $senderAddress)));
         $entityManager->flush();
 
         return $secret;

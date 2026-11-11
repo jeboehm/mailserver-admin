@@ -59,18 +59,14 @@ class ApiTokenType extends AbstractType
                 'choice_attr' => static fn (ApiTokenScope $scope): array => [
                     'data-api-token-sender-target' => 'scope',
                     'data-action' => 'change->api-token-sender#toggle',
-                    'data-sends-mail' => \in_array($scope, ApiTokenScope::SENDER_BOUND, true) ? 'true' : 'false',
+                    'data-sends-mail' => $scope->isSenderBound() ? 'true' : 'false',
                 ],
             ])
             ->add('senderMode', EnumType::class, [
                 'label' => 'Sender',
                 'class' => SenderMode::class,
                 'expanded' => true,
-                'choice_label' => static fn (SenderMode $mode): string => match ($mode) {
-                    SenderMode::Primary => 'Primary address only',
-                    SenderMode::Fixed => 'A fixed address',
-                    SenderMode::Any => 'Any of my addresses',
-                },
+                'choice_label' => static fn (SenderMode $mode): string => $mode->label(),
                 'choice_attr' => static fn (): array => ['data-action' => 'change->api-token-sender#toggle'],
                 'help' => 'The address the token sends and drafts mail as. It cannot be changed later.',
                 'row_attr' => ['data-api-token-sender-target' => 'sender'],
@@ -103,8 +99,8 @@ class ApiTokenType extends AbstractType
         $sendsMail = \is_array($scopes) && ApiTokenScope::anySenderBound($scopes);
         $fixed = SenderMode::Fixed === $form->get('senderMode')->getData();
 
-        $view['senderMode']->vars['row_attr']['hidden'] = !$sendsMail;
-        $view['senderAddress']->vars['row_attr']['hidden'] = !$sendsMail || !$fixed;
+        self::hideRow($view['senderMode'], !$sendsMail);
+        self::hideRow($view['senderAddress'], !$sendsMail || !$fixed);
     }
 
     /**
@@ -116,9 +112,7 @@ class ApiTokenType extends AbstractType
             return;
         }
 
-        $scopes = \is_array($data['scopes'] ?? null) ? $data['scopes'] : [];
-
-        if (array_any($scopes, static fn (mixed $scope): bool => \in_array($scope, ApiTokenScope::SENDER_BOUND, true))) {
+        if (\is_array($data['scopes'] ?? null) && ApiTokenScope::anySenderBound($data['scopes'])) {
             $context->buildViolation('Choose the address the token is bound to.')->atPath('[senderAddress]')->addViolation();
         }
     }
@@ -131,5 +125,11 @@ class ApiTokenType extends AbstractType
         $resolver->setAllowedTypes('owned_addresses', 'string[]');
         $resolver->setDefault('attr', ['data-controller' => 'api-token-sender']);
         $resolver->setDefault('constraints', [new Callback(self::validateFixedSender(...))]);
+    }
+
+    private static function hideRow(FormView $row, bool $hidden): void
+    {
+        $attributes = $row->vars['row_attr'] ?? [];
+        $row->vars['row_attr'] = [...(\is_array($attributes) ? $attributes : []), 'hidden' => $hidden];
     }
 }

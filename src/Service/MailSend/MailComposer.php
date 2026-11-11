@@ -14,8 +14,6 @@ use App\Exception\MailSend\InvalidMailException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\Mime\Exception\InvalidArgumentException;
-use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 /**
  * Turns what a caller wants to send into a mail from the given sender address, or refuses it. The
@@ -103,16 +101,16 @@ final readonly class MailComposer
      */
     private function addresses(array $addresses): array
     {
-        try {
-            $parsed = array_map(static fn (string $address): Address => new Address($address), $addresses);
-        } catch (InvalidArgumentException|RfcComplianceException) {
-            throw new InvalidMailException('Every recipient must be a plain address such as name@example.com.');
-        }
+        $parsed = [];
 
-        foreach ($parsed as $address) {
+        foreach ($addresses as $value) {
+            $address = PlainAddress::parse($value) ?? throw new InvalidMailException(\sprintf('Every recipient must be %s.', PlainAddress::DESCRIPTION));
+
             if (1 === preg_match('/[^\x00-\x7F]/', (string) strstr($address->getAddress(), '@', true))) {
                 throw new InvalidMailException('Addresses with non-ASCII characters before the @ are not supported.');
             }
+
+            $parsed[] = $address;
         }
 
         return $parsed;

@@ -1,17 +1,15 @@
 {# @var entity \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto #}
 {# @var field \EasyCorp\Bundle\EasyAdminBundle\Dto\FieldDto #}
-{%- set token = entity.instance -%}
-{%- if token.usesSender -%}
-    {%- if token.senderMode.value == 'fixed' -%}
-        <code>{{ token.senderAddress }}</code>
+{%- set sender = entity.instance.sender -%}
+{%- if sender is not null -%}
+    {%- if sender.fixed -%}
+        <code>{{ sender.address }}</code>
         {%- if field.formattedValue is same as(false) %}
             <span class="badge badge-warning ms-1" data-api-token-sender-unowned title="This address is no longer one of the owner's addresses, so the token cannot send or draft mail until it is again.">
                 <i class="fa fa-triangle-exclamation me-1"></i>No longer owned
             </span>
         {%- endif -%}
-    {%- elseif token.senderMode.value == 'any' -%}
-        Any of my addresses
     {%- else -%}
-        Primary address only
+        {{ sender.mode.label }}
     {%- endif -%}
 {%- endif -%}

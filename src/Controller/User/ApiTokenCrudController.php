@@ -14,8 +14,10 @@ use App\Entity\ApiToken;
 use App\Form\Type\ApiTokenType;
 use App\Service\ApiToken\ApiTokenIssuer;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderBinding;
 use App\Service\ApiToken\SenderMode;
 use App\Service\MailSend\OwnedAddresses;
+use App\Service\MailSend\SenderResolver;
 use App\Service\Security\Access\ApiTokenPolicy;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Roles;
@@ -60,6 +62,7 @@ class ApiTokenCrudController extends AbstractCrudController
         private readonly EntityManagerInterface $entityManager,
         private readonly AdminUrlGenerator $adminUrlGenerator,
         private readonly OwnedAddresses $ownedAddresses,
+        private readonly SenderResolver $senderResolver,
         #[Autowire('%env(bool:CSRF_ENABLED)%')]
         private readonly bool $csrfEnabled,
     ) {
@@ -113,10 +116,7 @@ class ApiTokenCrudController extends AbstractCrudController
             ->setVirtual(true)
             ->setSortable(false)
             ->setTemplatePath('admin/api_token/sender_field.html.twig')
-            // Whether a fixed address is still one of the owner's, checked the way a send checks it.
-            ->formatValue(fn (mixed $value, ApiToken $token): ?bool => $token->usesSender() && SenderMode::Fixed === $token->getSenderMode()
-                ? $this->ownedAddresses->owns($token->getOwner(), (string) $token->getSenderAddress())
-                : null);
+            ->formatValue(fn (mixed $value, ApiToken $token): ?bool => $this->senderResolver->isBoundAddressOwned($token));
         yield DateTimeField::new('createdAt', 'Created');
         yield DateTimeField::new('expiresAt', 'Expires');
         yield DateTimeField::new('lastUsedAt', 'Last used');
@@ -170,8 +170,8 @@ class ApiTokenCrudController extends AbstractCrudController
             $data['name'],
             $data['scopes'],
             $data['lifetimeDays'],
-            $data['senderMode'],
-            $data['senderAddress'],
+            // The form asks for an address only for a token that sends or drafts.
+            ApiTokenScope::anySenderBound($data['scopes']) ? SenderBinding::chosen($data['senderMode'], $data['senderAddress']) : null,
         );
 
         $response = $this->render('admin/api_token/created.html.twig', ['issued' => $issued]);
