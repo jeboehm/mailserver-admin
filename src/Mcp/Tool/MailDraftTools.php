@@ -67,7 +67,7 @@ final readonly class MailDraftTools
         $user = $this->currentActor->get()->user;
 
         try {
-            $mail = $this->composer->compose($user, array_values($to), array_values($cc), array_values($bcc), $subject, $body);
+            $mail = $this->composer->compose((string) $user, array_values($to), array_values($cc), array_values($bcc), $subject, $body);
 
             $this->auditLog->target('message', $mail->messageId);
             $this->auditLog->details(['recipients' => $mail->recipients, 'message_id' => $mail->messageId]);

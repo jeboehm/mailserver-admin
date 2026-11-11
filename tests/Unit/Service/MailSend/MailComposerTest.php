@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Service\MailSend;
 
-use App\Entity\Domain;
-use App\Entity\User;
 use App\Exception\MailSend\InvalidMailException;
 use App\Service\MailSend\MailComposer;
 use App\Service\MailSend\OutgoingMail;
@@ -20,11 +18,21 @@ use PHPUnit\Framework\TestCase;
 
 class MailComposerTest extends TestCase
 {
-    public function testTheSenderIsAlwaysTheUser(): void
+    private const string SENDER = 'alice@example.com';
+
+    public function testTheSenderIsTheGivenAddress(): void
     {
         $mail = $this->compose(['bob@example.org']);
 
-        self::assertSame('alice@example.com', $mail->email->getFrom()[0]->getAddress());
+        self::assertSame(['alice@example.com'], array_map(static fn ($address): string => $address->getAddress(), $mail->email->getFrom()));
+    }
+
+    public function testTheMessageIdFollowsTheDomainOfAnotherSender(): void
+    {
+        $mail = new MailComposer(20, 1048576)->compose('info@example.net', ['bob@example.org'], [], [], 'Hello', 'Body');
+
+        self::assertSame('info@example.net', $mail->email->getFrom()[0]->getAddress());
+        self::assertMatchesRegularExpression('/^<[0-9a-f]{32}@example\.net>$/', $mail->messageId);
     }
 
     public function testRecipientsAreCountedOnceAcrossToCcAndBcc(): void
@@ -36,13 +44,13 @@ class MailComposerTest extends TestCase
 
     public function testTheLimitOnRecipientsCountsDistinctAddresses(): void
     {
-        $mail = new MailComposer(2, 1048576)->compose($this->user(), ['a@example.org'], ['a@example.org'], ['b@example.org'], 'Hello', 'Body');
+        $mail = new MailComposer(2, 1048576)->compose(self::SENDER, ['a@example.org'], ['a@example.org'], ['b@example.org'], 'Hello', 'Body');
 
         self::assertCount(2, $mail->recipients);
 
         $this->expectException(InvalidMailException::class);
 
-        new MailComposer(2, 1048576)->compose($this->user(), ['a@example.org'], ['b@example.org'], ['c@example.org'], 'Hello', 'Body');
+        new MailComposer(2, 1048576)->compose(self::SENDER, ['a@example.org'], ['b@example.org'], ['c@example.org'], 'Hello', 'Body');
     }
 
     public function testTheMessageIdIsMarkedWithTheDomainOfTheSender(): void
@@ -61,14 +69,8 @@ class MailComposerTest extends TestCase
 
     public function testTheXMailerValueDoesNotDependOnTheSender(): void
     {
-        $other = new User();
-        $other->setName('bob');
-        $domain = new Domain();
-        $domain->setName('example.net');
-        $other->setDomain($domain);
-
         $first = $this->compose(['x@example.org']);
-        $second = new MailComposer(20, 1048576)->compose($other, ['x@example.org'], [], [], 'Other', 'Other body');
+        $second = new MailComposer(20, 1048576)->compose('bob@example.net', ['x@example.org'], [], [], 'Other', 'Other body');
 
         self::assertSame(
             $first->email->getHeaders()->getHeaderBody('X-Mailer'),
@@ -90,7 +92,7 @@ class MailComposerTest extends TestCase
         $this->expectExceptionMessage('larger than the limit of 1000 bytes');
 
         // Base64 or quoted-printable make non-ASCII text larger than its bytes.
-        new MailComposer(20, 1000)->compose($this->user(), ['bob@example.org'], [], [], 'Hello', str_repeat('ü', 400));
+        new MailComposer(20, 1000)->compose(self::SENDER, ['bob@example.org'], [], [], 'Hello', str_repeat('ü', 400));
     }
 
     /**
@@ -116,7 +118,7 @@ class MailComposerTest extends TestCase
     {
         $this->expectException(InvalidMailException::class);
 
-        new MailComposer(20, 1048576)->compose($this->user(), $to, [], [], $subject, $body);
+        new MailComposer(20, 1048576)->compose(self::SENDER, $to, [], [], $subject, $body);
     }
 
     public function testANonAsciiDomainIsFine(): void
@@ -131,18 +133,6 @@ class MailComposerTest extends TestCase
      */
     private function compose(array $to, array $cc = [], array $bcc = []): OutgoingMail
     {
-        return new MailComposer(20, 1048576)->compose($this->user(), $to, $cc, $bcc, 'Hello', 'Body');
-    }
-
-    private function user(): User
-    {
-        $domain = new Domain();
-        $domain->setName('example.com');
-
-        $user = new User();
-        $user->setName('alice');
-        $user->setDomain($domain);
-
-        return $user;
+        return new MailComposer(20, 1048576)->compose(self::SENDER, $to, $cc, $bcc, 'Hello', 'Body');
     }
 }

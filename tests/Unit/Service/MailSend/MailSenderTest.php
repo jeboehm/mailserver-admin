@@ -56,6 +56,6 @@ class MailSenderTest extends TestCase
 
         $this->expectException(MailboxDeniedException::class);
 
-        $sender->send($user, 1, new MailComposer(20, 1048576)->compose($user, ['bob@example.com'], [], [], 'Hello', 'Hello Bob'));
+        $sender->send($user, 1, new MailComposer(20, 1048576)->compose((string) $user, ['bob@example.com'], [], [], 'Hello', 'Hello Bob'));
     }
 }
