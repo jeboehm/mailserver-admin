@@ -290,6 +290,53 @@ class ApiTokenPagesTest extends WebTestCase
         self::assertNull(static::getContainer()->get(ApiTokenRepository::class)->findOneBy(['name' => 'crafted']));
     }
 
+    public function testListShowsTheSenderAndWarnsAboutAnAddressNoLongerOwned(): void
+    {
+        $this->storeSenderToken('send primary', [ApiTokenScope::MailSend], SenderMode::Primary, null);
+        $this->storeSenderToken('draft as alias', [ApiTokenScope::MailDraft], SenderMode::Fixed, 'plain-alias@example.com');
+        $this->storeSenderToken('send as gone', [ApiTokenScope::MailSend], SenderMode::Fixed, 'gone@example.com');
+        $this->storeSenderToken('send as any', [ApiTokenScope::MailSend, ApiTokenScope::MailDraft], SenderMode::Any, null);
+        $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token');
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('Sender', trim($crawler->filter('th[data-column="sender"]')->text()));
+        self::assertSame('', $this->senderCell($crawler, 'token of ' . self::REGULAR_USER)->text());
+        self::assertSame('Primary address only', $this->senderCell($crawler, 'send primary')->text());
+        self::assertSame('Any of my addresses', $this->senderCell($crawler, 'send as any')->text());
+
+        $alias = $this->senderCell($crawler, 'draft as alias');
+        self::assertStringContainsString('plain-alias@example.com', $alias->text());
+        self::assertCount(0, $alias->filter('[data-api-token-sender-unowned]'));
+
+        $gone = $this->senderCell($crawler, 'send as gone');
+        self::assertStringContainsString('gone@example.com', $gone->text());
+        self::assertCount(1, $gone->filter('[data-api-token-sender-unowned]'));
+    }
+
+    public function testAdminSeesTheWarningAgainstTheOwnersAddresses(): void
+    {
+        $this->storeSenderToken('send as plain alias', [ApiTokenScope::MailSend], SenderMode::Fixed, 'plain-alias@example.com');
+        $this->client->loginUser($this->findUser(self::ADMIN), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token');
+
+        $cell = $this->senderCell($crawler, 'send as plain alias');
+        self::assertStringContainsString('plain-alias@example.com', $cell->text());
+        self::assertCount(0, $cell->filter('[data-api-token-sender-unowned]'));
+    }
+
+    public function testSenderCannotBeChangedAfterCreation(): void
+    {
+        $tokenId = $this->tokenIdOf(self::REGULAR_USER);
+        $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
+
+        $this->client->request(Request::METHOD_GET, \sprintf('/api-token/%d/edit', $tokenId));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+    }
+
     /**
      * @return iterable<string, array{string, string}>
      */
@@ -453,6 +500,33 @@ class ApiTokenPagesTest extends WebTestCase
             new \DateTimeImmutable('+1 day'),
         ));
         $this->entityManager()->flush();
+    }
+
+    /**
+     * Stores a token of the regular user.
+     *
+     * @param list<ApiTokenScope> $scopes
+     */
+    private function storeSenderToken(string $name, array $scopes, SenderMode $mode, ?string $address): void
+    {
+        $this->entityManager()->persist(new ApiToken(
+            $this->findUser(self::REGULAR_USER),
+            $name,
+            ApiToken::hashSecret('secret of ' . $name),
+            $scopes,
+            new \DateTimeImmutable('+1 day'),
+            $mode,
+            $address,
+        ));
+        $this->entityManager()->flush();
+    }
+
+    private function senderCell(Crawler $list, string $tokenName): Crawler
+    {
+        $row = $list->filter('tbody tr')->reduce(static fn (Crawler $row): bool => str_contains($row->filter('td[data-column="name"]')->text(), $tokenName));
+        self::assertCount(1, $row, $tokenName);
+
+        return $row->filter('td[data-column="sender"]');
     }
 
     private function tokenIdOf(string $email): int
