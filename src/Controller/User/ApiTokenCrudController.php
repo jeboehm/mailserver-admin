@@ -14,6 +14,8 @@ use App\Entity\ApiToken;
 use App\Form\Type\ApiTokenType;
 use App\Service\ApiToken\ApiTokenIssuer;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
+use App\Service\MailSend\OwnedAddresses;
 use App\Service\Security\Access\ApiTokenPolicy;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Roles;
@@ -56,6 +58,7 @@ class ApiTokenCrudController extends AbstractCrudController
         private readonly ApiTokenIssuer $apiTokenIssuer,
         private readonly EntityManagerInterface $entityManager,
         private readonly AdminUrlGenerator $adminUrlGenerator,
+        private readonly OwnedAddresses $ownedAddresses,
         #[Autowire('%env(bool:CSRF_ENABLED)%')]
         private readonly bool $csrfEnabled,
     ) {
@@ -133,11 +136,18 @@ class ApiTokenCrudController extends AbstractCrudController
     public function new(AdminContext $context): KeyValueStore|Response
     {
         $maxLifetimeDays = $this->apiTokenIssuer->maxLifetimeDays();
+        $user = $this->currentActor->get()->user;
         $form = $this->createForm(ApiTokenType::class, [
             'name' => '',
             'scopes' => ApiTokenScope::PRESELECTED,
+            'senderMode' => SenderMode::Primary,
+            'senderAddress' => null,
             'lifetimeDays' => $maxLifetimeDays,
-        ], ['max_lifetime_days' => $maxLifetimeDays]);
+        ], [
+            'max_lifetime_days' => $maxLifetimeDays,
+            // Every role gets its own addresses only, the same set the tools accept.
+            'owned_addresses' => $this->ownedAddresses->of($user),
+        ]);
 
         $form->handleRequest($context->getRequest());
 
@@ -147,10 +157,12 @@ class ApiTokenCrudController extends AbstractCrudController
 
         $data = $form->getData();
         $issued = $this->apiTokenIssuer->issue(
-            $this->currentActor->get()->user,
+            $user,
             $data['name'],
             $data['scopes'],
             $data['lifetimeDays'],
+            $data['senderMode'],
+            $data['senderAddress'],
         );
 
         $response = $this->render('admin/api_token/created.html.twig', ['issued' => $issued]);

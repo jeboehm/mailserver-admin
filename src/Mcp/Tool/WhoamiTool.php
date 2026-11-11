@@ -57,7 +57,7 @@ final readonly class WhoamiTool
             ),
         ];
 
-        if (!$token->hasScope(ApiTokenScope::MailSend) && !$token->hasScope(ApiTokenScope::MailDraft)) {
+        if (!$token->usesSender()) {
             return $identity;
         }
 
