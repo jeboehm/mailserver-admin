@@ -21,4 +21,13 @@ enum SenderMode: string
     case Fixed = 'fixed';
     /** Any owned address, chosen per call, defaulting to the primary address. */
     case Any = 'any';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Primary => 'Primary address only',
+            self::Fixed => 'A fixed address',
+            self::Any => 'Any of my addresses',
+        };
+    }
 }

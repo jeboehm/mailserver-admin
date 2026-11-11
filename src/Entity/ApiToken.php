@@ -12,6 +12,7 @@ namespace App\Entity;
 
 use App\Repository\ApiTokenRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderBinding;
 use App\Service\ApiToken\SenderMode;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -78,20 +79,17 @@ class ApiToken
         string $secretHash,
         array $scopes,
         \DateTimeImmutable $expiresAt,
-        SenderMode $senderMode = SenderMode::Primary,
-        ?string $senderAddress = null,
+        ?SenderBinding $sender = null,
     ) {
-        if ((SenderMode::Fixed === $senderMode) !== (null !== $senderAddress && '' !== $senderAddress)) {
-            throw new \InvalidArgumentException('A fixed sender needs an address, and only a fixed sender has one.');
-        }
+        $sender ??= SenderBinding::primary();
 
         $this->owner = $owner;
         $this->name = $name;
         $this->secretHash = $secretHash;
         $this->scopes = array_map(static fn (ApiTokenScope $scope): string => $scope->value, $scopes);
         $this->expiresAt = $expiresAt;
-        $this->senderMode = $senderMode;
-        $this->senderAddress = null === $senderAddress || '' === $senderAddress ? null : mb_strtolower($senderAddress);
+        $this->senderMode = $sender->mode;
+        $this->senderAddress = $sender->address;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -140,21 +138,16 @@ class ApiToken
     }
 
     /**
-     * Whether the sender mode matters: only mail:send and mail:draft write mail as someone.
+     * @return SenderBinding|null null for a token that neither sends nor drafts, where the sender does
+     *                            not matter
      */
-    public function usesSender(): bool
+    public function getSender(): ?SenderBinding
     {
-        return array_any(ApiTokenScope::SENDER_BOUND, $this->hasScope(...));
-    }
+        if (!ApiTokenScope::anySenderBound($this->getScopes())) {
+            return null;
+        }
 
-    public function getSenderMode(): SenderMode
-    {
-        return $this->senderMode;
-    }
-
-    public function getSenderAddress(): ?string
-    {
-        return $this->senderAddress;
+        return new SenderBinding($this->senderMode, $this->senderAddress);
     }
 
     public function getCreatedAt(): \DateTimeImmutable

@@ -17,6 +17,7 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Repository\ApiTokenRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderBinding;
 use App\Service\ApiToken\SenderMode;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -271,7 +272,7 @@ class ApiTokenPagesTest extends WebTestCase
     }
 
     /**
-     * @return iterable<string, array{list<string>, array<string, string>, SenderMode, ?string}>
+     * @return iterable<string, array{list<string>, array<string, string>, ?SenderMode, ?string}>
      */
     public static function senderChoices(): iterable
     {
@@ -280,7 +281,7 @@ class ApiTokenPagesTest extends WebTestCase
         yield 'fixed primary for drafting' => [['mail:draft'], ['senderMode' => 'fixed', 'senderAddress' => self::REGULAR_USER], SenderMode::Fixed, self::REGULAR_USER];
         yield 'any drops the address' => [['mail:send', 'mail:draft'], ['senderMode' => 'any', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Any, null];
         yield 'primary drops the address' => [['mail:send'], ['senderMode' => 'primary', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Primary, null];
-        yield 'ignored without sending or drafting' => [['manage:read'], ['senderMode' => 'fixed', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Primary, null];
+        yield 'ignored without sending or drafting' => [['manage:read'], ['senderMode' => 'fixed', 'senderAddress' => 'plain-alias@example.com'], null, null];
     }
 
     /**
@@ -288,15 +289,15 @@ class ApiTokenPagesTest extends WebTestCase
      * @param array<string, string> $sender
      */
     #[DataProvider('senderChoices')]
-    public function testTokenGetsTheChosenSender(array $scopes, array $sender, SenderMode $mode, ?string $address): void
+    public function testTokenGetsTheChosenSender(array $scopes, array $sender, ?SenderMode $mode, ?string $address): void
     {
         $this->submitNewToken(self::REGULAR_USER, 'with sender', $scopes, $sender);
 
         self::assertResponseIsSuccessful();
         $token = static::getContainer()->get(ApiTokenRepository::class)->findOneBy(['name' => 'with sender']);
         self::assertInstanceOf(ApiToken::class, $token);
-        self::assertSame($mode, $token->getSenderMode());
-        self::assertSame($address, $token->getSenderAddress());
+        self::assertSame($mode, $token->getSender()?->mode);
+        self::assertSame($address, $token->getSender()?->address);
     }
 
     /**
@@ -551,8 +552,7 @@ class ApiTokenPagesTest extends WebTestCase
             ApiToken::hashSecret('secret of ' . $name),
             $scopes,
             new \DateTimeImmutable('+1 day'),
-            $mode,
-            $address,
+            new SenderBinding($mode, $address),
         ));
         $this->entityManager()->flush();
     }

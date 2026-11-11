@@ -64,15 +64,16 @@
                             when you create it. Your addresses are your primary address and every alias that forwards to it. The choice
                             cannot be changed later; create a new token instead.
                         </p>
+                        {% set senderMode = enum('App\\Service\\ApiToken\\SenderMode') %}
                         <dl class="mb-0">
-                            <dt data-mcp-sender-mode>Primary address only</dt>
+                            <dt data-mcp-sender-mode>{{ senderMode.Primary.label }}</dt>
                             <dd>The default. Every mail uses your primary address.</dd>
-                            <dt data-mcp-sender-mode>A fixed address</dt>
+                            <dt data-mcp-sender-mode>{{ senderMode.Fixed.label }}</dt>
                             <dd>
                                 Every mail uses the address you pick. If it stops being one of your addresses, for example because
                                 the alias is deleted, the token refuses to send or draft until the alias is back. The token list marks it.
                             </dd>
-                            <dt data-mcp-sender-mode>Any of my addresses</dt>
+                            <dt data-mcp-sender-mode>{{ senderMode.Any.label }}</dt>
                             <dd class="mb-0">
                                 The agent picks one of your addresses per mail with <code>from_address</code>, and gets your primary
                                 address without it. <code>whoami</code> lists the addresses it may use.

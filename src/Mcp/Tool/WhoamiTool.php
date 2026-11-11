@@ -57,18 +57,19 @@ final readonly class WhoamiTool
             ),
         ];
 
-        if (!$token->usesSender()) {
+        $sender = $token->getSender();
+
+        if (null === $sender) {
             return $identity;
         }
 
-        $sendAs = ['mode' => $token->getSenderMode()->value];
-        $address = $token->getSenderAddress();
+        $sendAs = ['mode' => $sender->mode->value];
 
-        if (SenderMode::Fixed === $token->getSenderMode() && null !== $address) {
-            $sendAs['address'] = $address;
+        if (null !== $sender->address) {
+            $sendAs['address'] = $sender->address;
         }
 
-        if (SenderMode::Any === $token->getSenderMode()) {
+        if (SenderMode::Any === $sender->mode) {
             $sendAs['addresses'] = $this->ownedAddresses->of($actor->user);
         }
 

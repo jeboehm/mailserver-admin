@@ -33,9 +33,9 @@ final readonly class ApiTokenIssuer
 
     /**
      * @param list<ApiTokenScope> $scopes
-     * @param int|null            $lifetimeDays  defaults to the maximum
-     * @param string|null         $senderAddress used by SenderMode::Fixed only, and must be one the caller checked the
-     *                                           owner owns
+     * @param int|null            $lifetimeDays defaults to the maximum
+     * @param SenderBinding|null  $sender       defaults to the primary address; a fixed address must be one the
+     *                                          caller checked the owner owns
      *
      * @throws \InvalidArgumentException
      */
@@ -44,8 +44,7 @@ final readonly class ApiTokenIssuer
         string $name,
         array $scopes,
         ?int $lifetimeDays = null,
-        SenderMode $senderMode = SenderMode::Primary,
-        ?string $senderAddress = null,
+        ?SenderBinding $sender = null,
     ): IssuedApiToken {
         $lifetimeDays ??= $this->maxLifetimeDays;
 
@@ -58,12 +57,8 @@ final readonly class ApiTokenIssuer
         }
 
         // A token that neither sends nor drafts keeps the default, so it gains nothing if it ever does.
-        if (!array_any($scopes, static fn (ApiTokenScope $scope): bool => \in_array($scope, ApiTokenScope::SENDER_BOUND, true))) {
-            $senderMode = SenderMode::Primary;
-        }
-
-        if (SenderMode::Fixed !== $senderMode) {
-            $senderAddress = null;
+        if (!ApiTokenScope::anySenderBound($scopes)) {
+            $sender = null;
         }
 
         $secret = self::SECRET_PREFIX . bin2hex(random_bytes(32));
@@ -73,8 +68,7 @@ final readonly class ApiTokenIssuer
             ApiToken::hashSecret($secret),
             $scopes,
             new \DateTimeImmutable(\sprintf('+%d days', $lifetimeDays)),
-            $senderMode,
-            $senderAddress,
+            $sender,
         );
 
         $this->entityManager->persist($token);
