@@ -29,6 +29,9 @@ enum ApiTokenScope: string
      */
     public const array PRESELECTED = [self::ManageRead, self::MailRead];
 
+    /** The scopes whose mail goes out under the sender mode of the token. */
+    public const array SENDER_BOUND = [self::MailSend, self::MailDraft];
+
     public function description(): string
     {
         return match ($this) {

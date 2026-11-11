@@ -139,6 +139,14 @@ class ApiToken
         return \in_array($scope, $this->getScopes(), true);
     }
 
+    /**
+     * Whether the sender mode matters: only mail:send and mail:draft write mail as someone.
+     */
+    public function usesSender(): bool
+    {
+        return array_any(ApiTokenScope::SENDER_BOUND, $this->hasScope(...));
+    }
+
     public function getSenderMode(): SenderMode
     {
         return $this->senderMode;

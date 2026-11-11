@@ -33,12 +33,20 @@ final readonly class ApiTokenIssuer
 
     /**
      * @param list<ApiTokenScope> $scopes
-     * @param int|null            $lifetimeDays defaults to the maximum
+     * @param int|null            $lifetimeDays  defaults to the maximum
+     * @param string|null         $senderAddress used by SenderMode::Fixed only, and must be one the caller checked the
+     *                                           owner owns
      *
      * @throws \InvalidArgumentException
      */
-    public function issue(User $owner, string $name, array $scopes, ?int $lifetimeDays = null): IssuedApiToken
-    {
+    public function issue(
+        User $owner,
+        string $name,
+        array $scopes,
+        ?int $lifetimeDays = null,
+        SenderMode $senderMode = SenderMode::Primary,
+        ?string $senderAddress = null,
+    ): IssuedApiToken {
         $lifetimeDays ??= $this->maxLifetimeDays;
 
         if ($lifetimeDays < 1 || $lifetimeDays > $this->maxLifetimeDays) {
@@ -49,6 +57,15 @@ final readonly class ApiTokenIssuer
             throw new \InvalidArgumentException('A token needs at least one scope.');
         }
 
+        // A token that neither sends nor drafts keeps the default, so it gains nothing if it ever does.
+        if (!array_any($scopes, static fn (ApiTokenScope $scope): bool => \in_array($scope, ApiTokenScope::SENDER_BOUND, true))) {
+            $senderMode = SenderMode::Primary;
+        }
+
+        if (SenderMode::Fixed !== $senderMode) {
+            $senderAddress = null;
+        }
+
         $secret = self::SECRET_PREFIX . bin2hex(random_bytes(32));
         $token = new ApiToken(
             $owner,
@@ -56,6 +73,8 @@ final readonly class ApiTokenIssuer
             ApiToken::hashSecret($secret),
             $scopes,
             new \DateTimeImmutable(\sprintf('+%d days', $lifetimeDays)),
+            $senderMode,
+            $senderAddress,
         );
 
         $this->entityManager->persist($token);

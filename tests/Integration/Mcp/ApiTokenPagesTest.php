@@ -11,14 +11,17 @@ declare(strict_types=1);
 namespace Tests\Integration\Mcp;
 
 use App\Controller\User\ApiTokenCrudController;
+use App\Entity\Alias;
 use App\Entity\ApiToken;
 use App\Entity\Domain;
 use App\Entity\User;
 use App\Repository\ApiTokenRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\DomCrawler\Field\ChoiceFormField;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,6 +59,10 @@ class ApiTokenPagesTest extends WebTestCase
         $this->createUser($ownDomain, 'plainuser');
         $this->createUser($ownDomain, 'neighbour');
         $this->createUser($foreignDomain, 'foreignuser');
+        // Owned by plainuser, and the only kinds of alias that are not: another user's, an external one.
+        $this->createAlias($ownDomain, 'plain-alias', self::REGULAR_USER);
+        $this->createAlias($ownDomain, 'shared', self::NEIGHBOUR . ',external@elsewhere.invalid');
+        $this->createAlias($ownDomain, 'team', self::NEIGHBOUR);
         $entityManager->flush();
 
         foreach ([self::ADMIN, self::DOMAIN_ADMIN, self::REGULAR_USER, self::NEIGHBOUR, self::FOREIGN_USER] as $email) {
@@ -181,6 +188,109 @@ class ApiTokenPagesTest extends WebTestCase
     }
 
     /**
+     * @return iterable<string, array{string, list<string>}>
+     */
+    public static function ownedAddresses(): iterable
+    {
+        yield 'user' => [self::REGULAR_USER, [self::REGULAR_USER, 'plain-alias@example.com']];
+        yield 'domain admin' => [self::DOMAIN_ADMIN, [self::DOMAIN_ADMIN]];
+        yield 'admin' => [self::ADMIN, [self::ADMIN]];
+    }
+
+    /**
+     * @param list<string> $expected
+     */
+    #[DataProvider('ownedAddresses')]
+    public function testFixedSenderOffersExactlyTheOwnedAddresses(string $actor, array $expected): void
+    {
+        $this->client->loginUser($this->findUser($actor), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token/new');
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(
+            $expected,
+            $crawler->filter('select[name="api_token[senderAddress]"] option')->each(static fn (Crawler $option): string => (string) $option->attr('value')),
+        );
+    }
+
+    /**
+     * The browser shows the sender fields only while mail:send or mail:draft is ticked, and the address
+     * only for a fixed sender. Without a browser, this checks that the page asks it to.
+     */
+    public function testSenderChoiceIsTiedToTheSendingScopes(): void
+    {
+        $this->client->loginUser($this->findUser(self::REGULAR_USER), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token/new');
+
+        $form = $crawler->filter('form[name="api_token"][data-controller~="api-token-sender"]');
+        self::assertCount(1, $form);
+        self::assertSame(
+            ['mail:send', 'mail:draft'],
+            $form->filter('[data-api-token-sender-target="scope"][data-sends-mail="true"]')->each(static fn (Crawler $box): string => (string) $box->attr('value')),
+        );
+        self::assertCount(1, $form->filter('[data-api-token-sender-target="sender"] input[name="api_token[senderMode]"][value="primary"][checked]'));
+        self::assertCount(1, $form->filter('[data-api-token-sender-target="address"] select[name="api_token[senderAddress]"]'));
+    }
+
+    /**
+     * @return iterable<string, array{list<string>, array<string, string>, SenderMode, ?string}>
+     */
+    public static function senderChoices(): iterable
+    {
+        yield 'primary is the default' => [['mail:send'], [], SenderMode::Primary, null];
+        yield 'fixed alias for sending' => [['mail:send'], ['senderMode' => 'fixed', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Fixed, 'plain-alias@example.com'];
+        yield 'fixed primary for drafting' => [['mail:draft'], ['senderMode' => 'fixed', 'senderAddress' => self::REGULAR_USER], SenderMode::Fixed, self::REGULAR_USER];
+        yield 'any drops the address' => [['mail:send', 'mail:draft'], ['senderMode' => 'any', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Any, null];
+        yield 'primary drops the address' => [['mail:send'], ['senderMode' => 'primary', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Primary, null];
+        yield 'ignored without sending or drafting' => [['manage:read'], ['senderMode' => 'fixed', 'senderAddress' => 'plain-alias@example.com'], SenderMode::Primary, null];
+    }
+
+    /**
+     * @param list<string>          $scopes
+     * @param array<string, string> $sender
+     */
+    #[DataProvider('senderChoices')]
+    public function testTokenGetsTheChosenSender(array $scopes, array $sender, SenderMode $mode, ?string $address): void
+    {
+        $this->submitNewToken(self::REGULAR_USER, 'with sender', $scopes, $sender);
+
+        self::assertResponseIsSuccessful();
+        $token = static::getContainer()->get(ApiTokenRepository::class)->findOneBy(['name' => 'with sender']);
+        self::assertInstanceOf(ApiToken::class, $token);
+        self::assertSame($mode, $token->getSenderMode());
+        self::assertSame($address, $token->getSenderAddress());
+    }
+
+    /**
+     * @return iterable<string, array{string, array<string, string>}>
+     */
+    public static function refusedSenders(): iterable
+    {
+        yield 'alias of a neighbour' => [self::REGULAR_USER, ['senderMode' => 'fixed', 'senderAddress' => 'team@example.com']];
+        yield 'alias shared with an external address' => [self::REGULAR_USER, ['senderMode' => 'fixed', 'senderAddress' => 'shared@example.com']];
+        yield 'another user' => [self::REGULAR_USER, ['senderMode' => 'fixed', 'senderAddress' => self::NEIGHBOUR]];
+        yield 'domain admin, a user of their domain' => [self::DOMAIN_ADMIN, ['senderMode' => 'fixed', 'senderAddress' => self::REGULAR_USER]];
+        yield 'admin, a user of another domain' => [self::ADMIN, ['senderMode' => 'fixed', 'senderAddress' => self::FOREIGN_USER]];
+        yield 'fixed without an address' => [self::REGULAR_USER, ['senderMode' => 'fixed', 'senderAddress' => '']];
+        yield 'unknown mode' => [self::REGULAR_USER, ['senderMode' => 'everyone']];
+    }
+
+    /**
+     * @param array<string, string> $sender
+     */
+    #[DataProvider('refusedSenders')]
+    public function testSenderTheActorDoesNotOwnIsRefused(string $actor, array $sender): void
+    {
+        $crawler = $this->submitNewToken($actor, 'crafted', ['mail:send'], $sender);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+        self::assertNotCount(0, $crawler->filter('.is-invalid[name^="api_token[sender"]'), 'The sender field is marked.');
+        self::assertNull(static::getContainer()->get(ApiTokenRepository::class)->findOneBy(['name' => 'crafted']));
+    }
+
+    /**
      * @return iterable<string, array{string, string}>
      */
     public static function permittedRevocations(): iterable
@@ -299,6 +409,38 @@ class ApiTokenPagesTest extends WebTestCase
         $this->entityManager()->persist($user);
 
         return $user;
+    }
+
+    /**
+     * Posts the form as a crafted request could, without the browser's checks of the choices.
+     *
+     * @param list<string>          $scopes
+     * @param array<string, string> $sender
+     */
+    private function submitNewToken(string $actor, string $name, array $scopes, array $sender): Crawler
+    {
+        $this->client->loginUser($this->findUser($actor), 'main');
+        $crawler = $this->client->request(Request::METHOD_GET, '/api-token/new');
+        $values = $crawler->filter('form[name="api_token"]')->form()->getPhpValues();
+        self::assertIsArray($values['api_token']);
+
+        $values['api_token']['name'] = $name;
+        $values['api_token']['scopes'] = $scopes;
+
+        foreach ($sender as $field => $value) {
+            $values['api_token'][$field] = $value;
+        }
+
+        return $this->client->request(Request::METHOD_POST, '/api-token/new', $values);
+    }
+
+    private function createAlias(Domain $domain, string $name, string $destination): void
+    {
+        $alias = new Alias();
+        $alias->setName($name);
+        $alias->setDomain($domain);
+        $alias->setDestination($destination);
+        $this->entityManager()->persist($alias);
     }
 
     private function storeNamedToken(string $email): void
