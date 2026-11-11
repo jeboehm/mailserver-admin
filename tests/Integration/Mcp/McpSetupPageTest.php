@@ -173,6 +173,22 @@ class McpSetupPageTest extends WebTestCase
         self::assertStringContainsString($warnsAbout, $warning->text());
     }
 
+    public function testDescribesTheThreeSenderModes(): void
+    {
+        $this->enableMcp();
+        $this->client = static::createClient();
+        $this->client->loginUser($this->findUser(), 'main');
+
+        $crawler = $this->client->request(Request::METHOD_GET, self::PAGE);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(
+            ['Primary address only', 'A fixed address', 'Any of my addresses'],
+            $crawler->filter('[data-mcp-sender-mode]')->each(static fn (Crawler $mode): string => $mode->text()),
+        );
+        self::assertStringContainsString('from_address', $crawler->filter('[data-mcp-sender-modes]')->text());
+    }
+
     public function testCreatedTokenLinksToTheSetupPageWithoutLeavingTheSecret(): void
     {
         $this->enableMcp();
