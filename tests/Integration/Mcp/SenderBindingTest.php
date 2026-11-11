@@ -219,6 +219,116 @@ class SenderBindingTest extends WebTestCase
         $this->assertNothingHappened();
     }
 
+    public function testAnAnyTokenSendsAsTheChosenAddressEverywhere(): void
+    {
+        $this->domain('example.org');
+        $this->alias('sales', 'example.org', 'admin@example.com');
+
+        $result = $this->call($this->token(SenderMode::Any), self::SEND, ['from_address' => 'Sales@Example.ORG']);
+
+        $smtp = FakeSmtpServer::$current;
+        self::assertInstanceOf(FakeSmtpServer::class, $smtp);
+        self::assertSame('sales@example.org', $result['from']);
+        self::assertSame(['cred#admin@example.com'], $smtp->logins, 'The login stays the owner.');
+        self::assertSame(['sales@example.org'], $smtp->mailFrom);
+        self::assertStringContainsString("From: sales@example.org\r\n", $smtp->data);
+        self::assertIsString($result['message_id']);
+        self::assertMatchesRegularExpression('/^<[0-9a-f]{32}@example\.org>$/', $result['message_id']);
+        self::assertStringContainsString("From: sales@example.org\r\n", FakeImapServer::$current?->sent() ?? '');
+        self::assertStringContainsString('Message-ID: ' . $result['message_id'], FakeImapServer::$current?->sent() ?? '');
+    }
+
+    public function testAnAnyTokenDraftsAsTheChosenAddress(): void
+    {
+        $this->domain('example.org');
+        $this->alias('sales', 'example.org', 'admin@example.com');
+
+        $result = $this->call($this->token(SenderMode::Any), self::DRAFT, ['from_address' => 'Sales@Example.ORG']);
+
+        self::assertSame('sales@example.org', $result['from']);
+        self::assertIsString($result['message_id']);
+        self::assertMatchesRegularExpression('/^<[0-9a-f]{32}@example\.org>$/', $result['message_id']);
+        self::assertStringContainsString("From: sales@example.org\r\n", FakeImapServer::$current?->sent() ?? '');
+        self::assertSame(0, FakeSmtpServer::$current?->connections);
+    }
+
+    #[DataProvider('tools')]
+    public function testAnAnyTokenUsesThePrimaryAddressWithoutFromAddress(string $tool): void
+    {
+        $this->alias('info', 'example.com', 'admin@example.com');
+
+        $result = $this->call($this->token(SenderMode::Any), $tool);
+
+        self::assertSame('admin@example.com', $result['from']);
+        self::assertIsString($result['message_id']);
+        self::assertStringEndsWith('@example.com>', $result['message_id']);
+    }
+
+    #[DataProvider('tools')]
+    public function testAnAnyTokenMayChooseThePrimaryAddress(string $tool): void
+    {
+        self::assertSame('admin@example.com', $this->call($this->token(SenderMode::Any), $tool, ['from_address' => 'admin@example.com'])['from']);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string, string}>
+     */
+    public static function refusedFromAddresses(): iterable
+    {
+        $addresses = [
+            'a display name' => ['Info <info@example.com>', 'plain address'],
+            'two addresses' => ['info@example.com, admin@example.com', 'plain address'],
+            'a header injection' => ["info@example.com\r\nBcc: eve@external.test", 'plain address'],
+            'surrounding spaces' => [' info@example.com ', 'plain address'],
+            'no address at all' => ['info', 'plain address'],
+            'an empty string' => ['', 'plain address'],
+            'another user\'s address' => ['peer@example.com', 'not one of your addresses'],
+            'an alias with an external destination' => ['ext@example.com', 'not one of your addresses'],
+            'an unknown address' => ['nobody@example.com', 'not one of your addresses'],
+        ];
+
+        foreach (self::limitedTools() as $name => [$tool, $limit]) {
+            foreach ($addresses as $case => [$address, $message]) {
+                yield $name . ', ' . $case => [$tool, $limit, $address, $message];
+            }
+        }
+    }
+
+    #[DataProvider('refusedFromAddresses')]
+    public function testAnAnyTokenRefusesAFromAddressThatIsNotPlainOrNotOwned(string $tool, string $limit, string $fromAddress, string $message): void
+    {
+        $this->setEnvironment($limit, '1');
+        self::ensureKernelShutdown();
+        $this->client = static::createClient();
+        $this->servers();
+
+        $this->createUser('peer');
+        $this->alias('info', 'example.com', 'admin@example.com');
+        $this->alias('ext', 'example.com', 'bob@external.test');
+        $secret = $this->token(SenderMode::Any);
+
+        $error = $this->callExpectingError($secret, $tool, ['from_address' => $fromAddress]);
+
+        self::assertStringContainsString($message, $error);
+        $this->assertNothingHappened();
+        self::assertSame(0, $this->shortLivedCredentialCount());
+
+        self::assertSame('info@example.com', $this->call($secret, $tool, ['from_address' => 'info@example.com'])['from'], 'The rate limit is not spent.');
+    }
+
+    #[DataProvider('tools')]
+    public function testTheAuditRecordNamesTheChosenSender(string $tool): void
+    {
+        $this->alias('info', 'example.com', 'admin@example.com');
+
+        $this->call($this->token(SenderMode::Any), $tool, ['from_address' => 'INFO@example.com']);
+
+        $handler = static::getContainer()->get('app.test.mcp_audit_records');
+        $records = array_values(array_filter($handler->getRecords(), static fn (LogRecord $record): bool => $tool === ($record->context['tool'] ?? null)));
+        self::assertCount(1, $records);
+        self::assertSame('info@example.com', $records[0]->context['from']);
+    }
+
     /**
      * What the user owns, as Postfix's email-submission query sees it, narrowed: the address of a
      * fixed token works only if it is owned.
@@ -320,23 +430,26 @@ class SenderBindingTest extends WebTestCase
     }
 
     /**
-     * @return iterable<string, array{list<ApiTokenScope>, SenderMode, string|null, array<string, string>|null}>
+     * @return iterable<string, array{list<ApiTokenScope>, SenderMode, string|null, array<string, string|list<string>>|null}>
      */
     public static function whoami(): iterable
     {
         yield 'send, primary' => [[ApiTokenScope::MailSend], SenderMode::Primary, null, ['mode' => 'primary']];
         yield 'draft, fixed' => [[ApiTokenScope::MailDraft], SenderMode::Fixed, 'info@example.com', ['mode' => 'fixed', 'address' => 'info@example.com']];
+        yield 'send and draft, any' => [[ApiTokenScope::MailSend, ApiTokenScope::MailDraft], SenderMode::Any, null, ['mode' => 'any', 'addresses' => ['admin@example.com', 'info@example.com', 'sales@example.org']]];
         yield 'no mail scope' => [[ApiTokenScope::ManageRead, ApiTokenScope::MailRead], SenderMode::Primary, null, null];
     }
 
     /**
-     * @param list<ApiTokenScope>        $scopes
-     * @param array<string, string>|null $expected
+     * @param list<ApiTokenScope>                     $scopes
+     * @param array<string, string|list<string>>|null $expected
      */
     #[DataProvider('whoami')]
     public function testWhoamiTellsTheSenderOfAMailToken(array $scopes, SenderMode $mode, ?string $bound, ?array $expected): void
     {
         $this->alias('info', 'example.com', 'admin@example.com');
+        $this->alias('sales', 'example.org', 'admin@example.com');
+        $this->alias('ext', 'example.com', 'bob@external.test');
         $secret = $this->storeToken($this->findUser(), $scopes, senderMode: $mode, senderAddress: $bound);
 
         $output = $this->assertToolSucceeded($this->callTool($secret, $this->initialiseSession($secret), 'whoami'));

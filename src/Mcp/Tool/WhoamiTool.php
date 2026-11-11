@@ -14,6 +14,7 @@ use App\Mcp\CurrentApiToken;
 use App\Mcp\ToolAccess;
 use App\Service\ApiToken\ApiTokenScope;
 use App\Service\ApiToken\SenderMode;
+use App\Service\MailSend\OwnedAddresses;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\CurrentActor;
 use Mcp\Capability\Attribute\McpTool;
@@ -24,15 +25,16 @@ final readonly class WhoamiTool
     public function __construct(
         private CurrentActor $currentActor,
         private CurrentApiToken $currentApiToken,
+        private OwnedAddresses $ownedAddresses,
     ) {
     }
 
     /**
-     * @return array{user: string, role: string, domain: string|null, scopes: list<string>, send_as?: array{mode: string, address?: string}}
+     * @return array{user: string, role: string, domain: string|null, scopes: list<string>, send_as?: array{mode: string, address?: string, addresses?: list<string>}}
      */
     #[McpTool(
         name: 'whoami',
-        description: 'Returns the authenticated user, their role and domain, the scopes of this API token and, for a token that sends or drafts mail, the sender it uses.',
+        description: 'Returns the authenticated user, their role and domain, the scopes of this API token and, for a token that sends or drafts mail, the sender it uses: its mode and the address, or for mode "any" the addresses "from_address" accepts.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess]
@@ -64,6 +66,10 @@ final readonly class WhoamiTool
 
         if (SenderMode::Fixed === $token->getSenderMode() && null !== $address) {
             $sendAs['address'] = $address;
+        }
+
+        if (SenderMode::Any === $token->getSenderMode()) {
+            $sendAs['addresses'] = $this->ownedAddresses->of($actor->user);
         }
 
         return [...$identity, 'send_as' => $sendAs];
