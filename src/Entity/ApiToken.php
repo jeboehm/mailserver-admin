@@ -12,6 +12,7 @@ namespace App\Entity;
 
 use App\Repository\ApiTokenRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -46,6 +47,16 @@ class ApiToken
     #[ORM\Column(type: Types::SIMPLE_ARRAY)]
     private array $scopes;
 
+    #[ORM\Column(type: Types::STRING, length: 16, enumType: SenderMode::class, options: ['default' => 'primary'])]
+    private SenderMode $senderMode;
+
+    /**
+     * Only for SenderMode::Fixed. A plain lower-case string rather than a reference: an alias that
+     * goes away leaves the token in place, and it works again once the alias is back.
+     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $senderAddress;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -61,13 +72,26 @@ class ApiToken
     /**
      * @param list<ApiTokenScope> $scopes
      */
-    public function __construct(User $owner, string $name, string $secretHash, array $scopes, \DateTimeImmutable $expiresAt)
-    {
+    public function __construct(
+        User $owner,
+        string $name,
+        string $secretHash,
+        array $scopes,
+        \DateTimeImmutable $expiresAt,
+        SenderMode $senderMode = SenderMode::Primary,
+        ?string $senderAddress = null,
+    ) {
+        if ((SenderMode::Fixed === $senderMode) !== (null !== $senderAddress && '' !== $senderAddress)) {
+            throw new \InvalidArgumentException('A fixed sender needs an address, and only a fixed sender has one.');
+        }
+
         $this->owner = $owner;
         $this->name = $name;
         $this->secretHash = $secretHash;
         $this->scopes = array_map(static fn (ApiTokenScope $scope): string => $scope->value, $scopes);
         $this->expiresAt = $expiresAt;
+        $this->senderMode = $senderMode;
+        $this->senderAddress = null === $senderAddress || '' === $senderAddress ? null : mb_strtolower($senderAddress);
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -113,6 +137,16 @@ class ApiToken
     public function hasScope(ApiTokenScope $scope): bool
     {
         return \in_array($scope, $this->getScopes(), true);
+    }
+
+    public function getSenderMode(): SenderMode
+    {
+        return $this->senderMode;
+    }
+
+    public function getSenderAddress(): ?string
+    {
+        return $this->senderAddress;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

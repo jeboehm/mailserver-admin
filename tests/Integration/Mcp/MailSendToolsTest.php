@@ -123,13 +123,13 @@ class MailSendToolsTest extends WebTestCase
         self::assertSame(0, $smtp->connections);
     }
 
-    public function testNoParameterNamesASender(): void
+    public function testTheOnlySenderParameterIsTheOptionalFromAddress(): void
     {
         $this->servers();
         $secret = $this->storeToken($this->findUser(), [ApiTokenScope::MailSend]);
         $tool = $this->toolDefinition($secret, $this->initialiseSession($secret), 'message_send');
 
-        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc'], array_keys($tool['inputSchema']['properties'] ?? []));
+        self::assertSame(['to', 'subject', 'body', 'cc', 'bcc', 'from_address'], array_keys($tool['inputSchema']['properties'] ?? []));
         self::assertSame('string', $tool['inputSchema']['properties']['to']['items']['type'] ?? null);
     }
 

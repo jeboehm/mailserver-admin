@@ -14,6 +14,7 @@ use App\Entity\ApiToken;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -59,12 +60,18 @@ trait McpClientTrait
      *
      * @param list<ApiTokenScope> $scopes
      */
-    private function storeToken(User $owner, array $scopes = ApiTokenScope::ALL, string $expiry = '+1 day', ?string $secret = null): string
-    {
+    private function storeToken(
+        User $owner,
+        array $scopes = ApiTokenScope::ALL,
+        string $expiry = '+1 day',
+        ?string $secret = null,
+        SenderMode $senderMode = SenderMode::Primary,
+        ?string $senderAddress = null,
+    ): string {
         $secret ??= 'test_' . bin2hex(random_bytes(16));
 
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $entityManager->persist(new ApiToken($owner, 'test token', ApiToken::hashSecret($secret), $scopes, new \DateTimeImmutable($expiry)));
+        $entityManager->persist(new ApiToken($owner, 'test token', ApiToken::hashSecret($secret), $scopes, new \DateTimeImmutable($expiry), $senderMode, $senderAddress));
         $entityManager->flush();
 
         return $secret;

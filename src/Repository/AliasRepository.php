@@ -28,4 +28,22 @@ class AliasRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Alias::class);
     }
+
+    /**
+     * Compared case-insensitively on every engine: PostgreSQL compares case-sensitively by default,
+     * the MySQL collations used so far do not.
+     *
+     * @return list<Alias>
+     */
+    public function findByDestination(string $destination): array
+    {
+        /** @var list<Alias> $aliases */
+        $aliases = $this->createQueryBuilder('alias')
+            ->andWhere('LOWER(alias.destination) = :destination')
+            ->setParameter('destination', mb_strtolower($destination))
+            ->getQuery()
+            ->getResult();
+
+        return $aliases;
+    }
 }

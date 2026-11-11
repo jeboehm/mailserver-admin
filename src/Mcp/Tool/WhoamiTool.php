@@ -13,6 +13,7 @@ namespace App\Mcp\Tool;
 use App\Mcp\CurrentApiToken;
 use App\Mcp\ToolAccess;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\CurrentActor;
 use Mcp\Capability\Attribute\McpTool;
@@ -27,19 +28,20 @@ final readonly class WhoamiTool
     }
 
     /**
-     * @return array{user: string, role: string, domain: string|null, scopes: list<string>}
+     * @return array{user: string, role: string, domain: string|null, scopes: list<string>, send_as?: array{mode: string, address?: string}}
      */
     #[McpTool(
         name: 'whoami',
-        description: 'Returns the authenticated user, their role and domain, and the scopes of this API token.',
+        description: 'Returns the authenticated user, their role and domain, the scopes of this API token and, for a token that sends or drafts mail, the sender it uses.',
         annotations: new ToolAnnotations(readOnlyHint: true, idempotentHint: true, openWorldHint: false),
     )]
     #[ToolAccess]
     public function __invoke(): array
     {
         $actor = $this->currentActor->get();
+        $token = $this->currentApiToken->get();
 
-        return [
+        $identity = [
             'user' => $actor->user->getUserIdentifier(),
             'role' => match ($actor->role) {
                 ActorRole::Admin => 'admin',
@@ -49,8 +51,21 @@ final readonly class WhoamiTool
             'domain' => $actor->user->getDomain()?->getName(),
             'scopes' => array_map(
                 static fn (ApiTokenScope $scope): string => $scope->value,
-                $this->currentApiToken->get()->getScopes(),
+                $token->getScopes(),
             ),
         ];
+
+        if (!$token->hasScope(ApiTokenScope::MailSend) && !$token->hasScope(ApiTokenScope::MailDraft)) {
+            return $identity;
+        }
+
+        $sendAs = ['mode' => $token->getSenderMode()->value];
+        $address = $token->getSenderAddress();
+
+        if (SenderMode::Fixed === $token->getSenderMode() && null !== $address) {
+            $sendAs['address'] = $address;
+        }
+
+        return [...$identity, 'send_as' => $sendAs];
     }
 }
