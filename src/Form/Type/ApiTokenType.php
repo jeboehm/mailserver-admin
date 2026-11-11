@@ -39,8 +39,8 @@ class ApiTokenType extends AbstractType
     {
         $maxLifetimeDays = $options['max_lifetime_days'];
         \assert(\is_int($maxLifetimeDays));
+        /** @var list<string> $ownedAddresses */
         $ownedAddresses = $options['owned_addresses'];
-        \assert(\is_array($ownedAddresses));
 
         $builder
             ->add('name', TextType::class, [
