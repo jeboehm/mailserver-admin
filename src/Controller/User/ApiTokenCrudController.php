@@ -33,6 +33,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -108,6 +109,14 @@ class ApiTokenCrudController extends AbstractCrudController
         }
 
         yield TextField::new('scopeNames', 'Scopes')->setSortable(false);
+        yield Field::new('sender', 'Sender')
+            ->setVirtual(true)
+            ->setSortable(false)
+            ->setTemplatePath('admin/api_token/sender_field.html.twig')
+            // Whether a fixed address is still one of the owner's, checked the way a send checks it.
+            ->formatValue(fn (mixed $value, ApiToken $token): ?bool => $token->usesSender() && SenderMode::Fixed === $token->getSenderMode()
+                ? $this->ownedAddresses->owns($token->getOwner(), (string) $token->getSenderAddress())
+                : null);
         yield DateTimeField::new('createdAt', 'Created');
         yield DateTimeField::new('expiresAt', 'Expires');
         yield DateTimeField::new('lastUsedAt', 'Last used');
