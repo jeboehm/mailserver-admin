@@ -10,7 +10,6 @@ declare(strict_types=1);
 
 namespace App\Service\MailSend;
 
-use App\Entity\User;
 use App\Exception\MailSend\InvalidMailException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Mime\Address;
@@ -19,8 +18,9 @@ use Symfony\Component\Mime\Exception\InvalidArgumentException;
 use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 /**
- * Turns what a caller wants to send into a mail from the user's own address, or refuses it. Nothing
- * here connects anywhere, so a refusal costs no part of a send limit.
+ * Turns what a caller wants to send into a mail from the given sender address, or refuses it. The
+ * caller decides which address that is; the Message-ID is marked with its domain. Nothing here
+ * connects anywhere, so a refusal costs no part of a send limit.
  */
 final readonly class MailComposer
 {
@@ -35,13 +35,14 @@ final readonly class MailComposer
     }
 
     /**
+     * @param string       $sender the From address, which is also the envelope sender
      * @param list<string> $to
      * @param list<string> $cc
      * @param list<string> $bcc
      *
      * @throws InvalidMailException
      */
-    public function compose(User $user, array $to, array $cc, array $bcc, string $subject, string $body): OutgoingMail
+    public function compose(string $sender, array $to, array $cc, array $bcc, string $subject, string $body): OutgoingMail
     {
         $toAddresses = $this->addresses($to);
         $ccAddresses = $this->addresses($cc);
@@ -68,12 +69,12 @@ final readonly class MailComposer
             throw new InvalidMailException('The body must not be empty.');
         }
 
-        $sender = new Address((string) $user);
-        $messageId = \sprintf('%s@%s', bin2hex(random_bytes(16)), substr((string) strrchr($sender->getAddress(), '@'), 1));
+        $from = new Address($sender);
+        $messageId = \sprintf('%s@%s', bin2hex(random_bytes(16)), substr((string) strrchr($from->getAddress(), '@'), 1));
 
         // Message-ID and Date are set here, so the sent message and the Sent copy cannot differ.
         $email = new Email()
-            ->from($sender)
+            ->from($from)
             ->to(...$toAddresses)
             ->cc(...$ccAddresses)
             ->bcc(...$bccAddresses)
