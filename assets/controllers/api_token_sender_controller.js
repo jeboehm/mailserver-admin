@@ -2,8 +2,8 @@ import {Controller} from '@hotwired/stimulus';
 
 /*
  * Shows the sender choice of the API token form only while a scope that sends or drafts mail is
- * ticked, and the address only for a fixed sender. The server ignores both otherwise, so this is
- * only about keeping the form simple.
+ * ticked, and the address only for a fixed sender. The server renders the same initial state and
+ * ignores both fields when they do not apply, so this is only about keeping the form simple.
  */
 /* stimulusFetch: 'lazy' */
 export default class extends Controller {
