@@ -15,6 +15,7 @@ use App\Entity\Domain;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ApiToken\ApiTokenScope;
+use App\Service\ApiToken\SenderMode;
 use App\Service\Mailbox\TlsImapConnectionFactory;
 use App\Service\MailboxCredential\MailboxCredentials;
 use App\Service\MailboxCredential\MailboxProtocol;
@@ -38,7 +39,8 @@ use Tests\Integration\Helper\McpClientTrait;
  * message_send against a real docker-mailserver. Skipped unless MAIL_E2E is set, as it needs a stack
  * and writes to its database.
  *
- * The stack needs the users of its test/fixtures.sh, plus bob@example.com with password test1234,
+ * The stack needs the users and aliases of its test/fixtures.sh (foo@example.com points at
+ * admin@example.com), plus bob@example.com with password test1234,
  * and example.com's DKIM record in its unbound, as Rspamd does not sign without it (see
  * publish_dkim_record in its test/bats/integration/090_dkim.bats). Only use recipients on the stack's
  * own domains, so nothing leaves for the internet. Point the test at it, with Redis as well because
@@ -58,6 +60,7 @@ class MailSendEndToEndTest extends WebTestCase
 
     private const string OWNER = 'admin@example.com';
     private const string OWNER_PASSWORD = 'changeme';
+    private const string OWNER_ALIAS = 'foo@example.com';
     private const string RECIPIENT = 'bob@example.com';
     private const string RECIPIENT_PASSWORD = 'test1234';
     private const string SEND_ONLY = 'sendonly@example.com';
@@ -131,6 +134,30 @@ class MailSendEndToEndTest extends WebTestCase
         self::assertNotNull($copy, 'The copy must be in Sent.');
         self::assertContains('\Seen', $copy['flags']);
         self::assertStringContainsString('Message-ID: ' . $result['message_id'], $copy['raw']);
+        self::assertSame(0, $this->shortLivedCredentialCount());
+    }
+
+    /**
+     * The token logs in as the primary address; Postfix's login map is what lets it send as the alias.
+     */
+    public function testATokenBoundToAnAliasSendsAsTheAlias(): void
+    {
+        $result = $this->send(
+            self::OWNER,
+            ['to' => [self::RECIPIENT], 'subject' => 'Alias ' . bin2hex(random_bytes(6)), 'body' => 'From an alias'],
+            SenderMode::Fixed,
+            self::OWNER_ALIAS,
+        );
+
+        self::assertTrue($result['sent']);
+        self::assertSame(self::OWNER_ALIAS, $result['from']);
+
+        $delivered = $this->waitForMessage(self::RECIPIENT, self::RECIPIENT_PASSWORD, 'INBOX', $result['message_id']);
+
+        self::assertMatchesRegularExpression('/^From: foo@example\.com\r?$/m', $delivered);
+        self::assertMatchesRegularExpression('/^Return-Path: <foo@example\.com>\r?$/mi', $delivered, 'The alias must be the envelope sender.');
+        DkimVerifier::verify($delivered, 'example.com', $this->publicKey('example.com'));
+        self::assertNotNull($this->fetchMessage(self::OWNER, self::OWNER_PASSWORD, 'Sent', $result['message_id']));
         self::assertSame(0, $this->shortLivedCredentialCount());
     }
 
@@ -232,7 +259,7 @@ class MailSendEndToEndTest extends WebTestCase
     }
 
     /**
-     * The tool cannot name a sender, so this goes one level down: Postfix holds the credential to
+     * The tool cannot name a sender the user does not own, so this goes one level down: Postfix holds the credential to
      * its user's address as it does a password.
      */
     public function testACredentialCannotSendFromAForeignAddress(): void
@@ -297,9 +324,9 @@ class MailSendEndToEndTest extends WebTestCase
      *
      * @return array{sent: bool, message_id: string, from: string, recipients: list<string>, sent_copy: array{status: 'saved', mailbox: string}|array{status: 'skipped', reason: string}|array{status: 'failed', temporary: bool, reason: string}}
      */
-    private function send(string $email, array $arguments): array
+    private function send(string $email, array $arguments, SenderMode $senderMode = SenderMode::Primary, ?string $senderAddress = null): array
     {
-        $secret = $this->storeToken($this->user($email), [ApiTokenScope::MailSend]);
+        $secret = $this->storeToken($this->user($email), [ApiTokenScope::MailSend], senderMode: $senderMode, senderAddress: $senderAddress);
         $this->tokenSecrets[] = $secret;
 
         return $this->asSentMail($this->toolOutput($this->callTool($secret, $this->initialiseSession($secret), 'message_send', $arguments)));
