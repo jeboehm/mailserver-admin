@@ -13,7 +13,7 @@ namespace App\Mcp\Security;
 use App\Entity\ApiToken;
 use App\Mcp\CurrentApiToken;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Event\AuthenticationTokenCreatedEvent;
 use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
@@ -22,21 +22,13 @@ use Symfony\Component\Security\Http\Event\LoginSuccessEvent;
  * Carries the API token from the badge to the security token, which the authenticator does not do,
  * and records its last use once authentication has fully succeeded.
  */
-final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriberInterface
+final readonly class ApiTokenAuthenticationSubscriber
 {
     public function __construct(private EntityManagerInterface $entityManager)
     {
     }
 
-    #[\Override]
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            AuthenticationTokenCreatedEvent::class => 'carryApiToken',
-            LoginSuccessEvent::class => 'recordUse',
-        ];
-    }
-
+    #[AsEventListener(event: AuthenticationTokenCreatedEvent::class)]
     public function carryApiToken(AuthenticationTokenCreatedEvent $event): void
     {
         $badge = $event->getPassport()->getBadge(UserBadge::class);
@@ -47,6 +39,7 @@ final readonly class ApiTokenAuthenticationSubscriber implements EventSubscriber
         }
     }
 
+    #[AsEventListener(event: LoginSuccessEvent::class)]
     public function recordUse(LoginSuccessEvent $event): void
     {
         $token = $event->getAuthenticatedToken();
