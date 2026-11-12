@@ -13,11 +13,11 @@ namespace App\Service\Security\User\OAuth;
 use HWI\Bundle\OAuthBundle\Event\GetResponseUserEvent;
 use HWI\Bundle\OAuthBundle\HWIOAuthEvents;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 
-readonly class DenyRegistrationSubscriber implements EventSubscriberInterface
+readonly class DenyRegistrationSubscriber
 {
     public function __construct(
         #[Autowire('%env(bool:OAUTH_ENABLED)%')]
@@ -28,11 +28,7 @@ readonly class DenyRegistrationSubscriber implements EventSubscriberInterface
     ) {
     }
 
-    public static function getSubscribedEvents(): array
-    {
-        return [HWIOAuthEvents::REGISTRATION_INITIALIZE => 'onRegistrationInitialize'];
-    }
-
+    #[AsEventListener(event: HWIOAuthEvents::REGISTRATION_INITIALIZE)]
     public function onRegistrationInitialize(GetResponseUserEvent $event): void
     {
         if (!$this->enabled || !$this->canCreateUser) {

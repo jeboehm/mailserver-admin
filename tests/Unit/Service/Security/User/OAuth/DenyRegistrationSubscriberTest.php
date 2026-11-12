@@ -15,6 +15,7 @@ use HWI\Bundle\OAuthBundle\Event\GetResponseUserEvent;
 use HWI\Bundle\OAuthBundle\HWIOAuthEvents;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -22,12 +23,13 @@ use Twig\Environment;
 
 class DenyRegistrationSubscriberTest extends TestCase
 {
-    public function testGetSubscribedEvents(): void
+    public function testListensToRegistrationInitialize(): void
     {
-        $events = DenyRegistrationSubscriber::getSubscribedEvents();
+        $attributes = new \ReflectionMethod(DenyRegistrationSubscriber::class, 'onRegistrationInitialize')
+            ->getAttributes(AsEventListener::class);
 
-        $this->assertArrayHasKey(HWIOAuthEvents::REGISTRATION_INITIALIZE, $events);
-        $this->assertEquals('onRegistrationInitialize', $events[HWIOAuthEvents::REGISTRATION_INITIALIZE]);
+        $this->assertCount(1, $attributes);
+        $this->assertSame(HWIOAuthEvents::REGISTRATION_INITIALIZE, $attributes[0]->newInstance()->event);
     }
 
     public function testOnRegistrationInitializeWhenOAuthDisabled(): void
