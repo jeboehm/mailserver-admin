@@ -60,7 +60,7 @@
   # superuser named after your Unix account; spell it out, env values are not
   # shell-expanded:
   # env.DATABASE_URL = "postgresql://youruser@127.0.0.1:5432/app?serverVersion=18";
-  env.REDIS_DSN = "redis://localhost:6379/0";
+  env.REDIS_DSN = "redis://localhost:6380/0";
 
   enterShell = ''
       if [[ ! -d vendor ]]; then
