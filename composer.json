@@ -19,7 +19,7 @@
     "hwi/oauth-bundle": "v2.5.0",
     "mcp/sdk": "v0.9.0",
     "nyholm/psr7": "1.8.2",
-    "predis/predis": "v3.7.0",
+    "predis/predis": "v3.7.1",
     "psr/simple-cache": "3.0.0",
     "symfony/asset-mapper": "*",
     "symfony/console": "v8.1.11",
