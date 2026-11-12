@@ -21,6 +21,17 @@
         "symfony/*",
         "easycorp/*"
       ]
+    },
+    {
+      "description": "Rector runs on the PHPStan it requires, so update both together",
+      "groupName": "phpstan packages",
+      "groupSlug": "phpstan-packages",
+      "matchDatasources": [
+        "packagist"
+      ],
+      "matchPackageNames": [
+        "rector/rector"
+      ]
     }
   ],
   "postUpdateOptions": [
