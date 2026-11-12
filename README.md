@@ -19,6 +19,10 @@ authentication.
 - **DNS Setup Wizard**: A wizard to help you set up your DNS records for your mail server.
 - **iOS/MacOS Profile**: Generates iOS/macOS email profiles for your mail server.
 - **Observability**: Monitoring and statistics for Dovecot and Rspamd services.
+- **MCP Server**: Connect AI agents such as Claude Code, Cursor, VS Code or Codex through the Model Context Protocol. Agents act with your role,
+  within the scopes of their token: manage domains, users and aliases, read your mailbox, save drafts and send mail.
+- **API Tokens**: Create, list and revoke the tokens agents sign in with. Each token has its own scopes, lifetime and sender: your primary
+  address, a fixed address, or any of your addresses.
 
 ## Documentation
 
@@ -48,3 +52,15 @@ You can find the documentation for `mailserver-admin` in the [docker-mailserver 
 ### Observability
 
 ![Observability for Rspamd](https://jeboehm.github.io/docker-mailserver/images/admin/obs_rspamd.png)
+
+### MCP: Connect an agent
+
+![MCP setup with scopes and sender modes](docs/images/mcp_setup.png)
+
+![MCP client configuration](docs/images/mcp_clients.png)
+
+### API Tokens
+
+![Create an API token](docs/images/api_token_create.png)
+
+![API token list](docs/images/api_token_list.png)
