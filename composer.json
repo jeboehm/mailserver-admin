@@ -47,7 +47,7 @@
   },
   "require-dev": {
     "dama/doctrine-test-bundle": "^v8.2.0",
-    "friendsofphp/php-cs-fixer": "v3.95.27",
+    "friendsofphp/php-cs-fixer": "v3.95.30",
     "phpstan/phpstan": "2.3.5",
     "phpstan/phpstan-doctrine": "2.1.2",
     "phpstan/phpstan-phpunit": "2.1.1",
