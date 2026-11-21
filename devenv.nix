@@ -3,14 +3,10 @@
 {
   languages.php.enable = true;
   languages.php.package = pkgs.php84.buildEnv {
-    extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql pdo_pgsql xdebug ];
+    extensions = { all, enabled }: with all; enabled ++ [ redis pdo_mysql pdo_pgsql ];
     extraConfig = ''
       memory_limit = -1
       max_execution_time = 0
-      xdebug.mode = debug
-      xdebug.client_port = 9003
-      xdebug.start_with_request = yes
-      xdebug.discover_client_host = true
       opcache.enable = false
     '';
   };
@@ -64,7 +60,7 @@
 
   enterShell = ''
       if [[ ! -d vendor ]]; then
-          composer install
+          composer install --no-scripts
       fi
   '';
 }
