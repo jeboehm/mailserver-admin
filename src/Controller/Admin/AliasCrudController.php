@@ -16,11 +16,15 @@ use App\Service\Security\Access\AliasPolicy;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\DomainScopePolicy;
 use App\Service\Security\Roles;
+use App\Service\Security\Voter\AliasModifyVoter;
 use App\Service\Security\Voter\DomainAdminVoter;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -86,6 +90,41 @@ class AliasCrudController extends GuardedDeleteCrudController
     }
 
     #[\Override]
+    public function configureActions(Actions $actions): Actions
+    {
+        $actor = $this->currentActor->get();
+        $aliasPolicy = $this->aliasPolicy;
+        $offerDeleteIfAllowed = static fn (Action $action): Action => $action->displayIf(static fn (Alias $alias) => $aliasPolicy->canDelete($actor, $alias));
+
+        return parent::configureActions($actions)
+            ->setPermission(Action::EDIT, AliasModifyVoter::MODIFY)
+            ->update(Crud::PAGE_INDEX, Action::DELETE, $offerDeleteIfAllowed)
+            ->update(Crud::PAGE_DETAIL, Action::DELETE, $offerDeleteIfAllowed);
+    }
+
+    /**
+     * Refuses a new alias on an admin's address, and a rename onto one: the edit permission only
+     * covers the address the alias had before.
+     */
+    #[\Override]
+    public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        \assert($entityInstance instanceof Alias);
+        $this->denyUnlessCanUseAddress($entityInstance);
+
+        parent::persistEntity($entityManager, $entityInstance);
+    }
+
+    #[\Override]
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        \assert($entityInstance instanceof Alias);
+        $this->denyUnlessCanUseAddress($entityInstance);
+
+        parent::updateEntity($entityManager, $entityInstance);
+    }
+
+    #[\Override]
     public function createIndexQueryBuilder(
         SearchDto $searchDto,
         EntityDto $entityDto,
@@ -105,5 +144,10 @@ class AliasCrudController extends GuardedDeleteCrudController
         \assert($entity instanceof Alias);
 
         $this->aliasPolicy->denyUnlessCanDelete($this->currentActor->get(), $entity);
+    }
+
+    private function denyUnlessCanUseAddress(Alias $alias): void
+    {
+        $this->aliasPolicy->denyUnlessCanUseAddress($this->currentActor->get(), $alias->getDomain(), $alias->getName());
     }
 }
