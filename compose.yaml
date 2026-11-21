@@ -1,0 +1,134 @@
+# Development environment of mailserver-admin, with the docker-mailserver
+# services it manages. MySQL instead of PostgreSQL:
+#
+#     docker compose -f compose.yaml -f compose.mysql.yaml up
+#
+# Values are written out here on purpose: Compose would interpolate ${…} from
+# the repository's .env, which belongs to Symfony. Settings of the application
+# itself live in .env.dev, so they never reach the test environment. Local
+# changes go in compose.override.yaml, which is not committed.
+
+x-db: &db
+  DB_DRIVER: pgsql
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_NAME: mailserver
+  DB_USER: mailserver
+  DB_PASSWORD: mailserver
+  DB_SERVER_VERSION: 18
+
+x-php: &php
+  build:
+    context: docker/frankenphp
+    args:
+      UID: 1000
+      GID: 1000
+  image: mailserver-admin-dev
+  volumes:
+    - .:/app
+    - composer-cache:/home/app/.composer/cache
+  extra_hosts:
+    - host.docker.internal:host-gateway
+
+services:
+  php:
+    <<: *php
+    environment:
+      <<: *db
+      # .env ships with the releases and says prod. phpunit forces test.
+      APP_ENV: dev
+      # Built from the DB_* variables, as in the image of docker-mailserver. CI
+      # and phpunit only see DATABASE_URL, REDIS_HOST and REDIS_PORT, so the
+      # test environment matches CI.
+      DATABASE_URL: "%env(DB_DRIVER)%://%env(DB_USER)%:%env(DB_PASSWORD)%@%env(DB_HOST)%:%env(DB_PORT)%/%env(DB_NAME)%?serverVersion=%env(DB_SERVER_VERSION)%"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - 127.0.0.1:8000:8000
+    depends_on:
+      tls:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+
+  # Writes tls/tls.crt and tls/tls.key once; mda, mta and the mobileconfig
+  # signing use them.
+  tls:
+    <<: *php
+    command: ["composer", "run", "create-tls"]
+    restart: "no"
+
+  postgres:
+    image: postgres:18-alpine@sha256:ff64c9e3bdf8e2120107d3559de8db314e8305f7e38c5105903c6295876738ff
+    environment:
+      POSTGRES_DB: mailserver
+      POSTGRES_USER: mailserver
+      POSTGRES_PASSWORD: mailserver
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  redis:
+    image: redis:8-alpine@sha256:7958cfbb9d152f87dadfbc89f1b0b15938f0b81ff8982feb327476f4911935c3
+
+  mda:
+    image: jeboehm/mailserver-mda:latest
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      <<: *db
+      # Shared with DOVEADM_API_KEY and RSPAMD_PASSWORD in .env.dev.
+      DOVEADM_API_KEY: doveadm
+      CONTROLLER_PASSWORD: rspamd
+    # Dovecot runs as uid 1000 and writes its runtime configuration here.
+    tmpfs:
+      - /run/dovecot:mode=0755,uid=1000,gid=1000
+    volumes:
+      - vmail:/srv/vmail
+      - ./tls:/etc/dovecot/tls:ro
+    depends_on:
+      tls:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+
+  mta:
+    image: jeboehm/mailserver-mta:latest
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      <<: *db
+    volumes:
+      - ./tls:/etc/postfix/tls:ro
+    depends_on:
+      tls:
+        condition: service_completed_successfully
+      mda:
+        condition: service_started
+      filter:
+        condition: service_started
+
+  # Rspamd. The name is the one docker-mailserver's defaults point at.
+  filter:
+    image: jeboehm/mailserver-filter:latest
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    environment:
+      CONTROLLER_PASSWORD: rspamd
+      # Docker's embedded resolver, in place of docker-mailserver's unbound.
+      RSPAMD_DNS_SERVERS: round-robin:127.0.0.11:53
+    volumes:
+      - filter-data:/var/lib/rspamd
+    depends_on:
+      redis:
+        condition: service_started
+
+volumes:
+  composer-cache:
+  postgres-data:
+  vmail:
+  filter-data:

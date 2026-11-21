@@ -37,3 +37,14 @@ when@prod:
                     adapter: cache.app
                 doctrine.system_cache_pool:
                     adapter: cache.system
+
+# Tests run against their own database. The end-to-end tests against a real
+# docker-mailserver set TEST_DATABASE_SUFFIX empty, as Dovecot reads the
+# stack's database.
+when@test:
+    parameters:
+        env(TEST_DATABASE_SUFFIX): '_test'
+
+    doctrine:
+        dbal:
+            dbname_suffix: '%env(TEST_DATABASE_SUFFIX)%'

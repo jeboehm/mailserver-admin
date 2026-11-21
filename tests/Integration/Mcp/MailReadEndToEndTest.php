@@ -38,7 +38,7 @@ use Tests\Integration\Helper\McpClientTrait;
  * The stack needs the users of its test/fixtures.sh, plus bob@example.com with password test1234.
  * Point the test at it:
  *
- *     MAIL_E2E=1 MDA_IMAPS_ADDRESS=127.0.0.1:<port> DATABASE_URL=<the stack's database> \
+ *     MAIL_E2E=1 MDA_IMAPS_ADDRESS=127.0.0.1:<port> DATABASE_URL=<the stack's database> TEST_DATABASE_SUFFIX= \
  *         vendor/bin/phpunit tests/Integration/Mcp/MailReadEndToEndTest.php
  *
  * No rollback: Dovecot has to see the credentials, so they must be committed.
