@@ -1,0 +1,44 @@
+# Switches the application and the mail services from PostgreSQL to MySQL:
+#
+#     docker compose -f compose.yaml -f compose.mysql.yaml up
+#
+# PostgreSQL keeps running alongside, as in CI.
+
+x-db: &db
+  DB_DRIVER: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  # root, so that the entrypoint can create the test database.
+  DB_USER: root
+  DB_PASSWORD: mailserver
+  DB_SERVER_VERSION: 8.4
+
+services:
+  php:
+    environment:
+      <<: *db
+    depends_on:
+      mysql:
+        condition: service_started
+
+  mda:
+    environment:
+      <<: *db
+    depends_on:
+      mysql:
+        condition: service_started
+
+  mta:
+    environment:
+      <<: *db
+
+  mysql:
+    image: mysql:8.4@sha256:a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902
+    environment:
+      MYSQL_DATABASE: mailserver
+      MYSQL_ROOT_PASSWORD: mailserver
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:

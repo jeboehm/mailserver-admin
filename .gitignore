@@ -24,12 +24,8 @@
 /_coverage
 ###< phpunit/phpunit ###
 
-# Devenv
-.devenv*
-devenv.local.nix
-
-# direnv
-.direnv
+# Docker Compose
+compose.override.yaml
 
 ###> phpstan/phpstan ###
 phpstan.neon

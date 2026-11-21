@@ -32,6 +32,16 @@
       "matchPackageNames": [
         "rector/rector"
       ]
+    },
+    {
+      "description": "The dev environment runs docker-mailserver's latest images, unpinned",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "jeboehm/mailserver-*"
+      ],
+      "enabled": false
     }
   ],
   "postUpdateOptions": [

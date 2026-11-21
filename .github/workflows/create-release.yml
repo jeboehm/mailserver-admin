@@ -67,15 +67,15 @@ jobs:
             .dockerignore \
             .env.dev \
             .env.test \
-            .envrc \
             .github \
             .gitignore \
             .php-cs-fixer.cache \
             .php-cs-fixer.dist.php \
             assets/ \
             bin/phpunit \
+            compose*.yaml \
             composer.lock \
-            devenv.* \
+            docker/ \
             phpstan.dist.neon \
             phpunit.dist.xml \
             rector.php \

@@ -1,0 +1,13 @@
+{
+	frankenphp
+	# Plain HTTP for development; the only published port is 8000.
+	auto_https off
+}
+
+:8000 {
+	root /app/public
+	encode zstd br gzip
+	# Classic mode: every request boots the kernel, as with PHP-FPM, so
+	# nothing survives from one request to the next.
+	php_server
+}

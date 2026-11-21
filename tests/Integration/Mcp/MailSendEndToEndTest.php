@@ -47,7 +47,7 @@ use Tests\Integration\Helper\McpClientTrait;
  * of the send limits:
  *
  *     MAIL_E2E=1 MDA_IMAPS_ADDRESS=127.0.0.1:<port> MTA_SMTP_SUBMISSION_ADDRESS=127.0.0.1:<port> \
- *         REDIS_HOST=127.0.0.1 REDIS_PORT=<port> REDIS_PASSWORD=<password> DATABASE_URL=<the stack's database> \
+ *         REDIS_HOST=127.0.0.1 REDIS_PORT=<port> REDIS_PASSWORD=<password> DATABASE_URL=<the stack's database> TEST_DATABASE_SUFFIX= \
  *         vendor/bin/phpunit tests/Integration/Mcp/MailSendEndToEndTest.php
  *
  * No rollback: Dovecot and Postfix have to see the credentials, so they must be committed.

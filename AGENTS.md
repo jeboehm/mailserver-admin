@@ -41,14 +41,13 @@ This document provides essential context for AI agents working on the mailserver
 - **PHPStan**: Level max static analysis, with the Symfony, Doctrine and PHPUnit extensions
 - **PHPUnit**: ^12.0 (testing)
 - **Rector**: 2.3.4 (code refactoring)
-- **devenv**: Reproducible development environment (Nix-based)
+- **Docker Compose**: Development environment (`compose.yaml`)
 
 ### Infrastructure
 
 - **MySQL/MariaDB or PostgreSQL**: Database (via Doctrine)
 - **Redis**: Caching and data synchronization
-- **Caddy**: Web server (development)
-- **PHP-FPM**: PHP execution (development)
+- **FrankenPHP**: Web server and PHP runtime (development, classic mode)
 
 ## Architecture Overview
 
@@ -135,59 +134,55 @@ mailserver-admin/
 
 ## Development Environment
 
-### Prerequisites
-
-- **Nix**: Required for devenv
-- **direnv**: Automatically loads development environment
-- **Composer**: PHP dependency management
-
-### Setup
-
-1. **Start development environment**:
-
-   ```bash
-   devenv up
-   ```
-
-   This starts:
-   - PHP 8.4 with Redis, PDO MySQL, PDO PostgreSQL, Xdebug extensions
-   - MySQL database server (PostgreSQL optionally, see devenv.nix)
-   - Redis server
-   - Caddy web server on port 8000
-
-2. **Install dependencies**:
-
-   ```bash
-   composer install
-   ```
-
-3. **Load environment** (via direnv or manually):
-   ```bash
-   eval "$(direnv export bash)"
-   ```
-
-### Important Development Notes
-
-**CRITICAL**: Always load the devenv environment before running commands:
+Docker Compose runs everything; the host needs Docker and nothing else, no PHP.
 
 ```bash
-eval "$(direnv export bash)" && <command>
+docker compose up -d
 ```
 
-This ensures:
+This starts:
 
-- Correct PHP version (8.4)
-- All dependencies available
-- Environment variables properly set
-- Database and Redis connections configured
+- `php`: FrankenPHP with PHP 8.5 (Alpine) on http://localhost:8000, the only published port. Built from `docker/frankenphp/`, it bind-mounts the repository, so `vendor/` and `var/` live on the host
+- `postgres`: PostgreSQL 18, the default database
+- `redis`
+- `mda` (Dovecot), `mta` (Postfix) and `filter` (Rspamd): the docker-mailserver images in `:latest`
+- `tls`: writes `tls/` once with `composer run create-tls`, for mda, mta and the mobileconfig signing
+
+On every start the `php` entrypoint (`docker/frankenphp/docker-entrypoint.sh`) installs missing dependencies, migrates the dev and the test database, seeds an empty one with `example.com`, `admin@example.com` / `changeme` and DKIM, as CI does, and runs `redis:sync`. Log in with that user.
+
+MySQL 8.4 in place of PostgreSQL, for the application and the mail services alike:
+
+```bash
+docker compose -f compose.yaml -f compose.mysql.yaml up -d
+```
+
+`docker compose down -v` resets all data.
+
+### Running commands
+
+**CRITICAL**: Run every PHP command in the `php` container:
+
+```bash
+docker compose exec php <command>
+```
+
+e.g. `docker compose exec php bin/console cache:clear`. The container runs as the host's user (`UID`/`GID` build args, default `1000`).
+
+### Configuration
+
+- `compose.yaml` holds the values of the containers. It never interpolates `${…}`, as Compose would read Symfony's `.env` for that
+- `.env.dev` holds the settings of the application in dev (doveadm, Rspamd, MCP flags). Symfony loads it only with `APP_ENV=dev`, which `compose.yaml` sets, since `.env` ships with the releases and says `prod`
+- The test environment only receives `DATABASE_URL`, `REDIS_HOST` and `REDIS_PORT` from the container, as in CI. Doctrine appends `_test` to the database name there (`config/packages/doctrine.yaml`); the end-to-end tests set `TEST_DATABASE_SUFFIX=` empty
+- Local changes, such as more published ports or `XDEBUG_MODE` for web requests, go in `compose.override.yaml`, which is not committed
 
 ### Development Commands
 
-- **Code Style**: `composer run csfix` (PHP CS Fixer)
-- **Static Analysis**: `composer run phpstan` (PHPStan level max)
-- **Tests**: `composer run test` (PHPUnit)
-- **Refactoring**: `composer run rector` (Rector)
-- **Coverage**: `composer run coverage` (with Xdebug)
+- **Code Style**: `docker compose exec php composer run csfix` (PHP CS Fixer)
+- **Static Analysis**: `docker compose exec php composer run phpstan` (PHPStan level max)
+- **Tests**: `docker compose exec php composer run test` (PHPUnit)
+- **Refactoring**: `docker compose exec php composer run rector` (Rector)
+- **Coverage**: `docker compose exec -e XDEBUG_MODE=coverage php composer run coverage`
+- **Debugging**: `docker compose exec -e XDEBUG_MODE=debug -e XDEBUG_SESSION=1 php <command>`. Xdebug connects to `host.docker.internal:9003`; it is off otherwise, and OPcache is disabled
 
 ## Code Standards
 
@@ -251,7 +246,7 @@ This ensures:
 
 - **Unit Tests**: `tests/Unit/` - Isolated component testing
 - **Integration Tests**: `tests/Integration/` - Full stack testing
-- **Test Environment**: Uses `.env.test` configuration
+- **Test Environment**: Uses `.env.test` configuration and the database with the suffix `_test`
 - **Database**: Uses `dama/doctrine-test-bundle` for transaction rollback
 
 ## Environment Variables
@@ -346,7 +341,7 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 4. Test rollback of your own migration: `php bin/console doctrine:migrations:migrate prev`.
    Rolling back further does not work: three of the 2018 migrations never got a
    `down()`, so `AbstractMigration` aborts there.
-5. Test against both engines, MySQL and PostgreSQL
+5. Test against both engines, MySQL and PostgreSQL (`compose.mysql.yaml`)
 
 The migrations up to `Version20250403142933` describe the history of a MySQL
 schema that started out as a pre-2018 `virtual_*` schema. They are guarded twice:
@@ -392,7 +387,7 @@ idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 
 ## Important Notes for AI Agents
 
-1. **Always use devenv**: Commands must run within the devenv environment
+1. **Always use the `php` container**: Run commands with `docker compose exec php <command>`
 2. **Strict Types**: All PHP files must declare strict types
 3. **Service Layer**: Business logic belongs in services, not controllers
 4. **Doctrine**: Use Entity API, not direct database queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with
