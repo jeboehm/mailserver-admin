@@ -3,7 +3,7 @@
 # docker-mailserver.
 FROM composer:2@sha256:50ea4d33fdcde1adb0f045547295faa1548b33872e5f789dae5b02ce2fb5de93 AS composer
 
-FROM dunglas/frankenphp:1-php8.5-alpine@sha256:45b44e677ae199015523e2e4d4a3543cf852d15e9c2aa6dca0f441a959f749dc AS dev
+FROM dunglas/frankenphp:1-php8.5-alpine@sha256:8a71903362459768627d4b2af9cfb9bb0dfe4fe822cc486e265930f00c111ca6 AS dev
 
 ARG UID=1000
 ARG GID=1000
