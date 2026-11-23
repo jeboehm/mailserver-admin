@@ -12,6 +12,7 @@ namespace Tests\Unit\Service\Security\Access;
 
 use App\Entity\Alias;
 use App\Entity\Domain;
+use App\Repository\UserRepository;
 use App\Service\Security\Access\ActorRole;
 use App\Service\Security\Access\AliasPolicy;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -38,7 +39,7 @@ class AliasPolicyTest extends TestCase
     {
         $domain = $this->domain();
         $actor = $this->actor($role, $domain);
-        $policy = new AliasPolicy();
+        $policy = new AliasPolicy($this->createStub(UserRepository::class));
 
         self::assertSame($ownDomain, $policy->canDelete($actor, $this->alias($domain)));
         self::assertSame($foreignDomain, $policy->canDelete($actor, $this->alias($this->domain('foreign.example'))));
@@ -48,7 +49,7 @@ class AliasPolicyTest extends TestCase
     {
         $this->expectException(AccessDeniedException::class);
 
-        new AliasPolicy()->denyUnlessCanDelete(
+        new AliasPolicy($this->createStub(UserRepository::class))->denyUnlessCanDelete(
             $this->actor(ActorRole::DomainAdmin, $this->domain()),
             $this->alias($this->domain('foreign.example'))
         );
@@ -59,7 +60,7 @@ class AliasPolicyTest extends TestCase
     {
         $domain = $this->domain();
 
-        new AliasPolicy()->denyUnlessCanDelete($this->actor(ActorRole::DomainAdmin, $domain), $this->alias($domain));
+        new AliasPolicy($this->createStub(UserRepository::class))->denyUnlessCanDelete($this->actor(ActorRole::DomainAdmin, $domain), $this->alias($domain));
     }
 
     private function alias(Domain $domain): Alias

@@ -17,10 +17,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 final readonly class AliasPolicy
 {
-    /**
-     * Without a repository, no address counts as an admin's.
-     */
-    public function __construct(private ?UserRepository $users = null)
+    public function __construct(private UserRepository $users)
     {
     }
 
@@ -31,7 +28,7 @@ final readonly class AliasPolicy
     public function canUseAddress(Actor $actor, ?Domain $domain, string $name): bool
     {
         return $actor->managesDomain($domain)
-            && ($actor->isAdmin() || !$this->users?->isAdminAddress($name, $domain));
+            && ($actor->isAdmin() || !$this->users->isAdminAddress($name, $domain));
     }
 
     /**
