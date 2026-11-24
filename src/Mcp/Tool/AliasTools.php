@@ -108,7 +108,8 @@ final readonly class AliasTools
 
         $this->auditLog->target('alias', $this->address($alias));
 
-        ToolDeniedException::unlessAllowed($alias, fn (Alias $alias): bool => $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $alias->getName()));
+        ToolDeniedException::unlessAllowed($alias, fn (Alias $alias): bool => $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $alias->getName())
+            && $this->aliasPolicy->canUseDestination($actor, $alias->getDestination()));
         $this->writer->validate($alias);
         $this->writer->save($alias);
 
@@ -134,9 +135,10 @@ final readonly class AliasTools
         $alias = $this->findManaged($actor, $id);
 
         // Checked before the new values are applied: a refusal must leave the stored alias as it is.
-        // Both the address it has now and the one it would get must be free for the actor.
+        // Both the address and destination it has now and the ones it would get must be free for the actor.
         ToolDeniedException::unlessAllowed($alias, fn (Alias $alias): bool => $this->aliasPolicy->canModify($actor, $alias)
-            && $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $name ?? $alias->getName()));
+            && $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $name ?? $alias->getName())
+            && $this->aliasPolicy->canUseDestination($actor, $destination ?? $alias->getDestination()));
 
         if (null !== $name) {
             $alias->setName($name);
