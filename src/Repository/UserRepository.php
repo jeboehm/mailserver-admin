@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Domain;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -54,6 +55,29 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         $user = $qb->getQuery()->getOneOrNullResult();
 
         return $user;
+    }
+
+    /**
+     * Whether the address is that of a user with the admin flag. Reads the stored state, so it does
+     * not matter what a form already did to an entity.
+     */
+    public function isAdminAddress(string $localPart, ?Domain $domain): bool
+    {
+        if (null === $domain) {
+            return false;
+        }
+
+        $qb = $this->createQueryBuilder('user');
+        $qb
+            ->select('COUNT(user.id)')
+            ->andWhere($qb->expr()->eq('user.name', ':localPart'))
+            ->andWhere($qb->expr()->eq('user.domain', ':domain'))
+            ->andWhere($qb->expr()->eq('user.admin', ':admin'))
+            ->setParameter('localPart', mb_strtolower($localPart))
+            ->setParameter('domain', $domain)
+            ->setParameter('admin', true);
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
 
     #[\Override]

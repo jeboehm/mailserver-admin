@@ -108,6 +108,7 @@ final readonly class AliasTools
 
         $this->auditLog->target('alias', $this->address($alias));
 
+        ToolDeniedException::unlessAllowed($alias, fn (Alias $alias): bool => $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $alias->getName()));
         $this->writer->validate($alias);
         $this->writer->save($alias);
 
@@ -129,7 +130,13 @@ final readonly class AliasTools
     #[ToolAccess(scope: ApiTokenScope::ManageWrite, minimumRole: ActorRole::DomainAdmin, target: 'alias:{id}')]
     public function update(int $id, ?string $name = null, ?string $destination = null): array
     {
-        $alias = $this->findManaged($this->currentActor->get(), $id);
+        $actor = $this->currentActor->get();
+        $alias = $this->findManaged($actor, $id);
+
+        // Checked before the new values are applied: a refusal must leave the stored alias as it is.
+        // Both the address it has now and the one it would get must be free for the actor.
+        ToolDeniedException::unlessAllowed($alias, fn (Alias $alias): bool => $this->aliasPolicy->canModify($actor, $alias)
+            && $this->aliasPolicy->canUseAddress($actor, $alias->getDomain(), $name ?? $alias->getName()));
 
         if (null !== $name) {
             $alias->setName($name);
