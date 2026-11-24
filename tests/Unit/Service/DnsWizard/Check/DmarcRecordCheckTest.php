@@ -52,7 +52,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['v=DMARC1; p=none']);
 
@@ -75,7 +75,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com']);
 
@@ -92,7 +92,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn([]);
 
@@ -110,7 +110,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['some other txt record']);
 
@@ -128,7 +128,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['some other txt record', 'v=DMARC1; p=none', 'another record']);
 
@@ -145,7 +145,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['v=dmarc1; p=none']);
 
@@ -162,7 +162,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['  v=DMARC1; p=none  ']);
 
@@ -179,7 +179,7 @@ class DmarcRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('_dmarc.example.com')
             ->willReturn(['']);
 

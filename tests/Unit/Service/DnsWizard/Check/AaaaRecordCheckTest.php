@@ -42,11 +42,11 @@ class AaaaRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], ['2001:db8::1'], true);
         $expectedAll = ['2001:db8::1'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn([]);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::1']);
 
@@ -68,11 +68,11 @@ class AaaaRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], ['2001:db8::1'], true);
         $expectedAll = ['2001:db8::1'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn([]);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::2']);
 
@@ -89,11 +89,11 @@ class AaaaRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], ['2001:db8::1'], true);
         $expectedAll = ['2001:db8::1'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::1']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::2']);
 
@@ -110,11 +110,11 @@ class AaaaRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], [], true);
         $expectedAll = [];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn([]);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::1']);
 
@@ -132,11 +132,11 @@ class AaaaRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], [], true);
         $expectedAll = ['2001:db8::1'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['2001:db8::1']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn([]);
 

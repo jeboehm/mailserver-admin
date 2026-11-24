@@ -42,11 +42,11 @@ class ARecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn([]);
 
@@ -68,11 +68,11 @@ class ARecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['5.6.7.8']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn([]);
 
@@ -89,11 +89,11 @@ class ARecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['5.6.7.8']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
@@ -110,11 +110,11 @@ class ARecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], [], true);
         $expectedAll = [];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn([]);
 
@@ -132,11 +132,11 @@ class ARecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps([], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mail.example.com')
             ->willReturn(['1.2.3.4']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mail.example.com')
             ->willReturn([]);
 
