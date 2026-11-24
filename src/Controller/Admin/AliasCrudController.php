@@ -103,8 +103,8 @@ class AliasCrudController extends GuardedDeleteCrudController
     }
 
     /**
-     * Refuses a new alias on an admin's address, and a rename onto one: the edit permission only
-     * covers the address the alias had before.
+     * Refuses a new alias on an admin's address or to an admin's destination, and a change onto one:
+     * the edit permission only covers the values the alias had before.
      */
     #[\Override]
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
@@ -148,6 +148,9 @@ class AliasCrudController extends GuardedDeleteCrudController
 
     private function denyUnlessCanUseAddress(Alias $alias): void
     {
-        $this->aliasPolicy->denyUnlessCanUseAddress($this->currentActor->get(), $alias->getDomain(), $alias->getName());
+        $actor = $this->currentActor->get();
+
+        $this->aliasPolicy->denyUnlessCanUseAddress($actor, $alias->getDomain(), $alias->getName());
+        $this->aliasPolicy->denyUnlessCanUseDestination($actor, $alias->getDestination());
     }
 }

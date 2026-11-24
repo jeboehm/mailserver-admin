@@ -80,6 +80,33 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
 
+    /**
+     * Whether the full address (local part and domain) is that of a user with the admin flag. Unlike
+     * isAdminAddress() it takes the domain by name, as a destination may be on any domain, even one
+     * this installation does not know.
+     */
+    public function isAdminEmailAddress(string $emailAddress): bool
+    {
+        $parts = explode('@', mb_strtolower($emailAddress), 2);
+
+        if (2 !== \count($parts)) {
+            return false;
+        }
+
+        $qb = $this->createQueryBuilder('user');
+        $qb
+            ->select('COUNT(user.id)')
+            ->join('user.domain', 'domain')
+            ->andWhere($qb->expr()->eq('user.name', ':localPart'))
+            ->andWhere($qb->expr()->eq('domain.name', ':domainPart'))
+            ->andWhere($qb->expr()->eq('user.admin', ':admin'))
+            ->setParameter('localPart', $parts[0])
+            ->setParameter('domainPart', $parts[1])
+            ->setParameter('admin', true);
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
     #[\Override]
     public function loadUserByIdentifier(string $identifier): ?UserInterface
     {
