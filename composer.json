@@ -17,7 +17,7 @@
     "doctrine/orm": "3.8.0",
     "easycorp/easyadmin-bundle": "v5.10.2",
     "hwi/oauth-bundle": "v2.6.0",
-    "mcp/sdk": "v0.9.0",
+    "mcp/sdk": "v0.10.0",
     "nyholm/psr7": "1.8.2",
     "predis/predis": "v3.7.1",
     "psr/simple-cache": "3.0.0",
