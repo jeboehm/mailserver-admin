@@ -1,283 +1,89 @@
 # mailserver-admin - AI Agent Context
 
-This document provides essential context for AI agents working on the mailserver-admin project.
+Web administration interface for [docker-mailserver](https://github.com/jeboehm/docker-mailserver): domains, users, aliases, DKIM, fetchmail accounts, API tokens and an MCP endpoint, with a dashboard for Dovecot and Rspamd. PHP >= 8.4, Symfony and EasyAdmin; every other version is pinned in `composer.json`.
 
-## Project Purpose
+## Development workflow
 
-**mailserver-admin** is a web-based administration interface for [docker-mailserver](https://github.com/jeboehm/docker-mailserver). It provides a comprehensive management interface for mail domains, users, aliases, DKIM settings, and fetchmail configurations.
+**Skills.** Install [mattpocock/skills](https://github.com/mattpocock/skills): `claude plugin install mattpocock-skills@claude-plugins-official` (Claude Code) or `npx skills@latest add mattpocock/skills` (other agents). The "Agent skills" section and `docs/agents/*` configure them for this repository (issue tracker, triage labels, domain docs).
 
-### Core Features
+**Full cycle: features and anything with a design decision.**
 
-- **Domain Management**: Add, edit, and delete mail domains
-- **User Management**: Create, update, and remove mail users with password management
-- **Alias Management**: Define mail aliases for email forwarding
-- **DKIM Management**: Configure DKIM settings for email authenticity
-- **Fetchmail Configuration**: Set up and manage Fetchmail for external email retrieval
-- **OAuth2 Integration**: Secure authentication using OAuth2 providers
-- **DNS Setup Wizard**: Interactive wizard for DNS record configuration
-- **Dashboard**: Monitoring and statistics for Dovecot and Rspamd services
+1. `/grill-me`: interview the requester until goal, scope and edge cases are clear.
+2. `/to-spec`: write the spec as a GitHub issue in this repository.
+3. `/to-tickets`: split it into tracer-bullet sub-issues with blocking links.
+4. `/implement-spec`: implement on a branch in a dedicated Git worktree (never on `main`, never in a checkout another agent uses). Use conventional commits. `csfix`, PHPStan and PHPUnit must pass (commands under "Build and test").
+5. `/code-review`: review the branch against `main` (standards and spec) and fix the findings.
+6. `/pr`: write the body and open the PR against `main`.
 
-## Technical Stack
+**Shortcut: bug fixes, chores and minor improvements.** Skip steps 1-3 and start at `/implement-spec`; `/code-review` and `/pr` still apply. There is no spec issue, so the PR description carries the context: what was wrong or missing, why this change, how it was verified. If the shortcut uncovers a design question, stop and go back to step 1. A minor improvement changes no public interface, configuration or data format; anything that does takes the full cycle.
 
-### Core Framework
+**Definition of done.** An open PR that implements the feature or fixes the bug, with CI green (or failures explained in the PR). Then shut down and clean up: `docker compose down -v` (with `-f compose.yaml -f compose.mysql.yaml` if used), `git worktree remove <path>` and delete the local branch (the remote branch stays for the PR).
 
-- **PHP**: >= 8.4 (strict types enabled)
-- **Symfony**: 7.4.x (Framework Bundle, Console, Form, Security, Twig, etc.)
-- **EasyAdmin Bundle**: v4.27.8 (admin interface)
-- **Doctrine ORM**: 3.6.1 (database abstraction)
-- **Doctrine Migrations**: 3.7.0 (database versioning)
+**Documentation PRs.** The user documentation of all three projects lives in `jeboehm/docker-mailserver/docs` (GitHub Pages). When a change affects users in a real way, open a docs PR there, cross-linked with the code PR. It affects users when it adds, changes or removes an environment variable or default, adds a feature or UI page, changes behaviour, adds a console command or option, is a breaking change or needs an upgrade step, adds a port or service, or changes the DB/Redis contract operators see. It does not when it is refactoring, tests, CI, an internal dependency bump or code style.
 
-### Key Dependencies
+## Ground rules
 
-- **HWIOAuthBundle**: v2.4.0 (OAuth2 authentication)
-- **Predis**: v3.3.0 (Redis client)
-- **Symfony Asset Mapper**: Modern asset management
-- **Symfony Stimulus Bundle**: JavaScript framework integration
-- **Symfony UX Chart.js**: Dashboard visualizations
+- **Run every PHP command in the `php` container**: `docker compose exec php <command>`. The host needs Docker only.
+- `declare(strict_types=1);` and the package header comment in every PHP file; PSR-4 namespaces `App\` (`src/`) and `Tests\` (`tests/`).
+- PHPStan at level max, set only in `phpstan.dist.neon`; no baseline, no `ignoreErrors`. Fix the cause.
+- Run `composer run csfix` before committing. CI also runs Rector in dry-run mode on `src/`.
+- Business logic belongs in services, not controllers. Services are `readonly` where possible. Use the Doctrine entity API, not direct queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with.
+- Schema changes need a migration; read "Database migrations" first. Existing migrations are never edited.
+- Roles: `ROLE_ADMIN > ROLE_DOMAIN_ADMIN > ROLE_USER`. Object-level rules live in the policies in `src/Service/Security/Access/`, for the web interface and the MCP tools alike. A domain admin can read a user with the `admin` flag in their domain, but not change or delete them (`UserPolicy::canModify()`, `canDelete()`).
+- Never log or expose DKIM private keys.
+- OAuth is optional: check `OAUTH_ENABLED`. CSRF protection follows `CSRF_ENABLED`.
+- British English in documentation and comments. Conventional commits (`fix:`, `feat:`, `docs:`, ...).
 
-### Development Tools
-
-- **PHP CS Fixer**: v3.93.0 (code style)
-- **PHPStan**: Level max static analysis, with the Symfony, Doctrine and PHPUnit extensions
-- **PHPUnit**: ^12.0 (testing)
-- **Rector**: 2.3.4 (code refactoring)
-- **Docker Compose**: Development environment (`compose.yaml`)
-
-### Infrastructure
-
-- **MySQL/MariaDB or PostgreSQL**: Database (via Doctrine)
-- **Redis**: Caching and data synchronization
-- **FrankenPHP**: Web server and PHP runtime (development, classic mode)
-
-## Architecture Overview
-
-### Service Architecture
-
-The application integrates with multiple external services:
-
-1. **docker-mailserver** (via Dovecot)
-   - User authentication and management
-   - Mailbox operations
-   - Health checks via `doveadm` HTTP API
-
-2. **Rspamd** (Spam filtering)
-   - Statistics and monitoring
-   - Configuration management
-   - Health checks via HTTP API
-
-3. **Redis**
-   - Data synchronization between admin interface and mailserver
-   - Caching for performance
-   - Runtime data storage
-
-4. **Database**
-   - Primary data storage for domains, users, aliases
-   - Doctrine ORM for database operations
-
-### Directory Structure
-
-```
-mailserver-admin/
-├── src/                    # Application source code
-│   ├── Command/           # Symfony console commands
-│   ├── Controller/        # HTTP controllers (Admin, User, Autoconfig, Security)
-│   ├── Entity/            # Doctrine entities (Domain, User, Alias, etc.)
-│   ├── Form/              # Symfony form types
-│   ├── Repository/        # Doctrine repositories
-│   ├── Service/           # Business logic services
-│   │   ├── DKIM/         # DKIM key management and configuration
-│   │   ├── Dovecot/      # Dovecot integration services
-│   │   ├── Rspamd/       # Rspamd integration services
-│   │   ├── FetchmailAccount/  # Fetchmail configuration
-│   │   ├── DnsWizard/    # DNS validation wizard
-│   │   └── Security/     # Authentication and authorization
-│   ├── Subscriber/        # Doctrine event subscribers
-│   ├── Validator/         # Custom validation constraints
-│   └── Twig/             # Twig extensions
-├── tests/                 # Test suite
-│   ├── Unit/             # Unit tests
-│   └── Integration/      # Integration tests
-├── config/                # Symfony configuration
-├── migrations/            # Database migrations
-├── templates/            # Twig templates
-├── public/               # Web root
-├── assets/               # Frontend assets (JavaScript, CSS)
-└── bin/                  # Executable scripts
-```
-
-### Key Services
-
-#### DKIM Services (`src/Service/DKIM/`)
-
-- **KeyGenerationService**: Generates DKIM key pairs
-- **DKIMStatusService**: Checks DKIM configuration status
-- **Config/Manager**: Manages DKIM configuration files
-- **Config/MapGenerator**: Generates configuration maps
-
-#### Dovecot Services (`src/Service/Dovecot/`)
-
-- **DoveadmHttpClient**: HTTP client for Dovecot admin API
-- User management operations
-- Health check integration
-
-#### Rspamd Services (`src/Service/Rspamd/`)
-
-- **RspamdControllerClient**: HTTP client for Rspamd API
-- **RspamdStatsService**: Statistics and monitoring
-- Health check integration
-
-#### Security Services (`src/Service/Security/`)
-
-- **OAuth User Provider**: OAuth2 user authentication
-- Role management (ROLE_ADMIN, ROLE_DOMAIN_ADMIN, ROLE_USER)
-- Password hashing and validation
-
-## Development Environment
-
-Docker Compose runs everything; the host needs Docker and nothing else, no PHP.
+## Build and test
 
 ```bash
 docker compose up -d
 ```
 
-This starts:
+Starts `php` (FrankenPHP on http://localhost:8000, the only published port; built from `docker/frankenphp/`, bind-mounts the repository so `vendor/` and `var/` live on the host), `postgres` (default database), `redis`, `mda` (Dovecot), `mta` (Postfix), `filter` (Rspamd) and `tls` (writes `tls/` once with `composer run create-tls`). On every start the entrypoint (`docker/frankenphp/docker-entrypoint.sh`) installs missing dependencies, migrates the dev and the test database, seeds an empty one with `example.com`, `admin@example.com` / `changeme` and DKIM, and runs `redis:sync`.
 
-- `php`: FrankenPHP with PHP 8.5 (Alpine) on http://localhost:8000, the only published port. Built from `docker/frankenphp/`, it bind-mounts the repository, so `vendor/` and `var/` live on the host
-- `postgres`: PostgreSQL 18, the default database
-- `redis`
-- `mda` (Dovecot), `mta` (Postfix) and `filter` (Rspamd): the docker-mailserver images in `:latest`
-- `tls`: writes `tls/` once with `composer run create-tls`, for mda, mta and the mobileconfig signing
+MySQL in place of PostgreSQL, for the application and the mail services alike: `docker compose -f compose.yaml -f compose.mysql.yaml up -d`. `docker compose down -v` resets all data.
 
-On every start the `php` entrypoint (`docker/frankenphp/docker-entrypoint.sh`) installs missing dependencies, migrates the dev and the test database, seeds an empty one with `example.com`, `admin@example.com` / `changeme` and DKIM, as CI does, and runs `redis:sync`. Log in with that user.
-
-MySQL 8.4 in place of PostgreSQL, for the application and the mail services alike:
-
-```bash
-docker compose -f compose.yaml -f compose.mysql.yaml up -d
-```
-
-`docker compose down -v` resets all data.
-
-### Running commands
-
-**CRITICAL**: Run every PHP command in the `php` container:
-
-```bash
-docker compose exec php <command>
-```
-
-e.g. `docker compose exec php bin/console cache:clear`. The container runs as the host's user (`UID`/`GID` build args, default `1000`).
-
-### Configuration
-
-- `compose.yaml` holds the values of the containers. It never interpolates `${…}`, as Compose would read Symfony's `.env` for that
-- `.env.dev` holds the settings of the application in dev (doveadm, Rspamd, MCP flags). Symfony loads it only with `APP_ENV=dev`, which `compose.yaml` sets, since `.env` ships with the releases and says `prod`
-- The test environment only receives `DATABASE_URL`, `REDIS_HOST` and `REDIS_PORT` from the container, as in CI. Doctrine appends `_test` to the database name there (`config/packages/doctrine.yaml`); the end-to-end tests set `TEST_DATABASE_SUFFIX=` empty
-- Local changes, such as more published ports or `XDEBUG_MODE` for web requests, go in `compose.override.yaml`, which is not committed
-
-### Development Commands
-
-- **Code Style**: `docker compose exec php composer run csfix` (PHP CS Fixer)
-- **Static Analysis**: `docker compose exec php composer run phpstan` (PHPStan level max)
-- **Tests**: `docker compose exec php composer run test` (PHPUnit)
-- **Refactoring**: `docker compose exec php composer run rector` (Rector)
+- **Code style**: `docker compose exec php composer run csfix`
+- **Static analysis**: `docker compose exec php composer run phpstan`
+- **Tests**: `docker compose exec php composer run test`
+- **Rector**: `docker compose exec php composer run rector`
 - **Coverage**: `docker compose exec -e XDEBUG_MODE=coverage php composer run coverage`
-- **Debugging**: `docker compose exec -e XDEBUG_MODE=debug -e XDEBUG_SESSION=1 php <command>`. Xdebug connects to `host.docker.internal:9003`; it is off otherwise, and OPcache is disabled
+- **Debugging**: `docker compose exec -e XDEBUG_MODE=debug -e XDEBUG_SESSION=1 php <command>`. Xdebug connects to `host.docker.internal:9003`; it is off otherwise, and OPcache is disabled.
 
-## Code Standards
+Configuration:
 
-### PHP Coding Standards
+- `compose.yaml` holds the values of the containers. It never interpolates `${…}`, as Compose would read Symfony's `.env` for that.
+- `.env.dev` holds the settings of the application in dev. Symfony loads it only with `APP_ENV=dev`, which `compose.yaml` sets, since `.env` ships with the releases and says `prod`.
+- The test environment only receives `DATABASE_URL`, `REDIS_HOST` and `REDIS_PORT` from the container, as in CI. Doctrine appends `_test` to the database name there (`config/packages/doctrine.yaml`); the end-to-end tests set `TEST_DATABASE_SUFFIX=` empty.
+- Local changes (more published ports, `XDEBUG_MODE` for web requests) go in `compose.override.yaml`, which is not committed.
 
-- **PSR-2**: Base coding standard
-- **Symfony**: Symfony coding standards
-- **Strict Types**: `declare(strict_types=1);` required in all files
-- **Header Comments**: All files must include package header comment
-- **Array Syntax**: Short array syntax `[]` required
-- **Ordered Imports**: Alphabetically ordered imports
-- **Ordered Class Elements**: Consistent class element ordering
+Tests:
 
-### Code Style Configuration
+- `tests/Unit/` and `tests/Integration/` mirror `src/`. Integration tests use `.env.test` and `dama/doctrine-test-bundle` for transaction rollback.
+- Helpers: `tests/Integration/Helper/` (CSRF tokens, user and persisted-ID traits, MCP client and tool-output traits, fake IMAP/SMTP servers, DKIM verifier) and `Tests\Unit\Helper\Limiters` for rate limiters. Look there before writing a new one.
 
-- **PHP CS Fixer**: `.php-cs-fixer.dist.php`
-- **PHPStan**: Level max analysis (`phpstan.dist.neon`, the only place that sets the level). Neither a baseline nor `ignoreErrors` is used
-- **Rector**: Automated refactoring (`rector.php`)
+## Environment variables
 
-### File Structure Standards
+`.env` lists them, `config/services.yaml` holds the defaults, and the operator reference is https://jeboehm.github.io/docker-mailserver/reference/mailserver-admin-config/. Constraints to respect when touching them:
 
-- **Namespace**: `App\` for all application code
-- **Test Namespace**: `Tests\` for all test code
-- **PSR-4 Autoloading**: Standard PSR-4 structure
+- `MCP_ENABLED` (default `false`) switches the MCP endpoint and the API token pages. `MCP_ALLOWED_HOSTS` is matched against the raw `Host` header, so a reverse proxy has to preserve it.
+- `MCP_MAIL_READ_ENABLED` and `MCP_MAIL_SEND_ENABLED` (default `false`) need a docker-mailserver with the `mailbox_credentials` passdb.
+- `MCP_MAIL_MAX_IMAP_SESSIONS` (default `5`): keep it below Dovecot's `mail_max_userip_connections` of 10, which Roundcube shares.
+- `MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE` (default `15`): keep it below Postfix's 20 connections per minute per client address, which Roundcube shares. A third of it is available at once, the rest refills evenly.
+- `MDA_IMAP_TIMEOUT_SECONDS` and `MTA_SMTP_TIMEOUT_SECONDS` (default `25`): keep them well above 15 s, the longest auth penalty.
+- `MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR` is the only draft limit: there is none per user or global, as Postfix is not involved.
 
-## Key Patterns and Conventions
+## Architecture
 
-### Entity Management
+`src/` is organised by layer (`Command`, `Controller`, `Entity`, `Form`, `Repository`, `Service`, `Mcp`, `Subscriber`, `Validator`, `Twig`); `src/Service/<Area>/` holds one area per feature, so list the directory rather than trusting a summary. Areas that carry rules:
 
-- Use Doctrine entities for all database models
-- Repositories extend `ServiceEntityRepository`
-- Use Doctrine migrations for schema changes
+- **DKIM** (`src/Service/DKIM/`): keys and settings reach the mailserver through Redis. `redis:sync` (`RedisSyncCommand`) publishes **only DKIM data and fetchmail accounts**. Postfix and Dovecot read users and aliases from the database, so a change to them needs no Redis sync.
+- **Dovecot and Rspamd clients** (`src/Service/Dovecot/`, `src/Service/Rspamd/`): HTTP clients (doveadm, Rspamd controller), statistics and health checks.
+- **Security and access policies** (`src/Service/Security/`): roles, voters and the policies in `Access/`.
+- **MCP** (`src/Mcp/`, `src/Service/{ApiToken,Mailbox,MailboxCredential,MailSend,MailDraft,McpSetup}/`): see "MCP tools".
 
-### Service Layer
-
-- Services are typically `readonly` classes
-- Dependency injection via constructor
-- Services handle business logic, not controllers
-
-### Controllers
-
-- **Admin Controllers**: EasyAdmin CRUD controllers
-- **User Controllers**: User-facing functionality
-- **Autoconfig Controllers**: Email client autoconfiguration
-
-### Security
-
-- **Role Hierarchy**: `ROLE_ADMIN > ROLE_DOMAIN_ADMIN > ROLE_USER`
-- **Protected admins**: A domain admin can read a user with the `admin` flag in their domain, but not change or delete them. `UserPolicy::canModify()` and `canDelete()` hold the rule for the web interface and the MCP tools.
-- **OAuth2**: Configurable via environment variables
-- **CSRF Protection**: Configurable via `CSRF_ENABLED` env var
-- **Form Login**: Traditional username/password authentication
-
-### Error Handling
-
-- Custom exceptions in `src/Exception/`
-- Domain-specific exceptions (DKIM, Dovecot, Domain)
-- Proper exception hierarchy
-
-### Testing
-
-- **Unit Tests**: `tests/Unit/` - Isolated component testing
-- **Integration Tests**: `tests/Integration/` - Full stack testing
-- **Test Environment**: Uses `.env.test` configuration and the database with the suffix `_test`
-- **Database**: Uses `dama/doctrine-test-bundle` for transaction rollback
-
-## Environment Variables
-
-Key environment variables (see `.env` and `config/services.yaml`):
-
-- `DATABASE_URL`: Database connection string (`mysql://` or `postgresql://`)
-- `REDIS_DSN`: Redis connection string
-- `OAUTH_ENABLED`: Enable/disable OAuth2
-- `OAUTH_BUTTON_TEXT`: OAuth button label
-- `OAUTH_ADMIN_GROUP`: OAuth group for admin role
-- `CSRF_ENABLED`: Enable/disable CSRF protection
-- `RSPAMD_TIMEOUT_MS`: Rspamd API timeout
-- `RSPAMD_CACHE_TTL_SECONDS`: Rspamd cache TTL
-- `MCP_ENABLED`: Enable/disable the MCP endpoint and the API token pages (default `false`)
-- `MCP_ALLOWED_HOSTS`: Comma-separated hosts the MCP endpoint answers for. Matched against the raw `Host` header, so a reverse proxy has to preserve it
-- `MCP_TOKEN_MAX_LIFETIME_DAYS`: Default and maximum lifetime of an API token (default `90`)
-- `MCP_MAIL_READ_ENABLED`: Enable/disable the mail read tools, which need a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
-- `MCP_MAIL_MAX_IMAP_SESSIONS`: Parallel IMAP sessions per user. Keep it below Dovecot's `mail_max_userip_connections` of 10, which Roundcube shares (default `5`)
-- `MCP_MAIL_MESSAGE_MAX_BYTES`: Size limit of the body `message_get` returns (default `65536`)
-- `MCP_MAIL_DRAFT_TOKEN_LIMIT_PER_HOUR`: Drafts per API token for `message_draft`. There is no per-user or global limit, as Postfix is not involved (default `60`)
-- `MDA_IMAPS_ADDRESS`: Dovecot's implicit TLS address as `host:port` (default `mda:31993`)
-- `MDA_IMAP_TIMEOUT_SECONDS`: IMAP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
-- `MCP_MAIL_SEND_ENABLED`: Enable/disable `message_send`, which needs a docker-mailserver with the `mailbox_credentials` passdb (default `false`)
-- `MCP_MAIL_SEND_MAX_RECIPIENTS`: Recipients per mail, across `to`, `cc` and `bcc` (default `20`)
-- `MCP_MAIL_SEND_MAX_BYTES`: Size limit of a sent message as it goes over the wire (default `1048576`)
-- `MCP_MAIL_SEND_TOKEN_LIMIT_PER_HOUR`: Sends per API token (default `30`)
-- `MCP_MAIL_SEND_USER_LIMIT_PER_HOUR`: Sends per user, across their tokens (default `60`)
-- `MCP_MAIL_SEND_GLOBAL_LIMIT_PER_MINUTE`: Sends per rolling minute across everyone. Keep it below Postfix's 20 connections per minute per client address, which Roundcube shares. A third of it is available at once, the rest refills evenly (default `15`)
-- `MTA_SMTP_SUBMISSION_ADDRESS`: Postfix's submission address as `host:port` (default `mta:587`)
-- `MTA_SMTP_TIMEOUT_SECONDS`: SMTP client timeout. Keep it well above 15 s, the longest auth penalty (default `25`)
+Adding things: a new entity needs its repository, a migration, an EasyAdmin CRUD controller in `src/Controller/Admin/` and tests under `tests/Unit/Entity/` and `tests/Integration/Controller/Admin/`. A new service goes into the matching `src/Service/` area with a unit test in `tests/Unit/Service/`.
 
 ## MCP tools
 
@@ -301,44 +107,12 @@ A tool is a service in `App\Mcp\Tool\` with `#[McpTool]` and `#[ToolAccess]` on 
 - `dns_get_record()` cannot be timed out and a domain takes about twenty lookups, so anything validating DNS from a tool goes through `App\Service\DnsWizard\TimeBoxedDnsValidation`.
 - The test environment replaces the DNS resolver with `Tests\Integration\Mcp\Fixture\FakeDnsLookup`, so no test depends on real DNS.
 
-## Integration Points
+## Database migrations
 
-### docker-mailserver Integration
-
-- **Dovecot**: User management, authentication, health checks
-- **Redis Sync**: Synchronizes user/alias data to mailserver
-- **DKIM Keys**: Manages DKIM private keys for mailserver
-- **Fetchmail**: Configures fetchmail accounts
-
-### External Services
-
-- **OAuth2 Provider**: Configurable OAuth2 authentication
-- **DNS**: DNS validation wizard for mail server setup
-- **Mobile Config**: Generates iOS/macOS email profiles
-
-## Common Tasks
-
-### Adding a New Entity
-
-1. Create entity class in `src/Entity/`
-2. Create repository in `src/Repository/`
-3. Generate migration: `php bin/console doctrine:migrations:generate`
-4. Create EasyAdmin CRUD controller in `src/Controller/Admin/`
-5. Add tests in `tests/Unit/Entity/` and `tests/Integration/Controller/Admin/`
-
-### Adding a New Service
-
-1. Create service class in appropriate `src/Service/` subdirectory
-2. Use constructor dependency injection
-3. Make service `readonly` if immutable
-4. Add unit tests in `tests/Unit/Service/`
-
-### Database Migrations
-
-1. Generate: `php bin/console doctrine:migrations:generate`
+1. Generate: `docker compose exec php bin/console doctrine:migrations:generate`
 2. Edit migration in `migrations/`
-3. Test: `php bin/console doctrine:migrations:migrate`
-4. Test rollback of your own migration: `php bin/console doctrine:migrations:migrate prev`.
+3. Test: `docker compose exec php bin/console doctrine:migrations:migrate`
+4. Test rollback of your own migration: `docker compose exec php bin/console doctrine:migrations:migrate prev`.
    Rolling back further does not work: three of the 2018 migrations never got a
    `down()`, so `AbstractMigration` aborts there.
 5. Test against both engines, MySQL and PostgreSQL (`compose.mysql.yaml`)
@@ -378,31 +152,13 @@ is never used to set up a database. Every
 `phpunit` matrix leg migrates an empty database, migrates a second time to prove
 idempotence, gates on `doctrine:migrations:diff`, seeds and then runs the suite.
 
+
 ## Documentation
 
-- **Project README**: `README.md`
-- **Development Guide**: https://jeboehm.github.io/docker-mailserver/development/mailserver-admin/
-- **Configuration Guide**: https://jeboehm.github.io/docker-mailserver/configuration/mailserver-admin/
-- **Administration Docs**: https://jeboehm.github.io/docker-mailserver/administration/
-
-## Important Notes for AI Agents
-
-1. **Always use the `php` container**: Run commands with `docker compose exec php <command>`
-2. **Strict Types**: All PHP files must declare strict types
-3. **Service Layer**: Business logic belongs in services, not controllers
-4. **Doctrine**: Use Entity API, not direct database queries. Exception: `MailboxCredentials` uses DBAL, because a credential's expiry has to come from the database clock that Dovecot compares it with
-5. **Testing**: Maintain high test coverage, especially for services
-6. **Code Style**: Run `composer run csfix` before committing
-7. **Static Analysis**: Ensure PHPStan passes at level max
-8. **Redis Sync**: Changes to users/aliases must sync to Redis for mailserver
-9. **DKIM Keys**: Private keys are stored securely, never expose in logs
-10. **OAuth**: OAuth integration is optional, check `OAUTH_ENABLED` before use
-
-## Project-Specific Conventions
-
-- **British English**: Use British spelling in documentation and comments
-- **Git Commits**: Follow conventional commits (fix:, feat:, docs:, etc.)
-- **Code Quality**: Follow clean code principles, DRY, single responsibility
+- Project README: `README.md`
+- Development guide: https://jeboehm.github.io/docker-mailserver/development/mailserver-admin/
+- Configuration reference: https://jeboehm.github.io/docker-mailserver/reference/mailserver-admin-config/
+- Administration docs: https://jeboehm.github.io/docker-mailserver/administration/dashboard/
 
 ## Agent skills
 
@@ -416,4 +172,4 @@ Uses the default label vocabulary: `needs-triage`, `needs-info`, `ready-for-agen
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily when terms or decisions get resolved. See `docs/agents/domain.md`.
