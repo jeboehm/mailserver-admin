@@ -15,11 +15,14 @@ use App\Entity\FetchmailAccount;
 use App\Service\Security\Access\CurrentActor;
 use App\Service\Security\Access\FetchmailAccountPolicy;
 use App\Service\Security\Roles;
+use App\Service\Security\Voter\FetchmailAccountManageVoter;
 use App\Service\Security\Voter\FetchmailAccountVoter;
 use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection;
 use EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
@@ -63,6 +66,14 @@ class FetchmailAccountController extends GuardedDeleteCrudController
     }
 
     #[\Override]
+    public function configureActions(Actions $actions): Actions
+    {
+        return parent::configureActions($actions)
+            ->setPermission(Action::EDIT, FetchmailAccountManageVoter::MANAGE)
+            ->setPermission(Action::DELETE, FetchmailAccountManageVoter::MANAGE);
+    }
+
+    #[\Override]
     public function configureFields(string $pageName): iterable
     {
         $actor = $this->currentActor->get();
@@ -71,6 +82,7 @@ class FetchmailAccountController extends GuardedDeleteCrudController
             yield AssociationField::new('user')
                 ->setQueryBuilder(function (QueryBuilder $qb) use ($actor): QueryBuilder {
                     $this->fetchmailAccountPolicy->restrictToAssignableOwners($qb, $actor);
+                    $this->fetchmailAccountPolicy->excludeAdminOwners($qb, $actor);
 
                     return $qb;
                 });

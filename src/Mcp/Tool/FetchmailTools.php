@@ -71,7 +71,9 @@ final readonly class FetchmailTools
     #[ToolAccess(scope: ApiTokenScope::ManageRead, target: 'fetchmail:{id}')]
     public function get(int $id): array
     {
-        return $this->present($this->findManaged($this->currentActor->get(), $id));
+        $actor = $this->currentActor->get();
+
+        return $this->present(ToolDeniedException::unlessAllowed($this->accounts->find($id), fn (FetchmailAccount $account): bool => $this->policy->canView($actor, $account)));
     }
 
     /**

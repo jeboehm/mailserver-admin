@@ -54,13 +54,33 @@ final readonly class FetchmailAccountPolicy
         };
     }
 
+    /**
+     * The part of canAssignTo() that restrictToAssignableOwners() leaves out: a domain admin may not
+     * assign accounts to admins. Expects the query's root entity to be User.
+     */
+    public function excludeAdminOwners(QueryBuilder $qb, Actor $actor): void
+    {
+        if ($actor->isAdmin()) {
+            return;
+        }
+
+        $qb->andWhere(\sprintf('%s.admin = false', $qb->getRootAliases()[0]));
+    }
+
+    /**
+     * A domain admin may not change what an admin fetches, even in their own domain: a new host would
+     * receive the password, which stays when it is left out. They can still see these accounts.
+     */
     public function canAssignTo(Actor $actor, User $owner): bool
     {
-        return match (OwnerScope::of($actor)) {
-            OwnerScope::Anyone => true,
-            OwnerScope::OwnDomain => $actor->managesDomain($owner->getDomain()),
-            OwnerScope::OnlyThemselves => $actor->isSelf($owner),
-        };
+        return $this->isInScope($actor, $owner) && ($actor->isAdmin() || !$owner->isAdmin());
+    }
+
+    public function canView(Actor $actor, FetchmailAccount $account): bool
+    {
+        $owner = $account->getUser();
+
+        return null === $owner ? $actor->isAdmin() : $this->isInScope($actor, $owner);
     }
 
     public function canManage(Actor $actor, FetchmailAccount $account): bool
@@ -93,5 +113,14 @@ final readonly class FetchmailAccountPolicy
     public function defaultOwner(Actor $actor): User
     {
         return $actor->user;
+    }
+
+    private function isInScope(Actor $actor, User $owner): bool
+    {
+        return match (OwnerScope::of($actor)) {
+            OwnerScope::Anyone => true,
+            OwnerScope::OwnDomain => $actor->managesDomain($owner->getDomain()),
+            OwnerScope::OnlyThemselves => $actor->isSelf($owner),
+        };
     }
 }
