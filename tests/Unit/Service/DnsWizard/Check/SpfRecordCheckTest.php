@@ -52,7 +52,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['v=spf1 -all']);
 
@@ -75,7 +75,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['v=spf1 ip4:1.2.3.4 -all']);
 
@@ -92,7 +92,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn([]);
 
@@ -110,7 +110,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['some other txt record']);
 
@@ -128,7 +128,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['some other txt record', 'v=spf1 -all', 'another record']);
 
@@ -145,7 +145,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['V=SPF1 -ALL']);
 
@@ -162,7 +162,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['  v=spf1 -all  ']);
 
@@ -179,7 +179,7 @@ class SpfRecordCheckTest extends TestCase
         $domain->setName('example.com');
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupTxt')
+        $this->dns->expects($this->atLeastOnce())->method('lookupTxt')
             ->with('example.com')
             ->willReturn(['']);
 

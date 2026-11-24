@@ -53,7 +53,7 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['mail.example.com']);
 
@@ -77,15 +77,15 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['mx.example.com']);
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mx.example.com')
             ->willReturn(['1.2.3.4']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mx.example.com')
             ->willReturn([]);
 
@@ -104,15 +104,15 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['mx.example.com']);
 
-        $this->dns->method('lookupA')
+        $this->dns->expects($this->atLeastOnce())->method('lookupA')
             ->with('mx.example.com')
             ->willReturn(['5.6.7.8']);
 
-        $this->dns->method('lookupAaaa')
+        $this->dns->expects($this->atLeastOnce())->method('lookupAaaa')
             ->with('mx.example.com')
             ->willReturn([]);
 
@@ -131,7 +131,7 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn([]);
 
@@ -150,7 +150,7 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['mx1.example.com', 'mx2.example.com']);
 
@@ -180,7 +180,7 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['MAIL.EXAMPLE.COM']);
 
@@ -198,7 +198,7 @@ class MxRecordCheckTest extends TestCase
         $mailname = 'mail.example.com';
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupMx')
+        $this->dns->expects($this->atLeastOnce())->method('lookupMx')
             ->with('example.com')
             ->willReturn(['mail.example.com.']);
 

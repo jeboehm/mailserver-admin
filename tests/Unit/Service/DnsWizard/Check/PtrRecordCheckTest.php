@@ -42,7 +42,7 @@ class PtrRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupPtr')
+        $this->dns->expects($this->atLeastOnce())->method('lookupPtr')
             ->with('1.2.3.4')
             ->willReturn(['mail.example.com.']);
 
@@ -64,7 +64,7 @@ class PtrRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupPtr')
+        $this->dns->expects($this->atLeastOnce())->method('lookupPtr')
             ->with('1.2.3.4')
             ->willReturn(['other.example.com.']);
 
@@ -102,7 +102,7 @@ class PtrRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupPtr')
+        $this->dns->expects($this->atLeastOnce())->method('lookupPtr')
             ->with('1.2.3.4')
             ->willReturn(['MAIL.EXAMPLE.COM.']);
 
@@ -118,7 +118,7 @@ class PtrRecordCheckTest extends TestCase
         $expectedHostIps = new ExpectedHostIps(['1.2.3.4'], [], true);
         $expectedAll = ['1.2.3.4'];
 
-        $this->dns->method('lookupPtr')
+        $this->dns->expects($this->atLeastOnce())->method('lookupPtr')
             ->with('1.2.3.4')
             ->willReturn(['mail.example.com']);
 
