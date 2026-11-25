@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c7b4682d986e1ebf6f74d6a199823ae7",
+    "content-hash": "c03fa6b3598dd70da4b82eb89c58cc04",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -234,16 +234,16 @@
         },
         {
             "name": "directorytree/imapengine",
-            "version": "v1.25.9",
+            "version": "v1.27.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/DirectoryTree/ImapEngine.git",
-                "reference": "19618d414c096e509342aab4f5114e83db0c21a9"
+                "reference": "58f7a459c6098ec2d809c4bd828e06b648098ffb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/DirectoryTree/ImapEngine/zipball/19618d414c096e509342aab4f5114e83db0c21a9",
-                "reference": "19618d414c096e509342aab4f5114e83db0c21a9",
+                "url": "https://api.github.com/repos/DirectoryTree/ImapEngine/zipball/58f7a459c6098ec2d809c4bd828e06b648098ffb",
+                "reference": "58f7a459c6098ec2d809c4bd828e06b648098ffb",
                 "shasum": ""
             },
             "require": {
@@ -284,7 +284,7 @@
             ],
             "support": {
                 "issues": "https://github.com/DirectoryTree/ImapEngine/issues",
-                "source": "https://github.com/DirectoryTree/ImapEngine/tree/v1.25.9"
+                "source": "https://github.com/DirectoryTree/ImapEngine/tree/v1.27.0"
             },
             "funding": [
                 {
@@ -292,8 +292,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-04T21:29:36+00:00",
-            "published-time": "2026-11-04T21:30:06+00:00"
+            "time": "2026-11-25T17:09:52+00:00",
+            "published-time": "2026-11-25T17:10:56+00:00"
         },
         {
             "name": "doctrine/collections",
