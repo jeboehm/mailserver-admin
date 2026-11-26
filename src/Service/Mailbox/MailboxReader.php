@@ -94,10 +94,6 @@ final readonly class MailboxReader
             $envelopes = [];
 
             foreach ($connection->fetch($this->envelopeItems(), $page) as $response) {
-                if (!$response instanceof UntaggedResponse) {
-                    continue;
-                }
-
                 $envelope = $this->envelope($this->fetchData($response));
                 $envelopes[$envelope->uid] = $envelope;
             }

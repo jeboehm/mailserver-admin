@@ -12,7 +12,6 @@ namespace App\Service\Mailbox;
 
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
-use DirectoryTree\ImapEngine\Connection\Responses\UntaggedResponse;
 use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Support\Str;
 
@@ -28,10 +27,6 @@ final class ListedMailboxes
         $listed = [];
 
         foreach ($connection->list() as $response) {
-            if (!$response instanceof UntaggedResponse) {
-                continue;
-            }
-
             $attributes = $response->tokenAt(2);
             $name = $response->tokenAt(4);
 

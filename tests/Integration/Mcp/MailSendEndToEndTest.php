@@ -213,7 +213,6 @@ class MailSendEndToEndTest extends WebTestCase
             $marked = [];
 
             foreach ($connection->list() as $response) {
-                self::assertInstanceOf(UntaggedResponse::class, $response);
                 $attributes = $response->tokenAt(2);
                 $name = $response->tokenAt(4);
 

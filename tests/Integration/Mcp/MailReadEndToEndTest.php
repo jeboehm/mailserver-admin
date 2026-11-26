@@ -22,7 +22,6 @@ use App\Service\MailboxCredential\ShortLivedCredential;
 use DAMA\DoctrineTestBundle\PHPUnit\SkipDatabaseRollback;
 use DirectoryTree\ImapEngine\Connection\ImapConnection;
 use DirectoryTree\ImapEngine\Connection\Responses\Data\ListData;
-use DirectoryTree\ImapEngine\Connection\Responses\UntaggedResponse;
 use DirectoryTree\ImapEngine\Connection\Tokens\Token;
 use DirectoryTree\ImapEngine\Exceptions\ImapCommandException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -403,7 +402,6 @@ class MailReadEndToEndTest extends WebTestCase
             $flags = [];
 
             foreach ($connection->fetch(['UID', 'FLAGS'], 1, \INF) as $response) {
-                self::assertInstanceOf(UntaggedResponse::class, $response);
                 $data = $response->tokenAt(3);
                 self::assertInstanceOf(ListData::class, $data);
                 $itemFlags = $data->lookup('FLAGS');
